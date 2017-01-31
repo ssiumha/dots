@@ -1,0 +1,6 @@
+eval `ssh-agent` && ssh-add
+pyenv activate $(pyenv versions --bare | egrep -v '[23]\.\d.\d+' | fzy)
+pyenv deactivate
+git branch --merged | egrep -v "(^\*|master|dev)" | xargs git branch -d
+docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}'
+docker ps | perl -pe 's/\s{2,}/\t/g' | column -ts$'\t'

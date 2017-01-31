@@ -1,0 +1,65 @@
+# vim: filetype=gitconfig
+# use (git 1.7.10+)
+# [include]
+#     path = ~/dotfiles/gitconfig
+[core]
+    editor = vim
+    attributesfile = ~/dotfiles/gitattributes
+    excludesfile = ~/dotfiles/gitignore
+    autocrlf = no
+    quotepath = no
+    precomposeunicode = yes
+[log]
+    date = iso8601
+[help]
+    autocorrect = 1
+[color]
+    ui = true
+[merge]
+    tool = vimdiff
+[branch]
+    autosetuprebase = always
+[push]
+    default = simple
+[interactive]
+    diffFilter = diff-highlight
+[pager]
+    log = diff-highlight | less
+    show = diff-highlight | less
+    diff = diff-highlight | less
+[diff]
+    renames = true
+    tool = vimdiff
+    algorithm = histogram
+    compactionHeuristic = true
+    #renames = true
+[alias]
+    gr = log --graph --oneline --all --decorate --date='format:%y-%m-%d %H:%M' --pretty=format:'%Cgreen%h %Creset%ad %Cblue%an %Cred%d %Creset%s'
+    lg = log --stat --decorate --find-renames
+
+    d = diff
+    ds = diff --staged
+    dw = diff --color-words
+    dws = diff --color-words --staged
+
+    st = status --short --branch
+
+    a = add
+    ap = add --patch
+    ae = add --edit
+
+    c = commit
+    cv = commit -v
+    cva = commit -va
+
+    co = checkout
+    br = branch
+
+    p = pull
+    pp = pull --prune
+    pr = pull --rebase --autostash
+    prp = pull --rebase --prune --autostash
+    pu = push
+    puu = push -u
+    puo = push origin HEAD
+    #echo = !echo testecho
