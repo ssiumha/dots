@@ -60,7 +60,8 @@ export LSCOLORS="Gxfxcxdxbxegedabagacad"
 ls --color -d . &>/dev/null 2>&1 &&
   alias ls='ls --color=tty' || alias ls='ls -G'
 
-alias history='fc -il 1'
+#alias history='fc -il 1'
+alias history='fc -l 1'
 
 if [[ $OSTYPE == msys* ]]; then
   alias ipconfig="winpty ipconfig"
