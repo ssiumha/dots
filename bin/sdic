@@ -1,0 +1,12 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my ($q) = ($ARGV[0]||"");
+
+printf "%s\n", join ', ',
+    map {/word id.*>(.*)<\/daum:word/}
+    grep /num_search/,
+    split '\n',
+    `curl -s 'http://small.dic.daum.net/search.do?q=${q}&dic=eng'`
+        =~ /cleanword_type.+?((<div.+?<\/div>.+?)+)<\/div>/s && $1;
