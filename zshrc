@@ -9,7 +9,7 @@ default_path=${default_path:-$PATH}
 PATH=~/.local/bin:~/dotfiles/bin:$PATH
 
 # ZSH CONFIG
-autoload -Uz compinit && compinit -Cu -d "~/.local/zcompdump"
+autoload -Uz compinit && compinit -C -d "$HOME/.local/zcompdump"
 autoload -Uz colors && colors
 
 #default_fpath=${default_fpath:-$FPATH}
