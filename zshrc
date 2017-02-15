@@ -9,6 +9,22 @@ default_path=${default_path:-$PATH}
 PATH=~/.local/bin:~/dotfiles/bin:$PATH
 
 # ZSH CONFIG
+
+# leave minimum completion {{{
+fpath=(
+  $HOME/.local/zsh/completion
+  ${(@)fpath:#*/Completion/(Linux|Unix|X)}
+)
+
+if [[ ! -f "$HOME/.local/zcompdump" ]]; then
+  for i in {_files,_have_glob_qual,_list_files,_path_files};
+  do
+    cp "/usr/share/zsh/functions/Completion/Unix/$i" "$HOME/.local/zsh/completion/"
+    zcompile "$HOME/.local/zsh/completion/$i"
+  done
+fi
+#}}}
+
 autoload -Uz compinit && compinit -C -d "$HOME/.local/zcompdump"
 autoload -Uz colors && colors
 
