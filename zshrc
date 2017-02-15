@@ -17,7 +17,7 @@ fpath=(
 )
 
 if [[ ! -f "$HOME/.local/zcompdump" ]]; then
-  for i in {_files,_have_glob_qual,_list_files,_path_files};
+  for i in {_files,_have_glob_qual,_list_files,_path_files,_hosts,_path_commands,_path_files};
   do
     cp "/usr/share/zsh/functions/Completion/Unix/$i" "$HOME/.local/zsh/completion/"
     zcompile "$HOME/.local/zsh/completion/$i"
