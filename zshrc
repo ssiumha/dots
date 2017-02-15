@@ -533,26 +533,15 @@ else
   printf_template_var="\033]%d;rgb:%s\033\\"
 fi
 
-printf $printf_template 0  "1d/1f/21" # K 0;30
-printf $printf_template 1  "cb/76/76" # R 0;31     Drak Red
-printf $printf_template 2  "63/b4/63" # G 0;32     ...
-printf $printf_template 3  "ce/95/5b" # Y 0;33
-printf $printf_template 4  "68/91/ba" # B 0;34
-printf $printf_template 5  "9d/81/c6" # M 0;35
-printf $printf_template 6  "52/ba/ba" # C 0;36
-printf $printf_template 7  "73/76/80" # W 0;37     Light Gray
-printf $printf_template 8  "50/50/59" # BK 1;30    Drak Gray
-printf $printf_template 9  "df/a1/ba" # BR 1;31    Light Red
-printf $printf_template 10 "ab/d2/84" # BG 1;32    ...
-printf $printf_template 11 "db/db/70" # BY 1;33
-printf $printf_template 12 "95/ac/da" # BB 1;34
-printf $printf_template 13 "bc/7f/bc" # BM 1;35
-printf $printf_template 14 "7e/c4/a0" # BC 1;36
-printf $printf_template 15 "e1/e1/e1" # BW 1;37    White
+printf $printf_template \
+  0  "1d/1f/21" 1  "cb/76/76" 2  "63/b4/63" 3  "ce/95/5b" \
+  4  "68/91/ba" 5  "9d/81/c6" 6  "52/ba/ba" 7  "73/76/80" \
+  8  "50/50/59" 9  "df/a1/ba" 10 "ab/d2/84" 11 "db/db/70" \
+  12 "95/ac/da" 13 "bc/7f/bc" 14 "7e/c4/a0" 15 "e1/e1/e1"
 
-printf $printf_template_var 10 "e1/e1/e1" # color foreground
-printf $printf_template_var 11 "1d/1f/21" # color background
-printf $printf_template_var 12 "e1/e1/e1" # color cursor
+# fg bg cursor
+printf $printf_template_var \
+  10 "e1/e1/e1" 11 "1d/1f/21" 12 "e1/e1/e1"
 
 unset printf_template
 unset printf_template_var
