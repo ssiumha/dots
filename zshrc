@@ -26,7 +26,6 @@ fi
 #}}}
 
 autoload -Uz compinit && compinit -C -d "$HOME/.local/zcompdump"
-autoload -Uz colors && colors
 
 #default_fpath=${default_fpath:-$FPATH}
 #FPATH=$ZSH/functions:$default_fpath # lower case fpath is array
