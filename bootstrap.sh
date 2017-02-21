@@ -11,7 +11,8 @@ mkdir -p "$HOME/.local/"{repo,bin,vim,zsh/completion}
             https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 
 [[ ! -s "$HOME/.local/bin/diff-highlight" ]] && \
-    wget "https://raw.githubusercontent.com/git/git/master/contrib/diff-highlight/diff-highlight" "$HOME/.local/bin/diff-highlight"
+    curl -fLo "$HOME/.local/bin/diff-highlight" \
+        "https://raw.githubusercontent.com/git/git/master/contrib/diff-highlight/diff-highlight"
 
 [[ ! -s "$HOME/.local/bin/fzy" ]] && \
     git clone "https://github.com/jhawthorn/fzy.git" "$HOME/.local/repo/fzy" && cd "$HOME/.local/repo/fzy" && make && make install -e "PREFIX=$HOME/.local/" && cd -
