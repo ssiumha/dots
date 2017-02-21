@@ -39,6 +39,7 @@ let s:is_term_macvim = !s:is_gui_macvim && has('mac')
 if has('vim_starting')
     let &runtimepath.=','.s:dot_vim_path
     let &runtimepath.=','.s:dot_vim_after_path
+    let &runtimepath.=','.s:local_vim_path
     colorscheme Tomorrow-Night
 
     if s:is_ms_windows

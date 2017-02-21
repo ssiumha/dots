@@ -6,6 +6,10 @@
 
 mkdir -p "$HOME/.local/"{repo,bin,vim,zsh/completion}
 
+[[ ! -s "$HOME/.local/vim/autoload/plug.vim" ]] &&
+    curl -fLo ~/.local/vim/autoload/plug.vim --create-dirs \
+            https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+
 [[ ! -s "$HOME/.local/bin/diff-highlight" ]] && \
     wget "https://raw.githubusercontent.com/git/git/master/contrib/diff-highlight/diff-highlight" "$HOME/.local/bin/diff-highlight"
 
