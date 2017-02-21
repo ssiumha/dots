@@ -40,7 +40,6 @@ if has('vim_starting')
     let &runtimepath.=','.s:dot_vim_path
     let &runtimepath.=','.s:dot_vim_after_path
     let &runtimepath.=','.s:local_vim_path
-    colorscheme Tomorrow-Night
 
     if s:is_ms_windows
         winsize 170 40
@@ -94,6 +93,8 @@ if executable('ctags')
     Plug 'vim-scripts/taglist.vim'
 endif
 
+Plug 'w0ng/vim-hybrid'
+Plug 'chriskempson/vim-tomorrow-theme'
 "Plug 'Lokaltog/vim-easymotion'
 "Plug 'Shougo/unite.vim'
 Plug 'altercation/vim-colors-solarized'
@@ -305,6 +306,7 @@ augroup END
 
 "settings {{{
 syntax on
+colorscheme Tomorrow-Night
 
 if s:is_ms_windows
     set guifont=DejaVu_Sans_Mono:h11:w6:cANSI "download: http://dejavu-fonts.org/wiki/Download
