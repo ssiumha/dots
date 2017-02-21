@@ -477,6 +477,9 @@ precmd() {
   # TODO : %~ coloring. symbolic:cyan(6), current:bold?
   # %F-fg, %K-bg, %S-reverse
   txt="\n"
+  if [[ -n $SSH_CLIENT ]]; then
+    txt+="%K{10} %K{0}"
+  fi
   if [ ! -n "$TMUX" ]; then
     txt+="%K{8} %n@%m %K{0}"
   fi
