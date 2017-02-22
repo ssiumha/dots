@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [[ `tmux -V | awk 'END{if($2>=1.9)exit 0;exit 1}'` ]]; then
+if [[ `tmux -V | awk 'END{print ($2>=1.9)}'` ]]; then
   tmux -- \
     bind c new-window -c "#{pane_current_path}" \; \
     bind \" split-window -v -c "#{pane_current_path}" \; \
