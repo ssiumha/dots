@@ -120,6 +120,7 @@ endif
 "
 "
 Plug 'lambdatoast/elm.vim'
+Plug 'elixir-lang/vim-elixir'
 call plug#end()
 "}}}
 
