@@ -4,7 +4,7 @@
 [[ ! -s "$HOME/.vimrc" ]] && echo "source ~/dotfiles/vimrc" > "$HOME/.vimrc"
 [[ ! -s "$HOME/.zshrc" ]] && echo "source ~/dotfiles/zshrc" > "$HOME/.zshrc"
 
-mkdir -p "$HOME/.local/"{repo,bin,vim,zsh/completion}
+mkdir -p "$HOME/.local/"{repo,bin,vim,zsh/completion,zsh/zplug}
 
 [[ ! -s "$HOME/.local/vim/autoload/plug.vim" ]] &&
     curl -fLo ~/.local/vim/autoload/plug.vim --create-dirs \
@@ -16,3 +16,7 @@ mkdir -p "$HOME/.local/"{repo,bin,vim,zsh/completion}
 
 [[ ! -s "$HOME/.local/bin/fzy" ]] && \
     git clone "https://github.com/jhawthorn/fzy.git" "$HOME/.local/repo/fzy" && cd "$HOME/.local/repo/fzy" && make && make install -e "PREFIX=$HOME/.local/" && cd -
+
+[[ ! -s "$HOME/.local/zsh/zplug/init.zsh" ]] && \
+    printf 'install zplug? [y/N]:' && read -q && echo && \
+    ZPLUG_HOME=$HOME/.local/zsh/zplug curl -sL zplug.sh/installer | zsh

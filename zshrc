@@ -33,8 +33,8 @@ autoload -Uz compinit && compinit -C -d "$HOME/.local/zcompdump"
 #FPATH=$ZSH/functions:$default_fpath # lower case fpath is array
 
 # ZPLUG
-# curl -sL zplug.sh/installer | zsh
-if [[ -s "$HOME/.zplug/init.zsh" ]] && source $HOME/.zplug/init.zsh; then
+export ZPLUG_HOME="$HOME/.local/zsh/zplug"
+if [[ -s "$ZPLUG_HOME/init.zsh" ]] && source "$ZPLUG_HOME/init.zsh"; then
   zplug "zsh-users/zsh-syntax-highlighting", nice:10
 
   zplug "zsh-users/zsh-autosuggestions"
