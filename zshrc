@@ -35,7 +35,7 @@ autoload -Uz compinit && compinit -C -d "$HOME/.local/zcompdump"
 # ZPLUG
 export ZPLUG_HOME="$HOME/.local/zsh/zplug"
 if [[ -s "$ZPLUG_HOME/init.zsh" ]] && source "$ZPLUG_HOME/init.zsh"; then
-  zplug "zsh-users/zsh-syntax-highlighting", nice:10
+  zplug "zsh-users/zsh-syntax-highlighting", defer:3
 
   zplug "zsh-users/zsh-autosuggestions"
 
