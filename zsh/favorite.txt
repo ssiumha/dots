@@ -5,3 +5,4 @@ git branch --merged | egrep -v "(^\*|master|dev)" | xargs git branch -d
 docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}'
 docker ps | perl -pe 's/\s{2,}/\t/g' | column -ts$'\t'
 sort -n -t'.' -k1,1 -k2,2 -k3,3 -k4,4
+git config user.name hassium16 && git config user.email hassium16@gmail.com
