@@ -306,9 +306,6 @@ augroup END
 "}}}
 
 "settings {{{
-syntax on
-colorscheme Tomorrow-Night
-
 if s:is_ms_windows
     set guifont=DejaVu_Sans_Mono:h11:w6:cANSI "download: http://dejavu-fonts.org/wiki/Download
 
@@ -401,10 +398,14 @@ set iminsert=0 imsearch=0 "imdisable
 "set spellfile=~/dotfiles/vim/custom-dictionary.utf-8.add
 "nnoremap zG 2zg
 
+syntax on
+
 set background=dark
 set synmaxcol=1024
 
 syntax sync minlines=100
+
+colorscheme Tomorrow-Night
 "}}}
 
 "normal key mapping {{{
