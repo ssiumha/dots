@@ -252,14 +252,6 @@ augroup filetype_vim
     autocmd FileType vim set foldmethod=marker
 augroup END
 
-if s:is_term_macvim
-    augroup filetype_python
-        autocmd!
-        autocmd FileType python setlocal noexpandtab tabstop=4 shiftwidth=0 softtabstop=-1
-    augroup END
-endif
-
-
 augroup filetype_javascript
     autocmd!
     autocmd FileType javascript setl foldmethod=marker foldmarker={,}
