@@ -21,6 +21,8 @@ if [[ -z $SSH_CLIENT ]]; then
     set -sqa status-right '#(whoami)@#h' \; \
     set -sqa status-right '#[fg=colour15]|' \; \
     set -sqa status-right '#[fg=colour14]%y-%m-%d(%a) %H:%M' \; \
+    set -sq pane-border-fg colour1 \; \
+    set -sq pane-active-border-fg colour9 \; \
   ;
 else
   tmux -- \
