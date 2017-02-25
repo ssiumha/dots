@@ -527,26 +527,26 @@ PS1=$PROMPT
 if [ -n "$TMUX" ]; then
   # tell tmux to pass the escape sequences through
   # (Source: http://permalink.gmane.org/gmane.comp.terminal-emulators.tmux.user/1324)
-  printf_template="\033Ptmux;\033\033]4;%d;rgb:%s\007\033\\"
-  printf_template_var="\033Ptmux;\033\033]%d;rgb:%s\007\033\\"
+  printf_template="\033Ptmux;\033\033]4;%d;#%s\007\033\\"
+  printf_template_var="\033Ptmux;\033\033]%d;#%s\007\033\\"
 elif [ "${TERM%%-*}" = "screen" ]; then
   # GNU screen (screen, screen-256color, screen-256color-bce)
-  printf_template="\033P\033]4;%d;rgb:%s\007\033\\"
-  printf_template_var="\033P\033]%d;rgb:%s\007\033\\"
+  printf_template="\033P\033]4;%d;#%s\007\033\\"
+  printf_template_var="\033P\033]%d;#%s\007\033\\"
 else
-  printf_template="\033]4;%d;rgb:%s\033\\"
-  printf_template_var="\033]%d;rgb:%s\033\\"
+  printf_template="\033]4;%d;#%s\033\\"
+  printf_template_var="\033]%d;#%s\033\\"
 fi
 
 printf $printf_template \
-  0  "1d/1f/21" 1  "cb/76/76" 2  "63/b4/63" 3  "ce/95/5b" \
-  4  "68/91/ba" 5  "9d/81/c6" 6  "52/ba/ba" 7  "73/76/80" \
-  8  "50/50/59" 9  "df/a1/ba" 10 "ab/d2/84" 11 "db/db/70" \
-  12 "95/ac/da" 13 "bc/7f/bc" 14 "7e/c4/a0" 15 "e1/e1/e1"
+  0  "1d1f21" 1  "cb7676" 2  "63b463" 3  "ce955b" \
+  4  "6891ba" 5  "9d81c6" 6  "52baba" 7  "737680" \
+  8  "505059" 9  "dfa1ba" 10 "abd284" 11 "dbdb70" \
+  12 "95acda" 13 "bc7fbc" 14 "7ec4a0" 15 "e1e1e1"
 
 # fg bg cursor
 printf $printf_template_var \
-  10 "e1/e1/e1" 11 "1d/1f/21" 12 "e1/e1/e1"
+  10 "e1e1e1" 11 "1d1f21" 12 "e1e1e1"
 
 unset printf_template
 unset printf_template_var
