@@ -539,10 +539,10 @@ else
 fi
 
 printf $printf_template \
-  0  "1d1f21" 1  "cb7676" 2  "63b463" 3  "ce955b" \
-  4  "6891ba" 5  "9d81c6" 6  "52baba" 7  "737680" \
-  8  "505059" 9  "dfa1ba" 10 "abd284" 11 "dbdb70" \
-  12 "95acda" 13 "bc7fbc" 14 "7ec4a0" 15 "e1e1e1"
+  0  "1d1f21" 1  "b44b4b" 2  "5c9e5c" 3  "ce955b" \
+  4  "3879b7" 5  "905ddb" 6  "1cbfbf" 7  "737680" \
+  8  "505059" 9  "fe93be" 10 "b0ea77" 11 "dbdb70" \
+  12 "95acda" 13 "d47fd4" 14 "7ec4a0" 15 "e1e1e1"
 
 # fg bg cursor
 printf $printf_template_var \
