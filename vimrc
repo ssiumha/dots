@@ -723,4 +723,9 @@ func! s:popup_hint(hints)
     echo out
     echo ''
 endfunc
+
+command! EchoSyntax
+            \ for id in synstack(line('.'), col('.'))
+            \| echomsg synIDattr(id, 'name')
+            \| endfor
 "}}}
