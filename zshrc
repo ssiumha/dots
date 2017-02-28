@@ -550,18 +550,6 @@ printf $printf_template_var \
 
 unset printf_template
 unset printf_template_var
-
-color_test() {
-  #for (( j=0; j<16; j++ )); do
-  for j in {0,8,7,15,1,9,2,10,3,11,4,12,5,13,6,14}; do
-    for (( i=0; i<16; i++ )); do
-      #printf "\e[48;5;${i}m%03d" $i;
-      printf "\e[48;5;${j};38;5;${i}m%02d:Txt" $i;
-      printf '\e[0m';
-      [ ! $((($i - 15) % 8)) -eq 0 ] && printf '' || printf '\n'
-    done
-  done
-}
 # }}}
 
 # SSH AGENT {{{
