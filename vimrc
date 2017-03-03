@@ -503,6 +503,9 @@ nnoremap <space>ptt <esc>:CtrlPBufTag<cr>
 
 nnoremap <space>t <esc>:Tlist<cr>
 
+nnoremap <space>q <esc>:%norm<space>
+vnoremap <space>q :norm<space>
+
 vnoremap <silent> s //e<c-r>=&selection=='exclusive'?'+1':''<cr><cr>
                     \:<c-u>call histdel('search',-1)<bar>let @/=histget('search',-1)<cr>gv
 "}}}
