@@ -1,0 +1,37 @@
+
+== Installation
+
+=== Windows
+
+install msys2 : http://www.msys2.org/
+
+.MSYS2
+[source, sh]
+---------------------------------------------------------------
+setx HOME "d:\home\path\to\use"
+
+pacman -Syu
+
+# restart
+
+pacman -Su
+pacman -S zsh vim git openssh tmux winpty
+
+sed -ie '/db_shell:/cdb_shell: /usr/bin/zsh' /etc/nsswitch.conf
+sed -ie "/db_home:/cdb_home: $HOME" /etc/nsswitch.conf
+
+# restart
+
+# setting dotfiles
+---------------------------------------------------------------
+
+
+=== General
+
+.run home path
+[source, sh]
+-----------------------------------------------
+git clone https://github.com/hassium16/dotfiles
+. ~/dotfiles/bootstrap.sh
+exec zsh
+-----------------------------------------------
