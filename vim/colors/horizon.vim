@@ -9,11 +9,13 @@ let s:colors = [
 func! <sid>H(group, fg, bg, attr)
     let fg = (a:fg is "") ? "none" : a:fg
     let bg = (a:bg is "") ? "none" : a:bg
+    let guifg = (a:fg is "") ? s:colors[15] : s:colors[a:fg]
+    let guibg = (a:bg is "") ? s:colors[0] : s:colors[a:bg]
     let attr = (a:attr is "") ? "none" : a:attr
 
     exec "hi ".a:group
-        \ . " guifg=#".s:colors[fg] . " ctermfg=".fg
-        \ . " guibg=#".s:colors[bg] . " ctermbg=".bg
+        \ . " guifg=#".guifg . " ctermfg=".fg
+        \ . " guibg=#".guibg . " ctermbg=".bg
         \ . " gui=".attr . " cterm=".attr
 endfunc
 func! <sid>L(group, dst_group)
