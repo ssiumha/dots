@@ -1,21 +1,21 @@
 " Color list
 let s:colors = [
-\ "1d1f21", "cb7676", "63b463", "ce955b",
-\ "6891ba", "9d81c6", "52baba", "737680",
-\ "505059", "dfa1ba", "abd284", "dbdb70",
-\ "95acda", "bc7fbc", "7ec4a0", "e1e1e1"
+\ "#1d1f21", "#cb7676", "#63b463", "#ce955b",
+\ "#6891ba", "#9d81c6", "#52baba", "#737680",
+\ "#505059", "#dfa1ba", "#abd284", "#dbdb70",
+\ "#95acda", "#bc7fbc", "#7ec4a0", "#e1e1e1"
 \ ]
 
 func! <sid>H(group, fg, bg, attr)
-    let fg = (a:fg is "") ? "none" : a:fg
-    let bg = (a:bg is "") ? "none" : a:bg
+    let fg = (a:fg is "") ? "NONE" : a:fg
+    let bg = (a:bg is "") ? "NONE" : a:bg
     let guifg = (a:fg is "") ? s:colors[15] : s:colors[a:fg]
     let guibg = (a:bg is "") ? s:colors[0] : s:colors[a:bg]
-    let attr = (a:attr is "") ? "none" : a:attr
+    let attr = (a:attr is "") ? "NONE" : a:attr
 
     exec "hi ".a:group
-        \ . " guifg=#".guifg . " ctermfg=".fg
-        \ . " guibg=#".guibg . " ctermbg=".bg
+        \ . " guifg=".guifg . " ctermfg=".fg
+        \ . " guibg=".guibg . " ctermbg=".bg
         \ . " gui=".attr . " cterm=".attr
 endfunc
 func! <sid>L(group, dst_group)
