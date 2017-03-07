@@ -390,13 +390,10 @@ set iminsert=0 imsearch=0 "imdisable
 "set spellfile=~/dotfiles/vim/custom-dictionary.utf-8.add
 "nnoremap zG 2zg
 
-syntax on
-
-set background=dark
 set synmaxcol=1024
 
-syntax sync minlines=100
-
+syntax on
+set background=dark
 colorscheme Tomorrow-Night
 "}}}
 
