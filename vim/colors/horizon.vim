@@ -3,14 +3,15 @@ let s:colors = [
 \ "#1d1f21", "#cb7676", "#63b463", "#ce955b",
 \ "#6891ba", "#9d81c6", "#52baba", "#737680",
 \ "#505059", "#dfa1ba", "#abd284", "#dbdb70",
-\ "#95acda", "#bc7fbc", "#7ec4a0", "#e1e1e1"
+\ "#95acda", "#bc7fbc", "#7ec4a0", "#e1e1e1",
+\ "#e1e1e1", "#1d1f21", "#e1e1e1"
 \ ]
 
 func! <sid>H(group, fg, bg, attr)
-    let fg = (a:fg is "") ? "NONE" : a:fg
-    let bg = (a:bg is "") ? "NONE" : a:bg
-    let guifg = (a:fg is "") ? s:colors[15] : s:colors[a:fg]
-    let guibg = (a:bg is "") ? s:colors[0] : s:colors[a:bg]
+    let fg = (a:fg is "" || a:fg > 15) ? "NONE" : a:fg
+    let bg = (a:bg is "" || a:bg > 15) ? "NONE" : a:bg
+    let guifg = (a:fg is "") ? "NONE" : s:colors[a:fg]
+    let guibg = (a:bg is "") ? "NONE" : s:colors[a:bg]
     let attr = (a:attr is "") ? "NONE" : a:attr
 
     exec "hi ".a:group
@@ -28,8 +29,8 @@ syntax reset
 
 let g:colors_name = "horizon"
 
-call <sid>H("Normal", "", "", "")
-call <sid>H("Cursor", "", "", "reverse")
+call <sid>H("Normal", "16", "17", "")
+call <sid>H("Cursor", "18", "", "reverse")
 
 
 " Specific Text {{{
