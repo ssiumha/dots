@@ -32,9 +32,10 @@
     tool = vimdiff
     algorithm = histogram
     compactionHeuristic = true
-    #renames = true
 [alias]
-    gr = log --graph --oneline --all --decorate --date='format:%y-%m-%d %H:%M' --pretty=format:'%Cgreen%h %Creset%ad %Cblue%an %Cred%d %Creset%s'
+    gr = log --graph --oneline --all --decorate \
+        --date='format:%y-%m-%d %H:%M' \
+        --pretty=format:'%Cgreen%h %Creset%ad %Cblue%an %Cred%d %Creset%s'
     lg = log --stat --decorate --find-renames
 
     d = diff
