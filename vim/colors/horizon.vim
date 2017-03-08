@@ -81,9 +81,9 @@ end
 
 
 " Diff {{{
-call <sid>H("DiffAdd", "", 10, "")
-call <sid>H("DiffChange", "", 11, "")
-call <sid>H("DiffDelete", "", 9, "")
+call <sid>H("DiffAdd", "", 2, "")
+call <sid>H("DiffChange", "", 3, "")
+call <sid>H("DiffDelete", "", 1, "")
 call <sid>H("DiffText", 5, "", "")
 " }}}
 
