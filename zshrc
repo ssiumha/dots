@@ -70,12 +70,16 @@ export TIME_STYLE=long-iso
 
 export MOSH_ESCAPE_KEY=''
 
-export LS_OPTIONS="--color"
 export LS_COLORS="di=0;34:fi=0:ln=31:pi=5:so=5:bd=5:cd=5:or=31:mi=0:ex=35:ow=0:*.rpm=90"
+
+# BSD COLOR SETTING
+export CLICOLOR=1
 export LSCOLORS="Gxfxcxdxbxegedabagacad"
 
-ls --color -d . &>/dev/null 2>&1 &&
-  alias ls='ls --color=tty' || alias ls='ls -G'
+if [[ "$OSTYPE" != darwin* || $(which ls) != /bin/ls ]]; then
+  export LS_OPTIONS="--color=tty"
+fi
+alias ls="ls $LS_OPTIONS"
 
 #alias history='fc -il 1'
 alias history='fc -l 1'
