@@ -394,7 +394,7 @@ set synmaxcol=1024
 
 syntax on
 set background=dark
-colorscheme Tomorrow-Night
+colorscheme horizon
 "}}}
 
 "normal key mapping {{{
