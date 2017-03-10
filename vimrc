@@ -122,6 +122,9 @@ endif
 Plug 'lambdatoast/elm.vim'
 Plug 'elixir-lang/vim-elixir'
 call plug#end()
+
+set background=dark
+colorscheme horizon
 "}}}
 
 "setup plugin {{{
@@ -391,10 +394,6 @@ set iminsert=0 imsearch=0 "imdisable
 "nnoremap zG 2zg
 
 set synmaxcol=1024
-
-syntax on
-set background=dark
-colorscheme horizon
 "}}}
 
 "normal key mapping {{{
