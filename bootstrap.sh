@@ -14,9 +14,13 @@ mkdir -p "$HOME/.local/"{repo,bin,vim,zsh/completion,zsh/zplug}
     curl -fLo "$HOME/.local/bin/diff-highlight" \
         "https://raw.githubusercontent.com/git/git/master/contrib/diff-highlight/diff-highlight"
 
+[[ ! -s "$HOME/.local/bin/ack" ]] && \
+    curl -fL http://beyondgrep.com/ack-2.14-single-file > $HOME/.local/bin/ack && chmod 0755 $HOME/.local/bin/ack
+
 [[ ! -s "$HOME/.local/bin/fzy" ]] && \
     git clone "https://github.com/jhawthorn/fzy.git" "$HOME/.local/repo/fzy" && cd "$HOME/.local/repo/fzy" && make && make install -e "PREFIX=$HOME/.local/" && cd -
 
 [[ ! -s "$HOME/.local/zsh/zplug/init.zsh" ]] && \
     printf 'install zplug? [y/N]:' && read -q && echo && \
     ZPLUG_HOME=$HOME/.local/zsh/zplug curl -sL zplug.sh/installer | zsh
+
