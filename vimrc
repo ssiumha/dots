@@ -103,7 +103,6 @@ Plug 'itchyny/lightline.vim'
 Plug 'ctrlpvim/ctrlp.vim'
 Plug 'mileszs/ack.vim'
 Plug 'mrtazz/simplenote.vim'
-"Plug 'scrooloose/nerdtree'
 Plug 'tpope/vim-vinegar'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-surround'
@@ -172,7 +171,7 @@ let g:ctrlp_custom_ignore = {
     \}
 
 
-let NERDTreeIgnore=['\.pyc$', '\~$', '\.meta$']
+let g:netrw_list_hide = '\.pyc$,\~$,\.meta$'
 
 let g:validator_auto_open_quickfix = 0
 let g:validator_python_checkers = ['flake8']
@@ -489,8 +488,8 @@ if s:is_company
     "au BufEnter test_client.py :nn <f5> :%d\|r!python test/test_client.py
 endif
 
-nnoremap <space>n <esc>:NERDTreeToggle<cr>
-nnoremap <space>nc <esc>:NERDTree %:p:h<cr>
+nnoremap <space>n <esc>:Lexplore \| vertical resize 24<cr>
+nnoremap <space>nc <esc>:Lexplore %:p:h \| vertical resize 24<cr>
 
 nnoremap <space>p <esc>:CtrlPCurWD<cr>
 nnoremap <space>pp <esc>:CtrlPBuffer<cr>
