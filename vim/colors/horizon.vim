@@ -96,7 +96,6 @@ call <sid>H("Number", 11, "", "")
 call <sid>H("Boolean", 6, "", "")
 
 call <sid>H("Statement", 4, "", "")
-call <sid>L("Operator", "Normal")
 
 call <sid>H("Type", 4, "", "")
 
