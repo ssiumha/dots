@@ -267,7 +267,7 @@ if s:is_ms_windows
         "set renderoptions=type:directx
     endif
 
-    "set shell=C:\msys64\usr\bin\bash.exe
+    "let &shell=expand('D:\\msys64\\usr\\bin\\bash.exe')
     "set shellcmdflag=-c
     "set shellslash
     set noshelltemp
