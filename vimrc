@@ -249,55 +249,7 @@ augroup filetype_all
     endif
 augroup END
 
-
-augroup filetype_vim
-    autocmd!
-    autocmd FileType vim set foldmethod=marker
-augroup END
-
-augroup filetype_javascript
-    autocmd!
-    autocmd FileType javascript setl foldmethod=marker foldmarker={,}
-augroup END
-
-
-augroup filtype_org
-    autocmd!
-    autocmd BufNewFile,BufRead *.org setf org
-augroup END
-
-
-augroup filetype_markdown
-    autocmd!
-    autocmd BufNewFile,BufRead *.md
-                \ setl foldmethod=expr foldexpr=GetMarkdownFold(v:lnum)
-
-    func! GetMarkdownFold(lnum)
-        let line = getline(a:lnum)
-        let indent = len(matchstr(line, '\v^[#]+'))
-
-        if indent > 0
-            for id in synstack(a:lnum, 1)
-                if synIDattr(id, 'name') == 'VimwikiHeaderChar'
-                    return '>'.indent
-                endif
-            endfor
-        endif
-
-        return '='
-    endfunc
-
-    au BufNewFile,BufRead *.md nnoremap <buffer> <space>ml :call <sid>open_markdown_list()<cr>
-    func! s:open_markdown_list()
-        exe 'vne | vert res32 | r!ack "^\#" #'
-        exe 'norm ggdd'
-        exe 'nn <buffer> <cr> 0y$<c-w>h/^<c-r>"$<cr>:noh<cr>zMzvzt'
-        exe 'nn <buffer> q ZQ'
-        setl nomodified
-    endfunc
-
-    "au BufWriteCmd *.md :Gcommit -m "[wiki] update" %
-augroup END
+autocmd BufNewFile,BufRead *.org setf org
 "}}}
 
 "settings {{{
