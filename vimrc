@@ -9,23 +9,18 @@ let did_install_default_menus = 0
 let did_install_syntax_menu = 0
 let do_syntax_sel_menu = 0
 
-func! s:ensure_path(path)
-    if !isdirectory(a:path)
-        call mkdir(a:path, 'p')
-    endif
-    return a:path
-endfunc
 
 let s:vimrc_path = expand('~/dotfiles/vimrc')
 let s:dot_vim_path = expand('~/dotfiles/vim')
 let s:dot_vim_after_path = expand('~/dotfiles/vim/after')
 
-let s:local_path = s:ensure_path(expand('~/.local'))
-let s:local_vim_path = s:ensure_path(expand(s:local_path.'/vim'))
-let s:dein_path = s:ensure_path(expand(s:local_vim_path.'/dein.vim'))
-let s:undodir_path = s:ensure_path(expand(s:local_vim_path.'/tmp/undo'))
-let s:backupdir_path = s:ensure_path(expand(s:local_vim_path.'/tmp/backup'))
-let s:swapdir_path = s:ensure_path(expand(s:local_vim_path.'/tmp/swap'))
+" 각 폴더는 bootstrap.sh에서 보장시킨다
+let s:local_path = expand('~/.local')
+let s:local_vim_path = expand(s:local_path.'/vim')
+let s:dein_path = expand(s:local_vim_path.'/dein.vim')
+let s:undodir_path = expand(s:local_vim_path.'/tmp/undo')
+let s:backupdir_path = expand(s:local_vim_path.'/tmp/backup')
+let s:swapdir_path = expand(s:local_vim_path.'/tmp/swap')
 
 let s:is_company = $COMPANY_NAME != ''
 let s:is_ms_windows = has('win32') || has('win16')
