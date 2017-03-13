@@ -85,6 +85,10 @@ call <sid>H("DiffAdd", "", 2, "")
 call <sid>H("DiffChange", "", 3, "")
 call <sid>H("DiffDelete", "", 1, "")
 call <sid>H("DiffText", 5, "", "")
+
+" Git COMMIT_EDITMSG
+call <sid>H("diffAdded", 2, "", "")
+call <sid>H("diffRemoved", 1, "", "")
 " }}}
 
 
