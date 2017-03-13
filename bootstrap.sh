@@ -20,7 +20,8 @@ mkdir -p "$HOME/.local/"{repo,bin,vim,zsh/completion,zsh/zplug}
     curl -fL http://beyondgrep.com/ack-2.14-single-file > $HOME/.local/bin/ack && chmod 0755 $HOME/.local/bin/ack
 
 [[ ! -s "$HOME/.local/bin/fzy" ]] && \
-    git clone "https://github.com/jhawthorn/fzy.git" "$HOME/.local/repo/fzy" && cd "$HOME/.local/repo/fzy" && make && make install -e "PREFIX=$HOME/.local/" && cd -
+    git clone --depth=1 "https://github.com/jhawthorn/fzy.git" "$HOME/.local/repo/fzy" && \
+        cd "$HOME/.local/repo/fzy" && make && make install -e "PREFIX=$HOME/.local/" && cd -
 
 [[ ! -s "$HOME/.local/zsh/zplug/init.zsh" ]] && \
     printf 'install zplug? [y/N]:' && read -q && echo && \
