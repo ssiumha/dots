@@ -22,8 +22,7 @@ let s:dot_vim_after_path = expand('~/dotfiles/vim/after')
 
 let s:local_path = s:ensure_path(expand('~/.local'))
 let s:local_vim_path = s:ensure_path(expand(s:local_path.'/vim'))
-let s:pathogen_path = s:ensure_path(expand(s:local_vim_path.'/pobundle'))
-let s:plug_path = s:ensure_path(expand(s:local_vim_path.'/plugged'))
+let s:dein_path = s:ensure_path(expand(s:local_vim_path.'/dein.vim'))
 let s:undodir_path = s:ensure_path(expand(s:local_vim_path.'/tmp/undo'))
 let s:backupdir_path = s:ensure_path(expand(s:local_vim_path.'/tmp/backup'))
 let s:swapdir_path = s:ensure_path(expand(s:local_vim_path.'/tmp/swap'))
@@ -39,7 +38,7 @@ let s:is_term_macvim = !s:is_gui_macvim && has('mac')
 if has('vim_starting')
     let &runtimepath.=','.s:dot_vim_path
     let &runtimepath.=','.s:dot_vim_after_path
-    let &runtimepath.=','.s:local_vim_path
+    let &runtimepath.=','.s:dein_path
 
     if s:is_ms_windows
         winsize 170 40
@@ -86,43 +85,49 @@ if has('vim_starting')
 endif
 "}}}
 
-"vim plug{{{
-call plug#begin(s:plug_path)
+"plug manager{{{
+if dein#load_state(s:local_vim_path)
+    call dein#begin(s:local_vim_path)
 
-if executable('ctags')
-    Plug 'vim-scripts/taglist.vim'
+    if executable('ctags')
+        call dein#add('vim-scripts/taglist.vim')
+    endif
+
+    call dein#add('w0ng/vim-hybrid')
+    call dein#add('chriskempson/vim-tomorrow-theme')
+    "call dein#add('Lokaltog/vim-easymotion')
+    "call dein#add('Shougo/unite.vim')
+    call dein#add('altercation/vim-colors-solarized')
+    "call dein#add('bling/vim-airline')
+    call dein#add('itchyny/lightline.vim')
+    call dein#add('ctrlpvim/ctrlp.vim')
+    call dein#add('mileszs/ack.vim')
+    call dein#add('mrtazz/simplenote.vim')
+    call dein#add('tpope/vim-vinegar')
+    call dein#add('tpope/vim-fugitive')
+    call dein#add('tpope/vim-surround')
+    call dein#add('vim-scripts/TwitVim')
+    call dein#add('vimwiki/vimwiki')
+    call dein#add('vim-scripts/AnsiEsc.vim')
+    call dein#add('vim-scripts/html-improved-indentation')
+    call dein#add('easymotion/vim-easymotion')
+    call dein#add('terryma/vim-multiple-cursors')
+    if has('python3') && v:version >= 800
+        call dein#add('maralla/validator.vim')
+    endif
+    "call dein#add('jiangmiao/auto-pairs')
+    "https://github.com/Townk/vim-autoclose
+    "
+    "
+    call dein#add('lambdatoast/elm.vim')
+    call dein#add('elixir-lang/vim-elixir')
+
+    call dein#end()
+    call dein#save_state()
 endif
 
-Plug 'w0ng/vim-hybrid'
-Plug 'chriskempson/vim-tomorrow-theme'
-"Plug 'Lokaltog/vim-easymotion'
-"Plug 'Shougo/unite.vim'
-Plug 'altercation/vim-colors-solarized'
-"Plug 'bling/vim-airline'
-Plug 'itchyny/lightline.vim'
-Plug 'ctrlpvim/ctrlp.vim'
-Plug 'mileszs/ack.vim'
-Plug 'mrtazz/simplenote.vim'
-Plug 'tpope/vim-vinegar'
-Plug 'tpope/vim-fugitive'
-Plug 'tpope/vim-surround'
-Plug 'vim-scripts/TwitVim'
-Plug 'vimwiki/vimwiki'
-Plug 'vim-scripts/AnsiEsc.vim'
-Plug 'vim-scripts/html-improved-indentation'
-Plug 'easymotion/vim-easymotion'
-Plug 'terryma/vim-multiple-cursors'
-if has('python3') && v:version >= 800
-    Plug 'maralla/validator.vim'
-endif
-"Plug 'jiangmiao/auto-pairs'
-"https://github.com/Townk/vim-autoclose
-"
-"
-Plug 'lambdatoast/elm.vim'
-Plug 'elixir-lang/vim-elixir'
-call plug#end()
-
+filetype plugin indent on
+syntax enable
 set background=dark
 colorscheme horizon
 "}}}
