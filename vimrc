@@ -41,41 +41,24 @@ if has('vim_starting')
         "colorscheme slate
         "colorscheme desert "mac-term
         "colorscheme solarized "mac-term
+        "
+        set guifont=DejaVu_Sans_Mono:h11:w6:cANSI "download: http://dejavu-fonts.org/wiki/Download
+        set guifontwide=Dotumche:h10.5:cCHINESEBIG5
+
+        if v:version >= 800
+            "set renderoptions=type:directx
+        endif
+
+        "let &shell=expand('D:\\msys64\\usr\\bin\\bash.exe')
+        "set shellcmdflag=-c
+        "set shellslash
+        set noshelltemp
     endif
 
     if s:is_gui_running
         set guioptions=
         "full screen start
         "au GUIEnter * simalt ~x
-    else
-        set mouse=
-    endif
-
-    if s:is_gui_macvim
-        set fuoptions=maxvert,maxhorz
-
-        let macvim_skip_cmd_opt_movement = 1
-
-        noremap <D-Left> <Home>
-        noremap! <D-Left> <Home>
-        noremap <M-Left> <C-Left>
-        noremap! <M-Left> <C-Left>
-
-        noremap <D-Right> <End>
-        noremap! <D-Right> <End>
-        noremap <M-Right> <C-Right>
-        noremap! <M-Right> <C-Right>
-
-        noremap <D-Up> <C-Home>
-        inoremap <D-Up> <C-Home>
-        imap <M-Up> <C-o>{
-
-        noremap <D-Down> <C-End>
-        inoremap <D-Down> <C-End>
-        imap <M-Down> <C-o>}
-
-        imap <M-BS> <C-w>
-        inoremap <D-BS> <esc>my0c`y
     endif
 endif
 "}}}
@@ -253,21 +236,6 @@ autocmd BufNewFile,BufRead *.org setf org
 "}}}
 
 "settings {{{
-if s:is_ms_windows
-    set guifont=DejaVu_Sans_Mono:h11:w6:cANSI "download: http://dejavu-fonts.org/wiki/Download
-
-    set guifontwide=Dotumche:h10.5:cCHINESEBIG5
-
-    if v:version >= 800
-        "set renderoptions=type:directx
-    endif
-
-    "let &shell=expand('D:\\msys64\\usr\\bin\\bash.exe')
-    "set shellcmdflag=-c
-    "set shellslash
-    set noshelltemp
-endif
-
 set tabstop=4 shiftwidth=0 softtabstop=-1
 set expandtab shiftround
 set linespace=3
@@ -337,6 +305,7 @@ set fileformats=unix,dos,mac
 set clipboard=unnamed,unnamedplus ",autoselect
 
 set hidden
+set mouse=
 "set switchbuf=useopen
 
 set iminsert=0 imsearch=0 "imdisable
@@ -430,7 +399,6 @@ if s:is_company
     nnoremap <space>sl :silent !start TortoiseProc.exe /command:log /path:%<cr>
     nnoremap <space>sd :silent !start TortoiseProc.exe /command:diff /path:%<cr>
     nnoremap <space>sb :silent !start TortoiseProc.exe /command:blame /path:%<cr>
-    nnoremap <space>ui :silent !start D:\mobile\bin\Patissier.exe ..\ui\<c-r><c-w>.ui<cr>
 
     " old settings
     "nn <space>gr :gr **/*.py<home><right><right><space>
