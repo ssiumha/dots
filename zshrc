@@ -543,10 +543,10 @@ else
 fi
 
 printf $printf_template \
-  0  "1d1f21" 1  "b44b4b" 2  "5c9e5c" 3  "ce955b" \
+  0  "31353c" 1  "b44b4b" 2  "5c9e5c" 3  "ce955b" \
   4  "3879b7" 5  "905ddb" 6  "1cbfbf" 7  "737680" \
   8  "505059" 9  "fe93be" 10 "b0ea77" 11 "dbdb70" \
-  12 "95acda" 13 "d47fd4" 14 "7ec4a0" 15 "e1e1e1"
+  12 "95acda" 13 "d47fd4" 14 "7ec4a0" 15 "989ca7"
 
 # fg bg cursor
 printf $printf_template_var \
