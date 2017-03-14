@@ -480,6 +480,7 @@ precmd() {
   #[%D{%y-%d-%m %H:%M}]
   # TODO : %~ coloring. symbolic:cyan(6), current:bold?
   # %F-fg, %K-bg, %S-reverse
+  reset_color="\e[49m"
   txt="\n"
   if [[ -n $SSH_CLIENT ]]; then
     txt+="%K{10} ${reset_color}"
