@@ -482,13 +482,13 @@ precmd() {
   # %F-fg, %K-bg, %S-reverse
   txt="\n"
   if [[ -n $SSH_CLIENT ]]; then
-    txt+="%K{10} %K{0}"
+    txt+="%K{10} ${reset_color}"
   fi
   if [ ! -n "$TMUX" ]; then
-    txt+="%K{8} %n@%m %K{0}"
+    txt+="%K{8} %n@%m ${reset_color}"
   fi
-  txt+="%K{7} %~ %K{0}"
-  txt+="%K{8}$(git_repo_info)%K{0}"
+  txt+="%K{7} %~ ${reset_color}"
+  txt+="%K{8}$(git_repo_info)${reset_color}"
   txt+=" %F{11}$(cmd_exec_time)"
   print -P $txt
   cmd_timestamp=0

@@ -41,7 +41,7 @@ call <sid>H("SpecialKey", 8, "", "")
 call <sid>H("MoreMsg", 7, "", "")
 call <sid>H("Question", 1, "", "")
 call <sid>H("WarningMsg", 3, "", "")
-call <sid>H("ErrorMsg", 1, 0, "")
+call <sid>H("ErrorMsg", 1, "", "")
 "}}}
 
 
@@ -51,27 +51,27 @@ call <sid>H("Directory", 13, "", "")
 
 call <sid>H("LineNr", 7, "", "")
 call <sid>H("VertSplit", 8, "", "")
-call <sid>H("StatusLine", 0, 7, "")
-call <sid>H("StatusLineNC", 0, 0, "")
+call <sid>H("StatusLine", "", 7, "")
+call <sid>H("StatusLineNC", "", "", "")
 call <sid>H("Folded", 3, "", "")
 call <sid>H("FoldColumn", 3, "", "")
 
 call <sid>H("Visual", 7, "", "reverse")
 call <sid>H("IncSearch", 10, 2, "")
-call <sid>H("Search", 0, 2, "")
+call <sid>H("Search", "", 2, "")
 
 call <sid>H("WildMenu", "", "", "reverse")
 
-call <sid>H("TabLine", 0, 7, "")
-call <sid>H("TabLineFill", 0, 8, "")
+call <sid>H("TabLine", "", 7, "")
+call <sid>H("TabLineFill", "", 8, "")
 call <sid>H("MatchParen", "", 13, "")
 
 if version >= 700
     call <sid>H("CursorLine", "", 8, "")
     call <sid>H("CursorColumn", "", 8, "")
 
-    call <sid>H("PMenu", 0, 5, "")
-    call <sid>H("PMenuSel", 0, 5, "reverse")
+    call <sid>H("PMenu", "", 5, "")
+    call <sid>H("PMenuSel", "", 5, "reverse")
     call <sid>H("SignColumn", 8, "", "")
 end
 if version >= 703
@@ -113,7 +113,7 @@ call <sid>H("Special", 6, "", "")
 call <sid>H("Ignore", 7, "", "")
 
 call <sid>H("Error", "", 1, "")
-call <sid>H("Todo", 0, 11, "")
+call <sid>H("Todo", "", 11, "")
 " }}}
 
 delfunc <sid>H
