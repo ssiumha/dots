@@ -10,7 +10,9 @@
     quotepath = no
     precomposeunicode = yes
 [log]
-    date = iso8601
+    #date = iso8601
+    date = format:%y-%m-%d %H:%M
+    decorate = auto
 [help]
     autocorrect = 1
 [color]
@@ -32,10 +34,11 @@
     tool = vimdiff
     algorithm = histogram
     compactionHeuristic = true
+[pretty]
+    logfmt = %Cgreen%h %Creset%ad %Cblue%an %Cred%d %Creset%s
 [alias]
-    gr = log --graph --oneline --all --decorate \
-        --date='format:%y-%m-%d %H:%M' \
-        --pretty=format:'%Cgreen%h %Creset%ad %Cblue%an %Cred%d %Creset%s'
+    gr = log --graph --oneline --format=logfmt
+    gra = log --graph --oneline --all --format=logfmt
     lg = log --stat --decorate --find-renames
 
     d = diff
