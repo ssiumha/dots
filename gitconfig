@@ -26,7 +26,7 @@
 [interactive]
     diffFilter = diff-highlight
 [pager]
-    log = diff-highlight | vim -Rc 'AnsiEsc' -
+    log = diff-highlight | sed -e "s/7m/34m/" -e "s/27m/0m/" | vim -Rc 'AnsiEsc' -
     show = diff-highlight | less
     diff = diff-highlight | less
 [diff]
