@@ -56,7 +56,7 @@ set output-meta on
 
 
 # EXPORT CONFIG {{{
-export TERM=xterm-256color
+export TERM=xterm-16color
 
 export EDITOR="vim"
 
