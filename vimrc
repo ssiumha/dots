@@ -176,6 +176,9 @@ let g:multi_cursor_use_default_mapping=0
 let g:multi_cursor_quit_key='<esc>'
 nnoremap <silent> <space>m :MultipleCursorsFind <c-r>/<cr>
 vnoremap <silent> <space>m :MultipleCursorsFind <c-r>/<cr>
+
+let g:surround_no_mappings = 1
+nnoremap cs <Plug>Csurround
 "}}}
 
 "autocmd{{{
