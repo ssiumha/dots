@@ -54,7 +54,7 @@ call <sid>H("VertSplit", 8, "", "")
 call <sid>H("StatusLine", "", 7, "")
 call <sid>H("StatusLineNC", "", "", "")
 call <sid>H("Folded", 3, "", "")
-call <sid>H("FoldColumn", 3, "", "")
+call <sid>H("FoldColumn", 15, 0, "")
 
 call <sid>H("Visual", 7, "", "reverse")
 call <sid>H("IncSearch", 10, 2, "")

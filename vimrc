@@ -198,8 +198,8 @@ augroup filetype_all
                 \| endif
 
     " cursor line
-    autocmd WinLeave,InsertEnter * set nocursorline
-    autocmd WinEnter,InsertLeave * set cursorline
+    "autocmd WinLeave,InsertEnter * set nocursorline
+    "autocmd WinEnter,InsertLeave * set cursorline
 
     " swapchoice
     autocmd SwapExists * let v:swapchoice = 'o'
@@ -258,7 +258,7 @@ set lazyredraw
 
 set colorcolumn=80,130
 set title
-set number relativenumber numberwidth=3
+set nonumber norelativenumber numberwidth=3
 set ruler
 set laststatus=2
 
@@ -274,7 +274,7 @@ set virtualedit=block,insert
 
 set foldmethod=marker
 "set foldopen-=search
-set foldcolumn=1
+set foldcolumn=2
 set foldlevelstart=-1
 
 set timeout ttimeout
