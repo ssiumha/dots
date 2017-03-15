@@ -65,6 +65,9 @@ endif
 "}}}
 
 "plug manager{{{
+let g:dein#types#git#clone_depth = 3
+let g:dein#install_log_filename = expand(s:local_vim_path.'/plug.log')
+
 if dein#load_state(s:dein_plug_path)
     call dein#begin(s:dein_plug_path)
 
