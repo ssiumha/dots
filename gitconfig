@@ -39,7 +39,8 @@
 [alias]
     gr = log --graph --oneline --format=logfmt
     gra = log --graph --oneline --all --format=logfmt
-    lg = log --stat --decorate --find-renames
+    lg = log --graph --stat --find-renames
+    lgp = log --graph --stat --find-renames -p origin/master..
 
     d = diff
     ds = diff --staged
