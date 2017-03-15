@@ -71,12 +71,6 @@ if dein#load_state(s:local_vim_path)
         call dein#add('vim-scripts/taglist.vim')
     endif
 
-    call dein#add('w0ng/vim-hybrid')
-    call dein#add('chriskempson/vim-tomorrow-theme')
-    "call dein#add('Lokaltog/vim-easymotion')
-    "call dein#add('Shougo/unite.vim')
-    call dein#add('altercation/vim-colors-solarized')
-    "call dein#add('bling/vim-airline')
     call dein#add('itchyny/lightline.vim')
     call dein#add('ctrlpvim/ctrlp.vim')
     call dein#add('mileszs/ack.vim')
