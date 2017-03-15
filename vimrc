@@ -179,6 +179,8 @@ vnoremap <silent> <space>m :MultipleCursorsFind <c-r>/<cr>
 
 let g:surround_no_mappings = 1
 nnoremap cs <Plug>Csurround
+
+let g:lightline = { 'colorscheme' : 'horizon' }
 "}}}
 
 "autocmd{{{
