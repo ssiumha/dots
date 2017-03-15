@@ -18,6 +18,7 @@ let s:dot_vim_after_path = expand('~/dotfiles/vim/after')
 let s:local_path = expand('~/.local')
 let s:local_vim_path = expand(s:local_path.'/vim')
 let s:dein_path = expand(s:local_vim_path.'/dein.vim')
+let s:dein_plug_path = expand(s:local_vim_path.'/plug')
 let s:undodir_path = expand(s:local_vim_path.'/tmp/undo')
 let s:backupdir_path = expand(s:local_vim_path.'/tmp/backup')
 let s:swapdir_path = expand(s:local_vim_path.'/tmp/swap')
@@ -64,8 +65,8 @@ endif
 "}}}
 
 "plug manager{{{
-if dein#load_state(s:local_vim_path)
-    call dein#begin(s:local_vim_path)
+if dein#load_state(s:dein_plug_path)
+    call dein#begin(s:dein_plug_path)
 
     if executable('ctags')
         call dein#add('vim-scripts/taglist.vim')
