@@ -141,6 +141,7 @@ alias -g gH='$(git log --oneline --branches | fzy --prompt "GIT HASH>" | awk "{p
 # 자신의 github repo 목록중에서 선택하기
 #alias -g H='`curl -sL https://api.github.com/users/YOUR_USERNAME/repos | jq -r ".[].full_name" | peco --prompt "GITHUB REPOS>" | head -n 1`'
 
+alias -g ssh='TERM=xterm-16color ssh'
 #alias ssh='ssh -F <(find ~/.ssh/ -maxdepth 1 -name "*.config" -or -name config -exec cat {} \+)'
 
 # }}}
