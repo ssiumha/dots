@@ -102,7 +102,7 @@ if dein#load_state(s:dein_plug_path)
     call dein#save_state()
 endif
 
-filetype plugin indent on
+filetype plugin on
 syntax enable
 set background=dark
 colorscheme horizon
