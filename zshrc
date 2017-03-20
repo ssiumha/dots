@@ -410,7 +410,13 @@ mru() {
     egrep -v '(.git|.svn)' | sort -u | fzy --query "$LBUFFER")"
 }
 
-##zle accept-line # run current buffer == cr
+__cd_up() { builtin pushd .. > /dev/null; zle accept-line }
+zle -N __cd_up
+bindkey "^[i" __cd_up
+
+__cd_down() { builtin popd > /dev/null && zle accept-line }
+zle -N __cd_down
+bindkey "^[o" __cd_down
 
 tmux-version-check() {
   [[ $(echo "$(tmux -V | awk '{print $2}') > $1" | bc) != 0 ]]
