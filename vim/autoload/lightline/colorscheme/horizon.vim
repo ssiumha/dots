@@ -11,15 +11,15 @@ func! s:C(idx)
 endfunc
 
 let s:p = {'normal': {}, 'inactive': {}, 'insert': {}, 'replace': {}, 'visual': {}, 'tabline': {}}
-let s:p.normal.left = [ [ s:C(16), s:C(2) ], [ s:C(16), s:C(8) ] ]
+let s:p.normal.left = [ [ s:C(0), s:C(10) ], [ s:C(16), s:C(8) ] ]
 let s:p.normal.right = [ [ s:C(0), s:C(15) ], [ s:C(15), s:C(8) ] ]
 let s:p.inactive.left =  [ [ s:C(7), s:C(8) ], [ s:C(7), s:C(8) ] ]
 let s:p.inactive.right = [ [ s:C(0), s:C(7) ], [ s:C(7), s:C(8) ] ]
-let s:p.insert.left = [ [ s:C(16), s:C(4), 'reverse' ], [ s:C(4), s:C(12) ] ]
+let s:p.insert.left = [ [ s:C(15), s:C(0), 'reverse' ], [ s:C(8), s:C(12) ] ]
 let s:p.insert.right = [ [ s:C(0), s:C(12) ], [ s:C(7), s:C(12) ] ]
-let s:p.replace.left = [ [ s:C(16), s:C(1) ], s:p.normal.left[1] ]
+let s:p.replace.left = [ [ s:C(0), s:C(1) ], s:p.normal.left[1] ]
 let s:p.replace.right = copy(s:p.normal.right)
-let s:p.visual.left = [ [ s:C(1), s:C(3) ], s:p.normal.left[1] ]
+let s:p.visual.left = [ [ s:C(0), s:C(3) ], s:p.normal.left[1] ]
 
 let s:p.normal.middle = [ [ s:C(7), s:C(0) ] ]
 let s:p.inactive.middle = [ [ s:C(0), s:C(0) ] ]
