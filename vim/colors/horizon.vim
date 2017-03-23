@@ -57,8 +57,8 @@ call s:H("Folded", 3, "", "")
 call s:H("FoldColumn", 15, 0, "")
 
 call s:H("Visual", 7, "", "reverse")
-call s:H("IncSearch", 10, 2, "")
-call s:H("Search", "", 2, "")
+call s:H("IncSearch", 10, 8, "")
+call s:H("Search", "", 8, "")
 
 call s:H("WildMenu", "", "", "reverse")
 
