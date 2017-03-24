@@ -15,10 +15,14 @@
 (package-initialize)
 
 (dolist (package '(
-		   auto-complete ace-jump-mode
+		   auto-complete ace-jump-mode helm
 		   ))
   (unless (package-installed-p package)
     (package-install package)))
 
 
-(define-key global-map (kbd "C-c SPC") 'ace-jump-mode)
+(global-set-key (kbd "C-c SPC") 'ace-jump-mode)
+
+(global-set-key (kbd "M-x") 'helm-M-x)
+(global-set-key (kbd "C-x C-f") 'helm-find-files)
+(global-set-key (kbd "C-c p") 'helm-mini)
