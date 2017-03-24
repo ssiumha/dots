@@ -35,7 +35,7 @@
     algorithm = histogram
     compactionHeuristic = true
 [pretty]
-    logfmt = %Cgreen%h %Creset%ad %Cblue%an %Cred%d %Creset%s
+    logfmt = %C(green)%h %C(reset)%ad %C(blue)%an %C(red)%d %C(reset)%s
 [alias]
     gr = log --graph --oneline --format=logfmt
     gra = log --graph --oneline --all --format=logfmt
