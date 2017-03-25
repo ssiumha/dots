@@ -16,6 +16,7 @@
 
 (dolist (package '(
 		   auto-complete ace-jump-mode helm
+		   simplenote2
 		   ))
   (unless (package-installed-p package)
     (package-install package)))
@@ -34,3 +35,13 @@
 (global-set-key (kbd "M-x") 'helm-M-x)
 (global-set-key (kbd "C-x C-f") 'helm-find-files)
 (global-set-key (kbd "C-c p") 'helm-mini)
+
+;; simplenote2
+(require 'simplenote2)
+(simplenote2-setup)
+
+(add-hook 'simplenote2-note-mode-hook
+          (lambda ()
+            (local-set-key (kbd "C-c C-t") 'simplenote2-add-tag)
+            (local-set-key (kbd "C-c C-c") 'simplenote2-push-buffer)
+            (local-set-key (kbd "C-c C-d") 'simplenote2-pull-buffer)))
