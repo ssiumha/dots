@@ -37,6 +37,7 @@
 (global-set-key (kbd "C-c p") 'helm-mini)
 
 ;; simplenote2
+;; add line to local init.el: (setq simplenote2-email ".." simplenote2-password "..")
 (require 'simplenote2)
 (simplenote2-setup)
 
