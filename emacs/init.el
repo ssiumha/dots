@@ -5,6 +5,7 @@
 (setq default-buffer-file-coding-system 'utf-8-unix)
 
 (tool-bar-mode -1)
+(scroll-bar-mode -1)
 
 (require 'ido)
 (ido-mode t)
