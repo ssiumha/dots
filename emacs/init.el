@@ -16,10 +16,15 @@
 (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/") t)
 (package-initialize)
 
-(dolist (package '(
-		   auto-complete ace-jump-mode helm
-		   simplenote2 zenburn-theme
-		   ))
+(dolist
+    (package '(
+               auto-complete
+               ace-jump-mode
+               helm
+               simplenote2
+               zenburn-theme
+               )
+             )
   (unless (package-installed-p package)
     (package-install package)))
 
@@ -32,7 +37,7 @@
       helm-buffers-fuzzy-matching t
       helm-recentf-fuzzy-match t
       helm-M-x-fuzzy-match t
-)
+      )
 
 (global-set-key (kbd "M-x") 'helm-M-x)
 (global-set-key (kbd "C-x C-f") 'helm-find-files)
