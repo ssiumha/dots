@@ -6,6 +6,8 @@
 
 (tool-bar-mode -1)
 
+(load-theme 'wombat)
+
 (require 'ido)
 (ido-mode t)
 
