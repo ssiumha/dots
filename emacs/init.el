@@ -6,8 +6,6 @@
 
 (tool-bar-mode -1)
 
-(load-theme 'wombat)
-
 (require 'ido)
 (ido-mode t)
 
@@ -18,7 +16,7 @@
 
 (dolist (package '(
 		   auto-complete ace-jump-mode helm
-		   simplenote2
+		   simplenote2 zenburn-theme
 		   ))
   (unless (package-installed-p package)
     (package-install package)))
@@ -48,3 +46,7 @@
             (local-set-key (kbd "C-c C-t") 'simplenote2-add-tag)
             (local-set-key (kbd "C-c C-c") 'simplenote2-push-buffer)
             (local-set-key (kbd "C-c C-d") 'simplenote2-pull-buffer)))
+
+
+;; color scheme
+(load-theme 'zenburn)
