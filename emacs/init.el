@@ -49,5 +49,6 @@
             (local-set-key (kbd "C-c C-d") 'simplenote2-pull-buffer)))
 
 
-;; color scheme
-(load-theme 'zenburn)
+;; view setting
+(load-theme 'zenburn t)
+(set-face-attribute 'default nil :font "DejaVu Sans Mono-11")
