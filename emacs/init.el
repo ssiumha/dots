@@ -23,6 +23,7 @@
                helm
                simplenote2
                zenburn-theme
+               adoc-mode
                )
              )
   (unless (package-installed-p package)
@@ -53,6 +54,9 @@
             (local-set-key (kbd "C-c C-t") 'simplenote2-add-tag)
             (local-set-key (kbd "C-c C-c") 'simplenote2-push-buffer)
             (local-set-key (kbd "C-c C-d") 'simplenote2-pull-buffer)))
+
+;; adoc-mode
+(add-to-list 'auto-mode-alist (cons "\\.adoc\\'" 'adoc-mode))
 
 
 ;; view setting
