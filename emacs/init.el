@@ -21,6 +21,7 @@
                auto-complete
                ace-jump-mode
                helm
+               helm-cmd-t
                simplenote2
                zenburn-theme
                adoc-mode
@@ -38,11 +39,28 @@
       helm-buffers-fuzzy-matching t
       helm-recentf-fuzzy-match t
       helm-M-x-fuzzy-match t
+      
+      helm-ff-lynx-style-map nil
+      helm-ff-transformer-show-only-basename nil
+      helm-input-idle-delay 0.1
+      helm-idle-delay 0.1      
       )
 
 (global-set-key (kbd "M-x") 'helm-M-x)
 (global-set-key (kbd "C-x C-f") 'helm-find-files)
 (global-set-key (kbd "M-p") 'helm-mini)
+
+;; helm-cmd-t
+(require 'helm-cmd-t)
+(global-set-key (kbd "C-c C-t") 'helm-cmd-t)
+(global-set-key (kbd "C-c C-w") (lambda ()
+                                  (interactive)
+                                  (cd (expand-file-name "~/doc"))
+                                  (helm :sources
+                                        (list
+                                         (helm-cmd-t-get-create-source-dir
+                                          (expand-file-name "~/doc")))
+                                        )))
 
 ;; simplenote2
 ;; add line to local init.el: (setq simplenote2-email ".." simplenote2-password "..")
