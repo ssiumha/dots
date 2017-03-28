@@ -32,7 +32,7 @@
 
 (global-set-key (kbd "C-c SPC") 'ace-jump-mode)
 
-;; Helm
+;; helm
 (setq helm-mode-fuzzy-match t
       helm-completion-in-region-fuzzy-match t
       helm-buffers-fuzzy-matching t
@@ -42,7 +42,7 @@
 
 (global-set-key (kbd "M-x") 'helm-M-x)
 (global-set-key (kbd "C-x C-f") 'helm-find-files)
-(global-set-key (kbd "C-c p") 'helm-mini)
+(global-set-key (kbd "M-p") 'helm-mini)
 
 ;; simplenote2
 ;; add line to local init.el: (setq simplenote2-email ".." simplenote2-password "..")
