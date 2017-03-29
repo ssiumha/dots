@@ -83,7 +83,6 @@ if dein#load_state(s:dein_plug_path)
     call dein#add('tpope/vim-fugitive')
     call dein#add('tpope/vim-surround')
     call dein#add('vim-scripts/TwitVim')
-    call dein#add('vimwiki/vimwiki')
     call dein#add('vim-scripts/AnsiEsc.vim')
     call dein#add('vim-scripts/html-improved-indentation')
     call dein#add('easymotion/vim-easymotion')
@@ -112,31 +111,6 @@ colorscheme horizon
 if s:is_ms_windows
     let Tlist_Ctags_Cmd='' "take action ctags not found
 endif
-
-let s:vimwiki_1 = {'maxhi': 0,
-    \ 'auto_export': 0,
-    \ 'css_name': 'style.css',
-    \ 'diary_header': 'Diary',
-    \ 'diary_index': 'diary',
-    \ 'diary_link_fmt': '%Y-%m-%d',
-    \ 'diary_rel_path': 'diary/',
-    \ 'diary_sort': 'desc',
-    \ 'ext': '.md',
-    \ 'index': 'index',
-    \ 'list_margin': -1,
-    \ 'nested_syntaxes': {'lua': 'lua', 'python': 'python', 'sh': 'sh'},
-    \ 'path': expand('~/doc/vimwiki/'),
-    \ 'path_html': expand('~/doc/vimwiki_html/'),
-    \ 'syntax': 'markdown',
-    \ 'temp': 0,
-    \ 'template_default': '',
-    \ 'template_ext': '',
-    \ 'template_path': '/'
-    \}
-let g:vimwiki_list = [s:vimwiki_1]
-let g:vimwiki_folding = 'expr'
-let g:vimwiki_hl_headers = 1
-noremap <space>ww :CtrlP ~/doc<cr>
 
 let g:ctrlp_cmd = 'CtrlPCurWD'
 let g:ctrlp_clear_cache_on_exit = 0
@@ -419,6 +393,8 @@ nnoremap <space>pp <esc>:CtrlPBuffer<cr>
 nnoremap <space>p[ <esc>:CtrlPMRUFiles<cr>
 nnoremap <space>pt <esc>:CtrlPTag<cr>
 nnoremap <space>ptt <esc>:CtrlPBufTag<cr>
+
+noremap <space>ww :CtrlP ~/doc<cr>
 
 nnoremap <space>t <esc>:Tlist<cr>
 
