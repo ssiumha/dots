@@ -25,6 +25,7 @@
                simplenote2
                zenburn-theme
                adoc-mode
+               guide-key
                )
              )
   (unless (package-installed-p package)
@@ -75,6 +76,23 @@
 
 ;; adoc-mode
 (add-to-list 'auto-mode-alist (cons "\\.adoc\\'" 'adoc-mode))
+
+
+;; guide-key
+(setq guide-key/guide-key-sequence
+      '("C-x r" "C-x 4" "C-x" "C-c"
+        (org-mode "C-c C-x")))
+(setq guide-key/recursive-key-sequence-flag t)
+(setq guide-key/idle-delay 0.3)
+(setq guide-key/popup-window-position :bottom)
+(setq guide-key/text-scale-amount -1)
+
+(add-hook 'org-mode-hook (lambda()
+                           ;(guide-key/add-local-guide-key-sequence "C-c")
+                           (guide-key/add-local-highlight-command-regexp "org-")
+                           ))
+
+(guide-key-mode 1)
 
 
 ;; view setting
