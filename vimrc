@@ -230,8 +230,8 @@ let &showbreak='+>>> '
 
 set backspace=2
 set autoindent cindent
-set showmode showcmd novisualbell cmdheight=2
-set lazyredraw
+set showmode showcmd novisualbell
+"set cmdheight=2
 
 set colorcolumn=80,130
 set title
