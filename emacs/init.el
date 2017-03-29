@@ -53,8 +53,8 @@
 
 ;; helm-cmd-t
 (require 'helm-cmd-t)
-(global-set-key (kbd "C-c C-t") 'helm-cmd-t)
-(global-set-key (kbd "C-c C-w") (lambda ()
+(global-set-key (kbd "ESC ESC t") 'helm-cmd-t)
+(global-set-key (kbd "ESC ESC w") (lambda ()
                                   (interactive)
                                   (cd (expand-file-name "~/doc"))
                                   (helm :sources
@@ -80,7 +80,7 @@
 
 ;; guide-key
 (setq guide-key/guide-key-sequence
-      '("C-x r" "C-x 4" "C-x" "C-c"
+      '("C-x r" "C-x 4" "C-x" "C-c" "ESC"
         (org-mode "C-c C-x")))
 (setq guide-key/recursive-key-sequence-flag t)
 (setq guide-key/idle-delay 0.3)
