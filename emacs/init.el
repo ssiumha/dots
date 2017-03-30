@@ -3,7 +3,9 @@
 
 (prefer-coding-system 'utf-8)
 (setq default-buffer-file-coding-system 'utf-8-unix)
+
 (setq-default indent-tabs-mode nil)
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
 
 (menu-bar-mode -1)
 (tool-bar-mode -1)
