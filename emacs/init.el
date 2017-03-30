@@ -29,6 +29,7 @@
                zenburn-theme
                adoc-mode
                guide-key
+               org-ac
                )
              )
   (unless (package-installed-p package)
