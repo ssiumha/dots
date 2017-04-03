@@ -16,8 +16,26 @@
 
 
 ;; org mode
-(setq org-src-fontify-natively t)
+(setq org-capture-templates
+      '(("t" "Todo" entry (file+headline (expand-file-name "~/doc/org/gtd.org") "Tasks")
+         "* TODO %?\n %i\n %a")
+        ("j" "Journal" entry (file+datetree (expand-file-name "~/doc/org/journal.org"))
+         "* %?\nEntered on %U\n  %i\n  %a")
+        ))
 
+(setq org-agenda-files
+      '((expand-file-name "~/doc/org/gtd.org")
+        (expand-file-name "~/doc/org/journal.org")
+        ))
+
+(setq org-src-fontify-natively t   ; highlighting code block
+      org-hide-emphasis-markers t  ; hide markup character
+      org-startup-indented t       ; auto indent tree
+      org-return-follows-link t    ; easy follow link
+      )
+
+(global-set-key (kbd "ESC ESC a") 'org-agenda)
+(global-set-key (kbd "ESC ESC c") 'org-capture)
 
 ;; package
 (require 'package)
