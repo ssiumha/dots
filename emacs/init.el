@@ -98,7 +98,7 @@
       '("C-x r" "C-x 4" "C-x" "C-c" "ESC"
         (org-mode "C-c C-x")))
 (setq guide-key/recursive-key-sequence-flag t)
-(setq guide-key/idle-delay 0.3)
+(setq guide-key/idle-delay 0.8)
 (setq guide-key/popup-window-position :bottom)
 (setq guide-key/text-scale-amount -1)
 
