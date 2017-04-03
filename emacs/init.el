@@ -14,6 +14,12 @@
 (require 'ido)
 (ido-mode t)
 
+
+;; org mode
+(setq org-src-fontify-natively t)
+
+
+;; package
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t)
 (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/") t)
