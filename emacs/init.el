@@ -44,11 +44,11 @@
       helm-buffers-fuzzy-matching t
       helm-recentf-fuzzy-match t
       helm-M-x-fuzzy-match t
-      
+
       helm-ff-lynx-style-map nil
       helm-ff-transformer-show-only-basename nil
       helm-input-idle-delay 0.1
-      helm-idle-delay 0.1      
+      helm-idle-delay 0.1
       )
 
 (global-set-key (kbd "M-x") 'helm-M-x)
