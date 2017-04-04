@@ -18,9 +18,11 @@
 ;; org mode
 (setq org-capture-templates
       '(("t" "Todo" entry (file+headline (expand-file-name "~/doc/org/gtd.org") "Tasks")
-         "* TODO %?\n %i\n %a")
+         "* TODO %?\n  %i\n  %a\n  %T")
         ("j" "Journal" entry (file+datetree (expand-file-name "~/doc/org/journal.org"))
          "* %?\nEntered on %U\n  %i\n  %a")
+        ("m" "memo" entry (file (expand-file-name "~/doc/org/memo.org"))
+         "* %?\n  %i\n  %a\n  %T"
         ))
 
 (setq org-agenda-files
