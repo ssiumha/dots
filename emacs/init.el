@@ -22,7 +22,7 @@
         ("j" "Journal" entry (file+datetree (expand-file-name "~/doc/org/journal.org"))
          "* %?\nEntered on %U\n  %i\n  %a")
         ("m" "memo" entry (file (expand-file-name "~/doc/org/memo.org"))
-         "* %?\n  %i\n  %a\n  %T"
+         "* %?\n  %i\n  %a\n  %T")
         ))
 
 (setq org-agenda-files
