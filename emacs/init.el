@@ -25,6 +25,8 @@
 
 
 ;; org mode
+(add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+
 (setq org-capture-templates
       '(("t" "Todo" entry (file+headline (expand-file-name "~/doc/org/gtd.org") "Tasks")
          "* TODO %?\n  %i\n  %a\n  %T")
@@ -44,8 +46,18 @@
       org-startup-indented t       ; auto indent tree
       org-return-follows-link t    ; easy follow link
       org-time-stamp-custom-formats '("<%y-%m-%d %a>" . "<%y-%m-%d %a %H:%M>")
+      org-completion-use-ido t
+      org-log-done t
       )
 (setq-default org-display-custom-times t)
+
+(setq org-tag-alist '(("proj" . ?p)
+                      ("work" . ?w)
+                      ("env" . ?e)
+                      ))
+
+(setq org-todo-keywords
+      '((sequence "TODO(t)" "STARTED(s)" "WAIT(w)" "|" "DONE(d!)" "CANCEL(c!)")))
 
 (global-set-key (kbd "ESC ESC a") 'org-agenda)
 (global-set-key (kbd "ESC ESC c") 'org-capture)
