@@ -14,6 +14,15 @@
 (require 'ido)
 (ido-mode t)
 
+;; calendar
+(setq calendar-week-start-day 1
+      calendar-day-abbrev-array ["Su" "Mo" "Tu" "We" "Th" "Fr" "Sa"]
+      calendar-day-name-array ["Sun" "Mon" "Tue" "Wed" "Thu" "Fri" "Sat"]
+      calendar-month-name-array ["Jan" "Feb" "Mar" "Apr" "May" "Jun"
+                                 "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"]
+      )
+(setq system-time-locale "C")
+
 
 ;; org mode
 (setq org-capture-templates
@@ -34,7 +43,9 @@
       org-hide-emphasis-markers t  ; hide markup character
       org-startup-indented t       ; auto indent tree
       org-return-follows-link t    ; easy follow link
+      org-time-stamp-custom-formats '("<%y-%m-%d %a>" . "<%y-%m-%d %a %H:%M>")
       )
+(setq-default org-display-custom-times t)
 
 (global-set-key (kbd "ESC ESC a") 'org-agenda)
 (global-set-key (kbd "ESC ESC c") 'org-capture)
