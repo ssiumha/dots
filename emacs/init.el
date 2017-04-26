@@ -151,4 +151,7 @@
 
 ;; view setting
 (load-theme 'zenburn t)
-(set-face-attribute 'default nil :font "DejaVu Sans Mono-11")
+
+(if (eq system-type 'darwin)
+    (set-face-attribute 'default nil :font "monaco-13")
+  (set-face-attribute 'default nil :font "DejaVu Sans Mono-13"))
