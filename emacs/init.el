@@ -76,7 +76,6 @@
                helm-cmd-t
                simplenote2
                zenburn-theme
-               adoc-mode
                guide-key
                org-ac
                )
@@ -126,21 +125,6 @@
             (local-set-key (kbd "C-c C-t") 'simplenote2-add-tag)
             (local-set-key (kbd "C-c C-c") 'simplenote2-push-buffer)
             (local-set-key (kbd "C-c C-d") 'simplenote2-pull-buffer)))
-
-;; adoc-mode
-(add-to-list 'auto-mode-alist (cons "\\.adoc\\'" 'adoc-mode))
-(add-hook 'adoc-mode-hook (lambda()
-                            (set-face-attribute 'markup-title-0-face nil :height 1.5)
-                            (set-face-attribute 'markup-title-1-face nil :height 1.4)
-                            (set-face-attribute 'markup-title-2-face nil :height 1.3)
-                            (set-face-attribute 'markup-title-3-face nil :height 1.2)
-                            (set-face-attribute 'markup-title-4-face nil :height 1.1)
-                            (set-face-attribute 'markup-title-5-face nil :height 1.0)
-                            (set-face-attribute 'markup-meta-face nil :height 1.0)
-                            (set-face-attribute 'markup-meta-hide-face nil :height 1.0)
-                            ))
-
-
 
 ;; guide-key
 (setq guide-key/guide-key-sequence
