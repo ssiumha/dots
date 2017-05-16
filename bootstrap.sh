@@ -4,7 +4,7 @@
 [[ ! -s "$HOME/.vimrc" ]] && echo "source ~/dotfiles/vimrc" > "$HOME/.vimrc"
 [[ ! -s "$HOME/.zshrc" ]] && echo "source ~/dotfiles/zshrc" > "$HOME/.zshrc"
 
-mkdir -p "$HOME/.local/"{repo,bin,vim,zsh/completion,zsh/zplug}
+mkdir -p "$HOME/.local/"{repo,bin,vim,zsh/completion,zsh/zplug,emacs/tmp}
 mkdir -p "$HOME/.local/vim/tmp/"{undo,backup,sawp}
 
 #[[ ! -s "$HOME/.local/vim/autoload/plug.vim" ]] &&

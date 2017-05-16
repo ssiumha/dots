@@ -13,6 +13,10 @@
 
 (setq inhibit-startup-screen t)
 
+(setq backup-directory-alist `(("." . "~/.local/emacs/tmp/"))
+      backup-by-copying t)
+
+
 (require 'ido)
 (ido-mode t)
 
