@@ -26,7 +26,8 @@
 [interactive]
     diffFilter = diff-highlight
 [pager]
-    log = diff-highlight | vim -R +'setfiletype gitlog' +'setlocal buftype=nofile' -
+    #log = diff-highlight | vim -R +'setfiletype gitlog' +'setlocal buftype=nofile' -
+    log = diff-highlight | less
     show = diff-highlight | less
     diff = diff-highlight | less
 [diff]
