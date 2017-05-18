@@ -113,7 +113,7 @@ call s:H("Special", 6, "", "")
 call s:H("Ignore", 7, "", "")
 
 call s:H("Error", "", 1, "")
-call s:H("Todo", "", 11, "")
+call s:H("Todo", 0, 11, "")
 " }}}
 
 delfunc s:H
