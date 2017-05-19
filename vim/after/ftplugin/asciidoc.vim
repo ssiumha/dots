@@ -23,3 +23,32 @@ func! AdocFoldFunc(lnum)
     retu '='
 endf
 setl foldexpr=AdocFoldFunc(v:lnum)
+
+func! s:make_open_link_cmd()
+    let line = getline('.')
+    let pattern = 'link:[^[]*\[[^]]*]'
+    let linkpos = match(line, pattern)
+    let colpos = col('.')
+
+    if linkpos == -1
+        return ''
+    endif
+
+    while 1
+        let nextpos = match(line, pattern, linkpos + 1)
+        if nextpos == -1 || nextpos >= colpos
+            break
+        endif
+        let linkpos = nextpos
+    endwhile
+
+    let m = matchstr(line, pattern, linkpos)
+    if colpos <= linkpos || linkpos + len(m) < colpos
+        return ''
+    endif
+
+    let filename = substitute(m, '\vlink:(.*)\[.*', '\1', '')
+    return 'edit '.expand('%:p:h').'/'.filename
+endfunc
+nnoremap <buffer> <silent> <cr> :execute <sid>make_open_link_cmd()<cr>
+
