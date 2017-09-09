@@ -7,6 +7,13 @@
 mkdir -p "$HOME/.local/"{repo,bin,vim,zsh/completion,zsh/zplug,emacs/tmp}
 mkdir -p "$HOME/.local/vim/tmp/"{undo,backup,sawp}
 
+
+# iterm2 setting
+[[ "$OSTYPE" == darwin* && $(defaults domains | grep com.googlecode.iterm2) ]] && \
+    defaults write com.googlecode.iterm2.plist PrefsCustomFolder -string "~/dotfiles/iterm2" && \
+    defaults write com.googlecode.iterm2.plist LoadPrefsFromCustomFolder -bool true
+
+
 #[[ ! -s "$HOME/.local/vim/autoload/plug.vim" ]] &&
 #    curl -fLo ~/.local/vim/autoload/plug.vim --create-dirs \
 #            https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
@@ -27,4 +34,3 @@ mkdir -p "$HOME/.local/vim/tmp/"{undo,backup,sawp}
 [[ ! -s "$HOME/.local/zsh/zplug/init.zsh" ]] && \
     printf 'install zplug? [y/N]:' && read -q && echo && \
     ZPLUG_HOME=$HOME/.local/zsh/zplug curl -sL zplug.sh/installer | zsh
-
