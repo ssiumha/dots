@@ -210,6 +210,7 @@ augroup filetype_all
 augroup END
 
 autocmd BufNewFile,BufRead *.org setf org
+autocmd BufNewFile,BufRead *.adoc setf asciidoc
 "}}}
 
 "settings {{{
