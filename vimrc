@@ -292,7 +292,7 @@ set iminsert=0 imsearch=0 "imdisable
 "set spellfile=~/dotfiles/vim/custom-dictionary.utf-8.add
 "nnoremap zG 2zg
 
-set synmaxcol=256
+syntax sync fromstart
 "}}}
 
 "normal key mapping {{{
