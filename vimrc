@@ -29,6 +29,9 @@ let s:is_gui_running = has('gui_running')
 let s:is_gui_macvim = has('gui_macvim')
 let s:is_term_macvim = !s:is_gui_macvim && has('mac')
 
+if s:is_ms_windows && s:is_gui_running
+    let s:dein_plug_path.='_gvim'
+endif
 
 "initalize {{{
 if has('vim_starting')
