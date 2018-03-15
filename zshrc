@@ -113,6 +113,19 @@ alias l=l_func
 alias g="git"
 alias v="vim"
 
+vzv_func() {
+    local T="/tmp/v.amp1.$RANDOM";
+    vim \
+        +'setl bt=nofile' \
+        +'au QuitPre * redi! >'$T'|sil! exe "%pr"|redi END' \
+        - >/dev/tty \
+    || exit $?
+    ;
+    cat $T;
+    rm -f $T;
+}
+alias vzv=vzv_func
+
 # suffix
 alias -s py=python
 alias -s html=open
