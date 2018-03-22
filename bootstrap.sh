@@ -44,3 +44,5 @@ mkdir -p "$HOME/.local/vim/tmp/"{undo,backup,sawp}
         | grep linux-amd64 \
         | cut -d '"' -f 4 \
         | wget -i - -O "$HOME/.local/bin/volt" && chmod +x "$HOME/.local/bin/volt"
+
+return 0
