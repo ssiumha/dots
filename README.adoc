@@ -16,23 +16,24 @@ exec zsh
 
 install wsl-terminal: https://github.com/goreliu/wsl-terminal
 
-.WSL bash
-[source, sh]
-----------------------------------------
-sudo vipw
-
-# change "/home/{user}" to "/mnt/c/home"
-
-# save and restart terminal
-
-# after same as General
-----------------------------------------
-
-.Power Shell (if use GVIM)
-[source, sh]
--------------------
-setx HOME "c:\home"
--------------------
+// TODO:: need for update : https://docs.microsoft.com/en-us/windows/wsl/wsl-config#set-wsl-launch-settings
+//.WSL bash
+//[source, sh]
+//----------------------------------------
+//sudo vipw
+//
+//# change "/home/{user}" to "/mnt/c/home"
+//
+//# save and restart terminal
+//
+//# after same as General
+//----------------------------------------
+//
+//.Power Shell (if use GVIM)
+//[source, sh]
+//-------------------
+//setx HOME "c:\home"
+//-------------------
 
 
 === Windows - Msys2 (deprecated)
