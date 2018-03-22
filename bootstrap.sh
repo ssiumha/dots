@@ -33,4 +33,5 @@ mkdir -p "$HOME/.local/vim/tmp/"{undo,backup,sawp}
 
 [[ ! -s "$HOME/.local/zsh/zplug/init.zsh" ]] && \
     printf 'install zplug? [y/N]:' && read -q && echo && \
-    ZPLUG_HOME=$HOME/.local/zsh/zplug curl -sL zplug.sh/installer | zsh
+    export ZPLUG_HOME=$HOME/.local/zsh/zplug && \
+    git clone https://github.com/zplug/zplug $ZPLUG_HOME && source $ZPLUG_HOME/init.zsh
