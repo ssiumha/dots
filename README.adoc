@@ -1,6 +1,17 @@
 
 == Installation
 
+=== General
+
+.run home path
+[source, sh]
+-----------------------------------------------
+git clone https://github.com/hassium16/dotfiles
+. ~/dotfiles/bootstrap.sh
+exec zsh
+-----------------------------------------------
+
+
 === Windows - Windows Subsystem Linux
 
 install wsl-terminal: https://github.com/goreliu/wsl-terminal
@@ -47,14 +58,3 @@ sed -ie "/db_home:/cdb_home: $HOME" /etc/nsswitch.conf
 
 # setting dotfiles
 ---------------------------------------------------------------
-
-
-=== General
-
-.run home path
-[source, sh]
------------------------------------------------
-git clone https://github.com/hassium16/dotfiles
-. ~/dotfiles/bootstrap.sh
-exec zsh
------------------------------------------------
