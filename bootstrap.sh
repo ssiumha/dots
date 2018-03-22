@@ -35,3 +35,12 @@ mkdir -p "$HOME/.local/vim/tmp/"{undo,backup,sawp}
     printf 'install zplug? [y/N]:' && read -q && echo && \
     export ZPLUG_HOME=$HOME/.local/zsh/zplug && \
     git clone https://github.com/zplug/zplug $ZPLUG_HOME && source $ZPLUG_HOME/init.zsh
+
+
+[[ ! -s "$HOME/.local/bin/volt" ]] && \
+    printf 'install volt...' && \
+        curl -s https://api.github.com/repos/vim-volt/volt/releases/latest \
+        | grep browser_download_url \
+        | grep linux-amd64 \
+        | cut -d '"' -f 4 \
+        | wget -i - -O "$HOME/.local/bin/volt" && chmod +x "$HOME/.local/bin/volt"
