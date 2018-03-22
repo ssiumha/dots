@@ -20,9 +20,9 @@ mkdir -p "$HOME/.local/vim/tmp/"{undo,backup,sawp}
 [[ ! -d "$HOME/.local/vim/dein.vim" ]] &&
     git clone --depth=1 "https://github.com/Shougo/dein.vim" "$HOME/.local/vim/dein.vim"
 
-[[ ! -s "$HOME/.local/bin/diff-highlight" ]] && \
-    curl -fLo "$HOME/.local/bin/diff-highlight" \
-        "https://raw.githubusercontent.com/git/git/master/contrib/diff-highlight/diff-highlight"
+#[[ ! -s "$HOME/.local/bin/diff-highlight" ]] && \
+#    curl -fLo "$HOME/.local/bin/diff-highlight" \
+#        "https://raw.githubusercontent.com/git/git/master/contrib/diff-highlight/diff-highlight"
 
 [[ ! -s "$HOME/.local/bin/ack" ]] && \
     curl -fL http://beyondgrep.com/ack-2.14-single-file > $HOME/.local/bin/ack && chmod 0755 $HOME/.local/bin/ack
