@@ -12,6 +12,12 @@ elif [[ $OSTYPE == cygwin* || $OSTYPE == msys* ]]; then
   else
     cat $file > /dev/clipboard
   fi
+elif grep Microsoft /proc/version &>/dev/null; then
+  if [[ -z $file ]]; then
+    cat | clip.exe
+  else
+    cat $file | clip.exe
+  fi
 else
   if which xclip &>/dev/null; then
     if [[ -z $file ]]; then

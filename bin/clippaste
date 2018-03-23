@@ -3,6 +3,8 @@ if [[ $OSTYPE == darwin* ]]; then
   pbpaste
 elif [[ $OSTYPE == cygwin* || $OSTYPE == msys* ]]; then
   cat /dev/clipboard
+elif grep Microsoft /proc/version &>/dev/null; then
+  powershell.exe -command Get-Clipboard | cat
 else
   if which xclip &>/dev/null; then
     xclip -out -selection clipboard
