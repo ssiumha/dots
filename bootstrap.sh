@@ -17,8 +17,6 @@ mkdir -p "$HOME/.local/vim/tmp/"{undo,backup,sawp}
 #[[ ! -s "$HOME/.local/vim/autoload/plug.vim" ]] &&
 #    curl -fLo ~/.local/vim/autoload/plug.vim --create-dirs \
 #            https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-[[ ! -d "$HOME/.local/vim/dein.vim" ]] &&
-    git clone --depth=1 "https://github.com/Shougo/dein.vim" "$HOME/.local/vim/dein.vim"
 
 #[[ ! -s "$HOME/.local/bin/diff-highlight" ]] && \
 #    curl -fLo "$HOME/.local/bin/diff-highlight" \

@@ -17,8 +17,6 @@ let s:dot_vim_after_path = expand('~/dotfiles/vim/after')
 " 각 폴더는 bootstrap.sh에서 보장시킨다
 let s:local_path = expand('~/.local')
 let s:local_vim_path = expand(s:local_path.'/vim')
-let s:dein_path = expand(s:local_vim_path.'/dein.vim')
-let s:dein_plug_path = expand(s:local_vim_path.'/plug')
 let s:undodir_path = expand(s:local_vim_path.'/tmp/undo')
 let s:backupdir_path = expand(s:local_vim_path.'/tmp/backup')
 let s:swapdir_path = expand(s:local_vim_path.'/tmp/swap')
@@ -29,15 +27,10 @@ let s:is_gui_running = has('gui_running')
 let s:is_gui_macvim = has('gui_macvim')
 let s:is_term_macvim = !s:is_gui_macvim && has('mac')
 
-if s:is_ms_windows && s:is_gui_running
-    let s:dein_plug_path.='_gvim'
-endif
-
 "initalize {{{
 if has('vim_starting')
     let &runtimepath.=','.s:dot_vim_path
     let &runtimepath.=','.s:dot_vim_after_path
-    let &runtimepath.=','.s:dein_path
 
     if s:is_ms_windows
         winsize 170 40
@@ -66,43 +59,6 @@ if has('vim_starting')
     endif
 endif
 "}}}
-
-"plug manager{{{
-let g:dein#types#git#clone_depth = 3
-let g:dein#install_log_filename = expand(s:local_vim_path.'/plug.log')
-
-if dein#load_state(s:dein_plug_path)
-    call dein#begin(s:dein_plug_path)
-
-    if executable('ctags')
-        call dein#add('vim-scripts/taglist.vim')
-    endif
-
-    call dein#add('itchyny/lightline.vim')
-    call dein#add('ctrlpvim/ctrlp.vim')
-    call dein#add('mileszs/ack.vim')
-    call dein#add('mrtazz/simplenote.vim')
-    call dein#add('tpope/vim-vinegar')
-    call dein#add('tpope/vim-fugitive')
-    call dein#add('tpope/vim-surround')
-    call dein#add('vim-scripts/TwitVim')
-    call dein#add('vim-scripts/AnsiEsc.vim')
-    call dein#add('vim-scripts/html-improved-indentation')
-    call dein#add('easymotion/vim-easymotion')
-    call dein#add('terryma/vim-multiple-cursors')
-    if has('python3') && v:version >= 800
-        call dein#add('maralla/validator.vim')
-    endif
-    "call dein#add('jiangmiao/auto-pairs')
-    "https://github.com/Townk/vim-autoclose
-    "
-    "
-    call dein#add('lambdatoast/elm.vim')
-    call dein#add('elixir-lang/vim-elixir')
-
-    call dein#end()
-    call dein#save_state()
-endif
 
 filetype plugin on
 syntax enable
