@@ -1,0 +1,119 @@
+{
+  "version": 2,
+  "trx_id": 4,
+  "current_profile_name": "default",
+  "repos": [
+    {
+      "type": "git",
+      "trx_id": 4,
+      "path": "github.com/vim-scripts/html-improved-indentation",
+      "version": "c29aa3137d9065b08117394fea25024ed88c58fa"
+    },
+    {
+      "type": "git",
+      "trx_id": 4,
+      "path": "github.com/vim-scripts/AnsiEsc.vim",
+      "version": "d2bb7878622e4c16203acf1c92a0f4bc7ac58003"
+    },
+    {
+      "type": "git",
+      "trx_id": 4,
+      "path": "github.com/tpope/vim-vinegar",
+      "version": "f54d96c6bb110bc119ddc81968c2b280ed98acfe"
+    },
+    {
+      "type": "git",
+      "trx_id": 4,
+      "path": "github.com/lambdatoast/elm.vim",
+      "version": "04df290781f8a8a9a800e568262e0f2a077f503e"
+    },
+    {
+      "type": "git",
+      "trx_id": 4,
+      "path": "github.com/jiangmiao/auto-pairs",
+      "version": "f0019fc6423e7ce7bbd01d196a7e027077687fda"
+    },
+    {
+      "type": "git",
+      "trx_id": 4,
+      "path": "github.com/tpope/vim-surround",
+      "version": "e49d6c2459e0f5569ff2d533b4df995dd7f98313"
+    },
+    {
+      "type": "git",
+      "trx_id": 4,
+      "path": "github.com/mileszs/ack.vim",
+      "version": "36e40f9ec91bdbf6f1adf408522a73a6925c3042"
+    },
+    {
+      "type": "git",
+      "trx_id": 4,
+      "path": "github.com/vim-scripts/TwitVim",
+      "version": "7ca751b444427b62158a44942748f8dbf8ea9a91"
+    },
+    {
+      "type": "git",
+      "trx_id": 4,
+      "path": "github.com/terryma/vim-multiple-cursors",
+      "version": "13232e4b544775cf2b039571537b0e630406f801"
+    },
+    {
+      "type": "git",
+      "trx_id": 4,
+      "path": "github.com/elixir-lang/vim-elixir",
+      "version": "0bb9944567d7f7709275c820daf7415bacb2f1e8"
+    },
+    {
+      "type": "git",
+      "trx_id": 4,
+      "path": "github.com/itchyny/lightline.vim",
+      "version": "78c43c144643e49c529a93b9eaa4eda12614f923"
+    },
+    {
+      "type": "git",
+      "trx_id": 4,
+      "path": "github.com/mrtazz/simplenote.vim",
+      "version": "a1a3e7af2c226d32be3db1a4a8f69fcbe4e83317"
+    },
+    {
+      "type": "git",
+      "trx_id": 4,
+      "path": "github.com/easymotion/vim-easymotion",
+      "version": "342549e7a1e5b07a030803e0e4b6f0415aa51275"
+    },
+    {
+      "type": "git",
+      "trx_id": 4,
+      "path": "github.com/ctrlpvim/ctrlp.vim",
+      "version": "35c9b961c916e4370f97cb74a0ba57435a3dbc25"
+    },
+    {
+      "type": "git",
+      "trx_id": 4,
+      "path": "github.com/tpope/vim-fugitive",
+      "version": "3e0bd86b99c50691f830d9e25a4bbe2a88078f8f"
+    }
+  ],
+  "profiles": [
+    {
+      "name": "default",
+      "repos_path": [
+        "github.com/vim-scripts/html-improved-indentation",
+        "github.com/vim-scripts/AnsiEsc.vim",
+        "github.com/tpope/vim-vinegar",
+        "github.com/lambdatoast/elm.vim",
+        "github.com/jiangmiao/auto-pairs",
+        "github.com/tpope/vim-surround",
+        "github.com/mileszs/ack.vim",
+        "github.com/vim-scripts/TwitVim",
+        "github.com/terryma/vim-multiple-cursors",
+        "github.com/elixir-lang/vim-elixir",
+        "github.com/itchyny/lightline.vim",
+        "github.com/mrtazz/simplenote.vim",
+        "github.com/easymotion/vim-easymotion",
+        "github.com/ctrlpvim/ctrlp.vim",
+        "github.com/tpope/vim-fugitive"
+      ]
+    }
+  ]
+}
