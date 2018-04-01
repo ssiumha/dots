@@ -53,7 +53,7 @@ export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=7"
 # ENABLE META KEY
 set meta-flag on
 set input-meta on
-set convert-meta on
+set convert-meta off
 set output-meta on
 
 
