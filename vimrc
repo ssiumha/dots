@@ -29,8 +29,8 @@ let s:is_term_macvim = !s:is_gui_macvim && has('mac')
 
 "initalize {{{
 if has('vim_starting')
-    let &runtimepath.=','.s:dot_vim_path
-    let &runtimepath.=','.s:dot_vim_after_path
+    let &runtimepath = s:dot_vim_path.','.&runtimepath
+    let &runtimepath = s:dot_vim_after_path.','.&runtimepath
 
     if s:is_ms_windows
         winsize 170 40
