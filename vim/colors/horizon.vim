@@ -8,11 +8,11 @@ let s:colors = [
 \ ]
 
 func! s:H(group, fg, bg, attr)
-    let fg = (a:fg is "" || a:fg > 15) ? "NONE" : a:fg
-    let bg = (a:bg is "" || a:bg > 15) ? "NONE" : a:bg
-    let guifg = (a:fg is "") ? "NONE" : s:colors[a:fg]
-    let guibg = (a:bg is "") ? "NONE" : s:colors[a:bg]
-    let attr = (a:attr is "") ? "NONE" : a:attr
+    let fg = (a:fg is s:NUL || a:fg > 15) ? "NONE" : a:fg
+    let bg = (a:bg is s:NUL || a:bg > 15) ? "NONE" : a:bg
+    let guifg = (a:fg is s:NUL) ? "NONE" : s:colors[a:fg]
+    let guibg = (a:bg is s:NUL) ? "NONE" : s:colors[a:bg]
+    let attr = (a:attr is s:NUL) ? "NONE" : a:attr
 
     exec "hi ".a:group
         \ . " guifg=".guifg . " ctermfg=".fg
@@ -29,91 +29,99 @@ syntax reset
 
 let g:colors_name = "horizon"
 
-call s:H("Normal", "16", "17", "")
-call s:H("Cursor", "18", "", "reverse")
+let [s:BK1, s:RD1, s:GN1, s:YL1] = [0, 1, 2, 3]
+let [s:BL1, s:VT1, s:CN1, s:GY1] = [4, 5, 6, 7]
+let [s:BK2, s:RD2, s:GN2, s:YL2] = [8, 9, 10, 11]
+let [s:BL2, s:VT2, s:CN2, s:GY2] = [12, 13, 14, 15]
+let [s:_FG, s:_BG, s:_CU] = [16, 17, 18]
+let [s:NUL, s:REV] = ["", "reverse"]
+
+
+call s:H("Normal",      s:_FG, s:_BG, s:NUL)
+call s:H("Cursor",      s:_CU, s:NUL, s:REV)
 
 
 " Specific Text {{{
-call s:H("ModeMsg", 8, "", "")
-call s:H("NonText", 8, "", "")
-call s:H("SpecialKey", 8, "", "")
+call s:H("ModeMsg",     s:BK2, s:NUL, s:NUL)
+call s:H("NonText",     s:BK2, s:NUL, s:NUL)
+call s:H("SpecialKey",  s:BK2, s:NUL, s:NUL)
 
-call s:H("MoreMsg", 7, "", "")
-call s:H("Question", 1, "", "")
-call s:H("WarningMsg", 3, "", "")
-call s:H("ErrorMsg", 1, "", "")
+call s:H("MoreMsg",     s:GY1, s:NUL, s:NUL)
+call s:H("Question",    s:RD1, s:NUL, s:NUL)
+call s:H("WarningMsg",  s:YL1, s:NUL, s:NUL)
+call s:H("ErrorMsg",    s:RD1, s:NUL, s:NUL)
 "}}}
 
 
 " UI Syntax {{{
-call s:H("Title", 15, "", "")
-call s:H("Directory", 13, "", "")
+call s:H("Title",           s:GY2, s:NUL, s:NUL)
+call s:H("Directory",       s:VT2, s:NUL, s:NUL)
 
-call s:H("LineNr", 7, "", "")
-call s:H("VertSplit", 8, "", "")
-call s:H("StatusLine", "", 7, "")
-call s:H("StatusLineNC", "", "", "")
-call s:H("Folded", 3, "", "")
-call s:H("FoldColumn", 15, 0, "")
+call s:H("LineNr",          s:GY1, s:NUL, s:NUL)
+call s:H("VertSplit",       s:BK2, s:NUL, s:NUL)
+call s:H("StatusLine",      s:NUL, s:GY1, s:NUL)
+call s:H("StatusLineNC",    s:NUL, s:NUL, s:NUL)
+call s:H("Folded",          s:YL1, s:NUL, s:NUL)
+call s:H("FoldColumn",      s:GY2, s:BK1, s:NUL)
 
-call s:H("Visual", 7, "", "reverse")
-call s:H("IncSearch", 10, 8, "")
-call s:H("Search", "", 8, "")
+call s:H("Visual",          s:GY1, s:NUL, s:REV)
+call s:H("IncSearch",       s:GN2, s:BK2, s:NUL)
+call s:H("Search",          s:NUL, s:BK2, s:NUL)
 
-call s:H("WildMenu", "", "", "reverse")
+call s:H("WildMenu",        s:NUL, s:NUL, s:REV)
 
-call s:H("TabLine", "", 7, "")
-call s:H("TabLineFill", "", 8, "")
-call s:H("MatchParen", "", 13, "")
+call s:H("TabLine",         s:NUL, s:GY1, s:NUL)
+call s:H("TabLineFill",     s:NUL, s:BK2, s:NUL)
+call s:H("MatchParen",      s:NUL, s:VT2, s:NUL)
 
 if version >= 700
-    call s:H("CursorLine", "", 8, "")
-    call s:H("CursorColumn", "", 8, "")
+    call s:H("CursorLine",      s:NUL, s:BK2, s:NUL)
+    call s:H("CursorColumn",    s:NUL, s:BK2, s:NUL)
 
-    call s:H("PMenu", "", 5, "")
-    call s:H("PMenuSel", "", 5, "reverse")
-    call s:H("SignColumn", 8, "", "")
+    call s:H("PMenu",           s:NUL, s:VT1, s:NUL)
+    call s:H("PMenuSel",        s:NUL, s:VT1, s:REV)
+    call s:H("SignColumn",      s:BK2, s:NUL, s:NUL)
 end
 if version >= 703
-    call s:H("ColorColumn", "", 8, "")
+    call s:H("ColorColumn",     s:NUL, s:BK2, s:NUL)
 end
 "}}}
 
 
 " Diff {{{
-call s:H("DiffAdd", "", 2, "")
-call s:H("DiffChange", "", 3, "")
-call s:H("DiffDelete", "", 1, "")
-call s:H("DiffText", 5, "", "")
+call s:H("DiffAdd",         s:NUL, s:GN1, s:NUL)
+call s:H("DiffChange",      s:NUL, s:YL1, s:NUL)
+call s:H("DiffDelete",      s:NUL, s:RD1, s:NUL)
+call s:H("DiffText",        s:VT1, s:NUL, s:NUL)
 
 " Git COMMIT_EDITMSG
-call s:H("diffAdded", 2, "", "")
-call s:H("diffRemoved", 1, "", "")
+call s:H("diffAdded",       s:GN1, s:NUL, s:NUL)
+call s:H("diffRemoved",     s:RD1, s:NUL, s:NUL)
 " }}}
 
 
 " Code Groups {{{
-call s:H("Comment", 7, "", "")
+call s:H("Comment",         s:GY1, s:NUL, s:NUL)
 
-call s:H("Constant", 3, "", "")
-call s:H("Number", 11, "", "")
-call s:H("Boolean", 6, "", "")
+call s:H("Constant",        s:YL1, s:NUL, s:NUL)
+call s:H("Number",          s:YL2, s:NUL, s:NUL)
+call s:H("Boolean",         s:CN1, s:NUL, s:NUL)
 
-call s:H("Statement", 4, "", "")
+call s:H("Statement",       s:BL1, s:NUL, s:NUL)
 
-call s:H("Type", 4, "", "")
+call s:H("Type",            s:BL1, s:NUL, s:NUL)
 
-call s:H("Identifier", 6, "", "")
+call s:H("Identifier",      s:CN1, s:NUL, s:NUL)
 
-call s:H("PreProc", 6, "", "")
+call s:H("PreProc",         s:CN1, s:NUL, s:NUL)
 
-call s:H("Special", 6, "", "")
+call s:H("Special",         s:CN1, s:NUL, s:NUL)
 
 "hi Underlined
-call s:H("Ignore", 7, "", "")
+call s:H("Ignore",          s:GY1, s:NUL, s:NUL)
 
-call s:H("Error", "", 1, "")
-call s:H("Todo", 0, 11, "")
+call s:H("Error",           s:NUL, s:RD1, s:NUL)
+call s:H("Todo",            s:BK1, s:YL2, s:NUL)
 " }}}
 
 delfunc s:H
