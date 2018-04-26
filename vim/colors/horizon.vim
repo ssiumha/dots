@@ -42,9 +42,9 @@ call s:H("Cursor",      s:_CU, s:NUL, s:REV)
 
 
 " Specific Text {{{
-call s:H("ModeMsg",     s:BK2, s:NUL, s:NUL)
-call s:H("NonText",     s:BK2, s:NUL, s:NUL)
-call s:H("SpecialKey",  s:BK2, s:NUL, s:NUL)
+call s:H("ModeMsg",     s:GY2, s:NUL, s:NUL)
+call s:H("NonText",     s:GY2, s:NUL, s:NUL)
+call s:H("SpecialKey",  s:GY2, s:NUL, s:NUL)
 
 call s:H("MoreMsg",     s:GY1, s:NUL, s:NUL)
 call s:H("Question",    s:RD1, s:NUL, s:NUL)
@@ -72,7 +72,7 @@ call s:H("WildMenu",        s:NUL, s:NUL, s:REV)
 
 call s:H("TabLine",         s:NUL, s:GY1, s:NUL)
 call s:H("TabLineFill",     s:NUL, s:BK2, s:NUL)
-call s:H("MatchParen",      s:NUL, s:VT2, s:NUL)
+call s:H("MatchParen",      s:NUL, s:VT2, s:REV)
 
 if version >= 700
     call s:H("CursorLine",      s:NUL, s:BK2, s:NUL)
@@ -105,17 +105,18 @@ call s:H("Comment",         s:GY1, s:NUL, s:NUL)
 
 call s:H("Constant",        s:YL1, s:NUL, s:NUL)
 call s:H("Number",          s:YL2, s:NUL, s:NUL)
-call s:H("Boolean",         s:CN1, s:NUL, s:NUL)
+call s:H("Boolean",         s:YL2, s:NUL, s:NUL)
 
-call s:H("Statement",       s:BL1, s:NUL, s:NUL)
+call s:H("Statement",       s:BL1, s:NUL, s:NUL)  " if, for, case, sizeof, +..
 
-call s:H("Type",            s:BL1, s:NUL, s:NUL)
+call s:H("Type",            s:BL1, s:NUL, s:NUL)  " int, static, struct..
 
-call s:H("Identifier",      s:CN1, s:NUL, s:NUL)
+call s:H("Identifier",      s:CN1, s:NUL, s:NUL)  " Variable
+call s:H("Function",        s:VT1, s:NUL, s:NUL)  " function, class
 
-call s:H("PreProc",         s:CN1, s:NUL, s:NUL)
+call s:H("PreProc",         s:VT1, s:NUL, s:NUL)  " #include, #define...
 
-call s:H("Special",         s:CN1, s:NUL, s:NUL)
+call s:H("Special",         s:CN1, s:NUL, s:NUL)  " Tag, Delimiter...
 
 "hi Underlined
 call s:H("Ignore",          s:GY1, s:NUL, s:NUL)
