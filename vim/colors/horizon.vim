@@ -54,7 +54,7 @@ call s:H("ErrorMsg",    s:RD1, s:NUL, s:NUL)
 
 
 " UI Syntax {{{
-call s:H("Title",           s:GY2, s:NUL, s:NUL)
+call s:H("Title",           s:RD2, s:NUL, s:NUL)
 call s:H("Directory",       s:VT2, s:NUL, s:NUL)
 
 call s:H("LineNr",          s:GY1, s:NUL, s:NUL)
