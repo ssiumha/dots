@@ -76,6 +76,11 @@
       "type": "git",
       "path": "github.com/tpope/vim-fugitive",
       "version": "40d78f07dee2ffab68abb9d6d1a9e27843df0fe0"
+    },
+    {
+      "type": "git",
+      "path": "github.com/pangloss/vim-javascript",
+      "version": "35da051bf3c2c1427a9d55f4e2a0438fe0521dda"
     }
   ],
   "profiles": [
@@ -96,7 +101,8 @@
         "github.com/mrtazz/simplenote.vim",
         "github.com/easymotion/vim-easymotion",
         "github.com/ctrlpvim/ctrlp.vim",
-        "github.com/tpope/vim-fugitive"
+        "github.com/tpope/vim-fugitive",
+        "github.com/pangloss/vim-javascript"
       ]
     }
   ]
