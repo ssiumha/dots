@@ -41,7 +41,7 @@ mkdir -p "$HOME/.local/vim/tmp/"{undo,backup,sawp}
         | grep browser_download_url \
         | case "$OSTYPE" in; \
             darwin*) grep darwin-amd64 ;;
-            *) grep linux-amd64 ;; esac \
+            *) grep linux-$( (uname -a | grep 'x86-64' > /dev/null) && echo 'amd64' || echo '386') ;; esac \
         | cut -d '"' -f 4 \
         | wget -i - -O "$HOME/.local/bin/volt" && chmod +x "$HOME/.local/bin/volt"
 
