@@ -81,6 +81,11 @@
       "type": "git",
       "path": "github.com/pangloss/vim-javascript",
       "version": "35da051bf3c2c1427a9d55f4e2a0438fe0521dda"
+    },
+    {
+      "type": "git",
+      "path": "github.com/posva/vim-vue",
+      "version": "58d8de76b08ba701e643bd87437a7f25624a2388"
     }
   ],
   "profiles": [
@@ -102,7 +107,8 @@
         "github.com/easymotion/vim-easymotion",
         "github.com/ctrlpvim/ctrlp.vim",
         "github.com/tpope/vim-fugitive",
-        "github.com/pangloss/vim-javascript"
+        "github.com/pangloss/vim-javascript",
+        "github.com/posva/vim-vue"
       ]
     }
   ]
