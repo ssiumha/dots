@@ -80,7 +80,7 @@ else
     let g:ctrlp_cache_dir = expand(s:local_vim_path.'/ctrlp')
 endif
 let g:ctrlp_custom_ignore = {
-    \ 'dir': '\v[\/](AppData[\/]Local[\/]Temp)|(\.(git|svn))$',
+    \ 'dir': '\v[\/](AppData[\/]Local[\/]Temp)|(\.(git|svn))$|node_module',
     \ 'file': '\v\.(pyc|svn-base|meta|prefab|class)$',
     \}
 
