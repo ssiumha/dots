@@ -170,6 +170,8 @@ augroup END
 
 autocmd BufNewFile,BufRead *.org setf org
 autocmd BufNewFile,BufRead *.adoc setf asciidoc
+
+autocmd FileType javascript setlocal tabstop=2
 "}}}
 
 "settings {{{
