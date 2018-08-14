@@ -39,7 +39,7 @@ mkdir -p "$HOME/.local/vim/tmp/"{undo,backup,sawp}
     printf 'install volt...' && \
         curl -s https://api.github.com/repos/vim-volt/volt/releases/latest \
         | grep browser_download_url \
-        | case "$OSTYPE" in; \
+        | case "$OSTYPE" in \
             darwin*) grep darwin-amd64 ;;
             *) grep linux-$( (uname -a | grep 'x86-64' > /dev/null) && echo 'amd64' || echo '386') ;; esac \
         | cut -d '"' -f 4 \

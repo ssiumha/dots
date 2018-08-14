@@ -490,7 +490,7 @@ git_repo_info() {
 }
 
 chpwd() {
-  [ "`pwd`" != ~ ] && pwd >> ~/.zsh_cdhistory && sed -n '1,10000p' -i ~/.zsh_cdhistory
+  [ "`pwd`" != ~ ] && pwd >> ~/.zsh_cdhistory && sed -i -n '1,10000p' ~/.zsh_cdhistory
 }
 
 preexec() {
