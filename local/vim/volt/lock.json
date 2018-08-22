@@ -15,7 +15,7 @@
     {
       "type": "git",
       "path": "github.com/tpope/vim-vinegar",
-      "version": "97f3fbc9596f3997ebf8e30bfdd00ebb34597722"
+      "version": "c38ea2195a43747aedf0bb4b7eb5aa8870260296"
     },
     {
       "type": "git",
@@ -24,13 +24,8 @@
     },
     {
       "type": "git",
-      "path": "github.com/jiangmiao/auto-pairs",
-      "version": "f0019fc6423e7ce7bbd01d196a7e027077687fda"
-    },
-    {
-      "type": "git",
       "path": "github.com/tpope/vim-surround",
-      "version": "e49d6c2459e0f5569ff2d533b4df995dd7f98313"
+      "version": "597068870b8f093a8b2d11536c62ff31222ee8d0"
     },
     {
       "type": "git",
@@ -45,17 +40,17 @@
     {
       "type": "git",
       "path": "github.com/terryma/vim-multiple-cursors",
-      "version": "b781b1461bd4b346958309e1733a9d6ad1a66b6c"
+      "version": "dd9289af03abafa76b28c503e20747ff7d7d89e5"
     },
     {
       "type": "git",
       "path": "github.com/elixir-lang/vim-elixir",
-      "version": "e49da51a6daa2a97ae5e043b9062a59ca66613c6"
+      "version": "bce7aa0bcacda890f5c4e7b456ef41fe2205872e"
     },
     {
       "type": "git",
       "path": "github.com/itchyny/lightline.vim",
-      "version": "41fb97e85b0386b976b39051de4f7eaa42ba6b2b"
+      "version": "0532dff598abca9975d3f80128eaadadbf1d91d4"
     },
     {
       "type": "git",
@@ -65,27 +60,27 @@
     {
       "type": "git",
       "path": "github.com/easymotion/vim-easymotion",
-      "version": "342549e7a1e5b07a030803e0e4b6f0415aa51275"
+      "version": "1a0244c90c3ff46219cf9597bb13662be4232407"
     },
     {
       "type": "git",
       "path": "github.com/ctrlpvim/ctrlp.vim",
-      "version": "4b9e7cac612902a25498cca49f13475fe1a821a4"
+      "version": "43cc73b8e7d4ab45f17118573eb81fd45704b989"
     },
     {
       "type": "git",
       "path": "github.com/tpope/vim-fugitive",
-      "version": "40d78f07dee2ffab68abb9d6d1a9e27843df0fe0"
+      "version": "45c21fc38411da91f25978ce6473a9592a8b05dc"
     },
     {
       "type": "git",
       "path": "github.com/pangloss/vim-javascript",
-      "version": "35da051bf3c2c1427a9d55f4e2a0438fe0521dda"
+      "version": "39e332a3c36c0115e1eab85c34cf121b7585869d"
     },
     {
       "type": "git",
       "path": "github.com/posva/vim-vue",
-      "version": "58d8de76b08ba701e643bd87437a7f25624a2388"
+      "version": "23043a7ebfa03b4a25bdb4fa6b7e4f3df6df6b1c"
     }
   ],
   "profiles": [
@@ -96,7 +91,6 @@
         "github.com/vim-scripts/AnsiEsc.vim",
         "github.com/tpope/vim-vinegar",
         "github.com/lambdatoast/elm.vim",
-        "github.com/jiangmiao/auto-pairs",
         "github.com/tpope/vim-surround",
         "github.com/mileszs/ack.vim",
         "github.com/vim-scripts/TwitVim",
