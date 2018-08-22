@@ -18,9 +18,13 @@ mkdir -p "$HOME/.local/vim/tmp/"{undo,backup,sawp}
 #    curl -fLo ~/.local/vim/autoload/plug.vim --create-dirs \
 #            https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 
-#[[ ! -s "$HOME/.local/bin/diff-highlight" ]] && \
-#    curl -fLo "$HOME/.local/bin/diff-highlight" \
-#        "https://raw.githubusercontent.com/git/git/master/contrib/diff-highlight/diff-highlight"
+
+[[ ! -s "$HOME/.local/bin/diff-highlight" ]] && \
+    (echo -e '#!/usr/bin/env perl\n'; \
+     curl https://raw.githubusercontent.com/git/git/master/contrib/diff-highlight/{DiffHighlight.pm,diff-highlight.perl}) > "$HOME/.local/bin/diff-highlight" && \
+     chmod +x "$HOME/.local/bin/diff-highlight"
+
+
 
 [[ ! -s "$HOME/.local/bin/ack" ]] && \
     curl -fL http://beyondgrep.com/ack-2.14-single-file > $HOME/.local/bin/ack && chmod 0755 $HOME/.local/bin/ack
