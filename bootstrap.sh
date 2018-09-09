@@ -8,6 +8,14 @@ mkdir -p "$HOME/.local/"{repo,bin,vim,zsh/completion,zsh/zplug,emacs/tmp}
 mkdir -p "$HOME/.local/vim/tmp/"{undo,backup,sawp}
 
 
+_check_y() {
+    local key_press="";
+    read -rsn 1 key_press;
+    printf "\n";
+    return $([[ $key_press == y ]]);
+}
+
+
 # iterm2 setting
 [[ "$OSTYPE" == darwin* && $(defaults domains | grep com.googlecode.iterm2) ]] && \
     defaults write com.googlecode.iterm2.plist PrefsCustomFolder -string "~/dotfiles/iterm2" && \
@@ -34,7 +42,7 @@ mkdir -p "$HOME/.local/vim/tmp/"{undo,backup,sawp}
         cd "$HOME/.local/repo/fzy" && make && make install -e "PREFIX=$HOME/.local/" && cd -
 
 [[ ! -s "$HOME/.local/zsh/zplug/init.zsh" ]] && \
-    printf 'install zplug? [y/N]:' && read -q && echo && \
+    printf 'install zplug? [y/N]:' && _check_y && \
     export ZPLUG_HOME=$HOME/.local/zsh/zplug && \
     git clone https://github.com/zplug/zplug $ZPLUG_HOME && source $ZPLUG_HOME/init.zsh
 
@@ -48,5 +56,8 @@ mkdir -p "$HOME/.local/vim/tmp/"{undo,backup,sawp}
             *) grep linux-$( (uname -a | grep 'x86-64' > /dev/null) && echo 'amd64' || echo '386') ;; esac \
         | cut -d '"' -f 4 \
         | wget -i - -O "$HOME/.local/bin/volt" && chmod +x "$HOME/.local/bin/volt"
+
+
+unset -f _check_y
 
 return 0
