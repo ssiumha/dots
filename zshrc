@@ -99,7 +99,7 @@ alias ll="ls -lAh"
 alias l="ls -lh"
 
 l_func() {
-  ls -lh --color=always $@ | awk '
+  LS_OPTIONS=--color=always CLICOLOR_FORCE=1 ls -lh $@ | awk '
   $1 ~ /^[[:alpha:]-]{10}$/{ a=1; }
   !a{ print }
   a{
