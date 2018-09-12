@@ -112,6 +112,8 @@ let g:surround_no_mappings = 1
 nnoremap cs <Plug>Csurround
 
 let g:lightline = { 'colorscheme' : 'horizon' }
+
+let g:ackprg = 'ag --vimgrep --smart-case'
 "}}}
 
 "autocmd{{{
