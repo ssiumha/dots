@@ -60,14 +60,10 @@ _check_y() {
 
 [[ ! -s "$HOME/.local/bin/fzf" ]] && \
     printf 'install fzf...' && \
-        curl -s https://api.github.com/repos/junegunn/fzf-bin/releases/latest \
-        | grep browser_download_url \
-        | case "$OSTYPE" in \
-            darwin*) grep darwin_amd64 ;;
-            *) grep linux_$( (uname -a | grep 'x86-64' > /dev/null) && echo 'amd64' || echo '386') ;; esac \
-        | cut -d '"' -f 4 \
-        | xargs curl -L | tar xz -C "$HOME/.local/bin/" && chmod +x "$HOME/.local/bin/fzf"
-
+        git clone --depth=1 "git@github.com:junegunn/fzf.git" "$HOME/.local/repo/fzf" && \
+        $HOME/.local/repo/fzf/install --bin && \
+        ln -s $HOME/.local/repo/fzf/bin/fzf $HOME/.local/bin/fzf && \
+        ln -s $HOME/.local/repo/fzf/bin/fzf-tmux $HOME/.local/bin/fzf-tmux
 
 unset -f _check_y
 
