@@ -148,11 +148,6 @@ function extract() {
 }
 alias -s {gz,tgz,zip,lzh,bz2,tbz,Z,tar,arj,xz}=extract
 
-alias -g gB='$(git branch -a | fzy --prompt "GIT BRANCH>" | sed -e "s/^\*\s*//g")'
-alias -g gR='$(git remote -a | fzy --prompt "GIT REMOTE>")'
-alias -g gH='$(git log --oneline --branches | fzy --prompt "GIT HASH>" | awk "{print \$1}")'
-#alias -g gS='$(git status --short | fzf-tmux +s --multi --ansi --prompt "GIT STATUS>" | sed -e "s/^.. //")'
-
 # 자신의 github repo 목록중에서 선택하기
 #alias -g H='`curl -sL https://api.github.com/users/YOUR_USERNAME/repos | jq -r ".[].full_name" | peco --prompt "GITHUB REPOS>" | head -n 1`'
 
@@ -358,72 +353,9 @@ bindkey '\C-x\C-e' edit-command-line
 # }}}
 
 # FUNCTIONS {{{
-# fshow - git commit browser (enter for show, ctrl-d for diff)
-fshow() {
-  local out shas sha q k
-  while out=$(
-      git log --graph --color=always \
-          --format="%C(auto)%h%d %s %C(black)%C(bold)%cr" "$@" |
-      fzf --ansi --multi --no-sort --reverse --query="$q" \
-          --print-query --expect=ctrl-d); do
-    q=$(head -1 <<< "$out")
-    k=$(head -2 <<< "$out" | tail -1)
-    shas=$(sed '1,2d;s/^[^a-z0-9]*//;/^$/d' <<< "$out" | awk '{print $1}')
-    [ -z "$shas" ] && continue
-    if [ "$k" = ctrl-d ]; then
-      git diff --color=always $shas | less -R
-    else
-      for sha in $shas; do
-        git show --color=always $sha | less -R
-      done
-    fi
-  done
-}
 
-if type fzy &>/dev/null;
-then
-  fzy-select-history() {
-    BUFFER="$(history | tac |
-      perl -pe 's/^\s*\d+\*?\s+//' |
-      awk '!a[$0]++' |
-      fzy --query "$LBUFFER" | # peco --query "$LBUFFER"
-      sed 's/\\n/\n/')"
-    CURSOR=$#BUFFER             # cursor move to line end
-    zle reset-prompt
-  }
-  zle -N fzy-select-history     # register widget
-  bindkey '^R' fzy-select-history
-
-  fzy-favorite() {
-    BUFFER="$(cat $ZSH/favorite.txt | fzy --query "$LBUFFER" | sed 's/\\n/\n/')"
-    CURSOR=$#BUFFER
-    zle reset-prompt
-  }
-  zle -N fzy-favorite
-  bindkey '^F' fzy-favorite
-
-  fzy-ssh() {
-    ssh $@ "$(cat ~/.ssh/config | grep ^Host | awk '{print $2}' |
-      fzy --query "$LBUFFER" | sed 's/\\n/\n/')"
-  }
-  alias -g s='fzy-ssh'
-
-  fzy-move-path() {
-    #if git rev-parse 2> /dev/null; then
-    #  source_files=$(git ls-files)
-    #else
-    #  source_files=$(find . -type f)
-    #fi
-    cd "$(find . -type d | egrep -v '(.git|.svn)' |
-      awk 'NR>1' | fzy --query "$LBUFFER")"
-  }
-  alias -g c='fzy-move-path'
-fi
-
-mru() {
-  cd "$(cat ~/.zsh_cdhistory 2>/dev/null |
-    egrep -v '(.git|.svn)' | sort -u | fzy --query "$LBUFFER")"
-}
+## IMPORT
+source $ZSH/fzf.zsh
 
 __cd_up() { builtin pushd .. > /dev/null; zle accept-line }
 zle -N __cd_up
