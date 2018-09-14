@@ -81,6 +81,11 @@
       "type": "git",
       "path": "github.com/posva/vim-vue",
       "version": "23043a7ebfa03b4a25bdb4fa6b7e4f3df6df6b1c"
+    },
+    {
+      "type": "git",
+      "path": "github.com/junegunn/fzf",
+      "version": "8540902a35361dba217cc3ad86ff2215ae51918e"
     }
   ],
   "profiles": [
@@ -102,7 +107,8 @@
         "github.com/ctrlpvim/ctrlp.vim",
         "github.com/tpope/vim-fugitive",
         "github.com/pangloss/vim-javascript",
-        "github.com/posva/vim-vue"
+        "github.com/posva/vim-vue",
+        "github.com/junegunn/fzf"
       ]
     }
   ]
