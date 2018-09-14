@@ -58,6 +58,17 @@ _check_y() {
         | wget -i - -O "$HOME/.local/bin/volt" && chmod +x "$HOME/.local/bin/volt"
 
 
+[[ ! -s "$HOME/.local/bin/fzf" ]] && \
+    printf 'install fzf...' && \
+        curl -s https://api.github.com/repos/junegunn/fzf-bin/releases/latest \
+        | grep browser_download_url \
+        | case "$OSTYPE" in \
+            darwin*) grep darwin_amd64 ;;
+            *) grep linux_$( (uname -a | grep 'x86-64' > /dev/null) && echo 'amd64' || echo '386') ;; esac \
+        | cut -d '"' -f 4 \
+        | xargs curl -L | tar xz -C "$HOME/.local/bin/" && chmod +x "$HOME/.local/bin/fzf"
+
+
 unset -f _check_y
 
 return 0
