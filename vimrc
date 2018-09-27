@@ -123,7 +123,7 @@ augroup filetype_all
     " remove trailing whitespace
     autocmd BufWritePre *
                 \  let [s:old_search, s:stay_view] = [@/, winsaveview()]
-                \| silent! execute '%s;\s\+$;;e'
+                \| if &filetype != 'diff' | silent! execute '%s;\s\+$;;e' | endif
                 \| call winrestview(s:stay_view)
                 \| let @/ = s:old_search
                 \| unlet s:old_search
