@@ -42,7 +42,7 @@ fshow() {
 
 
 fzf-select-history() {
-  BUFFER="$(history | tac |
+  BUFFER="$(history | perl -e 'print reverse <>' |
     perl -pe 's/^\s*\d+\*?\s+//' |
     awk '!a[$0]++' |
     fzf --query "$LBUFFER" |

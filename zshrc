@@ -415,11 +415,11 @@ cmd_exec_time() {
 
 git_repo_info() {
   git status --short --branch --untracked-files=no 2>/dev/null | \
-    gawk '
-      NR==1{printf " "gensub(/^(.*)\.{3}.+$/, "\\1", "g", $2)}
-      !a&&/^A/{a="+"}
-      !m&&/^[^?#][^?#]/{m="!"}
-      END{ if(NR){printf a""m" "} }
+    perl -lane '
+      printf s/^## ([^.]+).+$/ \1/r if $. == 1;
+      $a = "+"  if /^A/;
+      $m = "!"  if /^[^?#][^?#]/;
+      END{ printf "$a$m " if $.; }
     '
 }
 
