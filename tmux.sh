@@ -32,8 +32,8 @@ if [[ `tmux -V | awk 'END{print ($2>=2.4)}'` -eq 1 ]]; then
     bind -T copy-mode-vi C-f    send -X page-down \; \
     bind -T copy-mode-vi C-u    send -X halfpage-up \; \
     bind -T copy-mode-vi C-d    send -X halfpage-down \; \
-    bind -T copy-mode-vi Enter copy-pipe "~/dotfiles/bin/clipcopy" \; \
-    bind -T copy-mode-vi y     copy-pipe "~/dotfiles/bin/clipcopy" \; \
+    bind -T copy-mode-vi Enter copy-pipe "$DOTFILES/bin/clipcopy" \; \
+    bind -T copy-mode-vi y     copy-pipe "$DOTFILES/bin/clipcopy" \; \
   ;
 else
   tmux -- \
@@ -52,8 +52,8 @@ else
     bind -t vi-copy C-f    page-down \; \
     bind -t vi-copy C-u    halfpage-up \; \
     bind -t vi-copy C-d    halfpage-down \; \
-    bind -t vi-copy Enter copy-pipe "~/dotfiles/bin/clipcopy" \; \
-    bind -t vi-copy y     copy-pipe "~/dotfiles/bin/clipcopy" \; \
+    bind -t vi-copy Enter copy-pipe "$DPATH/bin/clipcopy" \; \
+    bind -t vi-copy y     copy-pipe "$DPATH/bin/clipcopy" \; \
   ;
 fi
 

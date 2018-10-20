@@ -10,9 +10,9 @@ let did_install_syntax_menu = 0
 let do_syntax_sel_menu = 0
 
 
-let s:vimrc_path = expand('~/dotfiles/vimrc')
-let s:dot_vim_path = expand('~/dotfiles/vim')
-let s:dot_vim_after_path = expand('~/dotfiles/vim/after')
+let s:vimrc_path = expand('$DOTFILES/vimrc')
+let s:dot_vim_path = expand('$DOTFILES/vim')
+let s:dot_vim_after_path = expand('$DOTFILES/vim/after')
 
 " 각 폴더는 bootstrap.sh에서 보장시킨다
 let s:local_path = expand('~/.local')
@@ -252,7 +252,7 @@ set mouse=
 set iminsert=0 imsearch=0 "imdisable
 
 "set dictionary=/usr/share/dict/words
-"set spellfile=~/dotfiles/vim/custom-dictionary.utf-8.add
+"set spellfile=$DOTFILES/vim/custom-dictionary.utf-8.add
 "nnoremap zG 2zg
 
 syntax sync fromstart

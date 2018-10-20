@@ -1,8 +1,10 @@
 #!/bin/bash
-[[ ! -s "$HOME/.gitconfig" ]] && git config --global include.path "~/dotfiles/gitconfig"
-[[ ! -s "$HOME/.tmux.conf" ]] && echo "source-file ~/dotfiles/tmux.conf" > $HOME/.tmux.conf
-[[ ! -s "$HOME/.vimrc" ]] && echo "source ~/dotfiles/vimrc" > "$HOME/.vimrc"
-[[ ! -s "$HOME/.zshrc" ]] && echo "source ~/dotfiles/zshrc" > "$HOME/.zshrc"
+DOTFILES=${DOTFILES:-$HOME/dotfiles}
+
+[[ ! -s "$HOME/.gitconfig" ]] && git config --global include.path "$DOTFILES/gitconfig"
+[[ ! -s "$HOME/.tmux.conf" ]] && echo "source-file $DOTFILES/tmux.conf" > $HOME/.tmux.conf
+[[ ! -s "$HOME/.vimrc" ]] && echo "source $DOTFILES/vimrc" > "$HOME/.vimrc"
+[[ ! -s "$HOME/.zshrc" ]] && echo "source $DOTFILES/zshrc" > "$HOME/.zshrc"
 
 mkdir -p "$HOME/.local/"{repo,bin,vim,zsh/completion,zsh/zplug,emacs/tmp}
 mkdir -p "$HOME/.local/vim/tmp/"{undo,backup,sawp}
@@ -18,7 +20,7 @@ _check_y() {
 
 # iterm2 setting
 [[ "$OSTYPE" == darwin* && $(defaults domains | grep com.googlecode.iterm2) ]] && \
-    defaults write com.googlecode.iterm2.plist PrefsCustomFolder -string "~/dotfiles/iterm2" && \
+    defaults write com.googlecode.iterm2.plist PrefsCustomFolder -string "$DOTFILES/iterm2" && \
     defaults write com.googlecode.iterm2.plist LoadPrefsFromCustomFolder -bool true
 
 

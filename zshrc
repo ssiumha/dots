@@ -3,10 +3,12 @@ export LC_CTYPE=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 
-ZSH=~/dotfiles/zsh
+[[ ! -v $DOTFILES ]] && export DOTFILES=$(dirname $0)
+
+ZSH=$DOTFILES/zsh
 
 default_path=${default_path:-$PATH}
-PATH=~/.local/bin:~/dotfiles/bin:$PATH
+PATH=~/.local/bin:$DOTFILES/bin:$PATH
 
 # ZSH CONFIG
 
@@ -70,7 +72,7 @@ export TIME_STYLE=long-iso
 
 export MOSH_ESCAPE_KEY=''
 
-export VOLTPATH="$HOME/dotfiles/local/vim/volt"
+export VOLTPATH="$DOTFILES/local/vim/volt"
 
 export LS_COLORS="di=0;34:fi=0:ln=31:pi=5:so=5:bd=5:cd=5:or=31:mi=0:ex=35:ow=0:*.rpm=90"
 

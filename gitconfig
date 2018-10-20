@@ -1,11 +1,11 @@
 # vim: filetype=gitconfig
 # use (git 1.7.10+)
 # [include]
-#     path = ~/dotfiles/gitconfig
+#     path = $DOTFILES/gitconfig
 [core]
     editor = vim
-    attributesfile = ~/dotfiles/gitattributes
-    excludesfile = ~/dotfiles/gitignore
+    attributesfile = $DOTFILES/gitattributes
+    excludesfile = $DOTFILES/gitignore
     autocrlf = no
     quotepath = no
     precomposeunicode = yes

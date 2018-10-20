@@ -1,5 +1,5 @@
 ;; install)
-;; mkdir -p ~/.emacs.d && echo '(load-file "~/dotfiles/emacs/init.el")' > ~/.emacs.d/init.el
+;; mkdir -p ~/.emacs.d && echo '(load-file "$DOTFILES/emacs/init.el")' > ~/.emacs.d/init.el
 
 (prefer-coding-system 'utf-8)
 (setq default-buffer-file-coding-system 'utf-8-unix)
