@@ -193,7 +193,7 @@ set wrap display=lastline
 let &showbreak='+>>> '
 
 set backspace=2
-set autoindent cindent
+set autoindent nocindent
 set showmode showcmd novisualbell
 "set cmdheight=2
 
