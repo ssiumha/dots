@@ -86,6 +86,11 @@
       "type": "git",
       "path": "github.com/junegunn/fzf",
       "version": "8540902a35361dba217cc3ad86ff2215ae51918e"
+    },
+    {
+      "type": "git",
+      "path": "github.com/majutsushi/tagbar",
+      "version": "387bbadda98e1376ff3871aa461b1f0abd4ece70"
     }
   ],
   "profiles": [
@@ -108,7 +113,8 @@
         "github.com/tpope/vim-fugitive",
         "github.com/pangloss/vim-javascript",
         "github.com/posva/vim-vue",
-        "github.com/junegunn/fzf"
+        "github.com/junegunn/fzf",
+        "github.com/majutsushi/tagbar"
       ]
     }
   ]
