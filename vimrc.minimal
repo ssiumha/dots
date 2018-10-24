@@ -11,7 +11,7 @@ syntax enable
 
 " SET
 set hlsearch
-set ignorecase smartcase incsearch nowrapscan
+set ignorecase smartcase incsearch wrapscan
 set gdefault
 
 set autoindent nocindent
