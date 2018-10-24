@@ -1,14 +1,10 @@
 " vim: ff=unix
 scripte utf-8
-let $LANG = 'en_US.utf-8'
-set langmenu=en_US.UTF-8
-set encoding=utf-8 fileencoding=utf-8
-set fileencodings=utf-8,cp949,cp932,euc-jp,shift-jis,big5,ucs-2le,latin1
+source $DOTFILES/vimrc.minimal
 
 let did_install_default_menus = 0
 let did_install_syntax_menu = 0
 let do_syntax_sel_menu = 0
-
 
 let s:vimrc_path = expand('$DOTFILES/vimrc')
 let s:dot_vim_path = expand('$DOTFILES/vim')
@@ -60,8 +56,6 @@ if has('vim_starting')
 endif
 "}}}
 
-filetype plugin on
-syntax enable
 set background=dark
 colorscheme horizon
 "}}}
@@ -193,7 +187,6 @@ set wrap display=lastline
 let &showbreak='+>>> '
 
 set backspace=2
-set autoindent nocindent
 set showmode showcmd novisualbell
 "set cmdheight=2
 
@@ -206,10 +199,6 @@ set laststatus=2
 set scrolloff=2 sidescroll=1 sidescrolloff=16
 set showmatch matchpairs+=<:> matchtime=1
 set nostartofline
-
-set hlsearch
-set ignorecase smartcase incsearch wrapscan
-set gdefault
 
 set virtualedit=block,insert
 
@@ -242,9 +231,6 @@ set wildignore+=*.DS_Store
 set wildignore+=*.luac,*.pyc
 set wildignore+=*.meta
 
-set fileformats=unix,dos,mac
-set clipboard=unnamed,unnamedplus ",autoselect
-
 set hidden
 set mouse=
 "set switchbuf=useopen
@@ -262,42 +248,12 @@ syntax sync fromstart
 let mapleader = '\\'
 let maplocalleader = '\\'
 
-cnoremap <c-a> <home>
-cnoremap <c-e> <end>
-
-inoremap <c-a> <home>
-inoremap <c-e> <end>
-inoremap <c-f> <c-o>w
-inoremap <c-b> <c-o>b
-inoremap <c-d> <del>
-inoremap <c-h> <left>
-inoremap <c-j> <down>
-inoremap <c-k> <up>
-inoremap <c-l> <right>
-
 "inoremap <c-f> <c-x><c-f>
 "inoremap <c-]> <c-x><c-]>
 "inoremap <c-l> <c-x><c-l>
 inoremap <c-u> <c-g>u<c-u>
 
-noremap ; :
-noremap : ;
-
-inoremap jj <esc>
 inoremap ㅓ <esc>
-nnoremap <esc><esc> :noh<cr>
-
-noremap j gj
-noremap k gk
-noremap gj j
-noremap gk k
-
-nnoremap Y yg_
-
-noremap <c-h> <c-w>h
-noremap <c-j> <c-w>j
-noremap <c-k> <c-w>k
-noremap <c-l> <c-w>l
 
 nmap <c-w>+ <c-w>+<c-w>
 nmap <c-w>- <c-w>-<c-w>
@@ -306,10 +262,6 @@ nmap <c-w><lt> <c-w><<c-w>
 
 nnoremap g; g;zz
 nnoremap g, g,zz
-
-vnoremap <silent> y y`]
-vnoremap <silent> p p`]
-nnoremap <silent> p p`]
 
 vnoremap <tab> >gv
 vnoremap <s-tab> <gv
