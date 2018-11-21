@@ -91,6 +91,16 @@
       "type": "git",
       "path": "github.com/majutsushi/tagbar",
       "version": "387bbadda98e1376ff3871aa461b1f0abd4ece70"
+    },
+    {
+      "type": "git",
+      "path": "github.com/digitaltoad/vim-pug",
+      "version": "3f341b48e46a84891e19d449a5e336bcfc5a57a0"
+    },
+    {
+      "type": "git",
+      "path": "github.com/mxw/vim-jsx",
+      "version": "ffc0bfd9da15d0fce02d117b843f718160f7ad27"
     }
   ],
   "profiles": [
@@ -114,7 +124,9 @@
         "github.com/pangloss/vim-javascript",
         "github.com/posva/vim-vue",
         "github.com/junegunn/fzf",
-        "github.com/majutsushi/tagbar"
+        "github.com/majutsushi/tagbar",
+        "github.com/digitaltoad/vim-pug",
+        "github.com/mxw/vim-jsx"
       ]
     }
   ]
