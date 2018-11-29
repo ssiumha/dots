@@ -64,9 +64,9 @@
     br = branch
 
     p = pull
-    pp = pull --prune
-    pr = pull --rebase --autostash
-    prp = pull --rebase --prune --autostash
+    pp = pull --prune --ff-only
+    pr = pull --rebase --autostash --ff-only
+    prp = pull --rebase --prune --autostash --ff-only
     pu = push
     puu = push -u
     puo = push origin HEAD
