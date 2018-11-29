@@ -101,6 +101,11 @@
       "type": "git",
       "path": "github.com/mxw/vim-jsx",
       "version": "ffc0bfd9da15d0fce02d117b843f718160f7ad27"
+    },
+    {
+      "type": "git",
+      "path": "github.com/nikvdp/ejs-syntax",
+      "version": "f72681c127727781ee127615e30263e9d43af57d"
     }
   ],
   "profiles": [
@@ -126,7 +131,8 @@
         "github.com/junegunn/fzf",
         "github.com/majutsushi/tagbar",
         "github.com/digitaltoad/vim-pug",
-        "github.com/mxw/vim-jsx"
+        "github.com/mxw/vim-jsx",
+        "github.com/nikvdp/ejs-syntax"
       ]
     }
   ]
