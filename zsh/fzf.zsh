@@ -97,6 +97,14 @@ mru() {
 alias -g gB='$(git branch -a | fzf --prompt "GIT BRANCH>" | sed -e "s/^\*\s*//g")'
 alias -g gR='$(git remote -a | fzf --prompt "GIT REMOTE>")'
 alias -g gH='$(git log --oneline --branches | fzf --prompt "GIT HASH>" | awk "{print \$1}")'
-#alias -g gS='$(git status --short | fzf-tmux +s --multi --ansi --prompt "GIT STATUS>" | sed -e "s/^.. //")'
+alias -g gS='$( \
+    git status --short \
+    | fzf +s \
+        --preview="echo {} | sed -e \"s/^.. //\" | xargs git --no-pager diff" \
+        --multi --ansi --prompt "GIT STATUS>" \
+    | sed -e "s/^.. //" \
+)'
+
+# preview-page-up, preview-page-down : <S-up>, <S-down>
 
 return 0;
