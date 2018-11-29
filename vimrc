@@ -109,6 +109,8 @@ let g:multi_cursor_quit_key='<esc>'
 nnoremap <silent> <space>m :MultipleCursorsFind <c-r>/<cr>
 vnoremap <silent> <space>m :MultipleCursorsFind <c-r>/<cr>
 
+nnoremap <silent> <space>t :TagbarToggle<cr>
+
 let g:surround_no_mappings = 1
 nnoremap cs <Plug>Csurround
 
@@ -174,7 +176,7 @@ augroup END
 autocmd BufNewFile,BufRead *.org setf org
 autocmd BufNewFile,BufRead *.adoc setf asciidoc
 
-autocmd FileType javascript setlocal tabstop=2
+autocmd FileType javascript setlocal tabstop=4
 "}}}
 
 "settings {{{
@@ -190,8 +192,8 @@ if has('patch-7.4.352')
     set breakindent "breakindentopt
 endif
 set linebreak
-set wrap display=lastline
-let &showbreak='+>>> '
+set nowrap display=lastline
+let &showbreak='~~'  "'+>>> '
 
 set backspace=2
 set showmode showcmd novisualbell
@@ -248,6 +250,8 @@ set iminsert=0 imsearch=0 "imdisable
 "set spellfile=$DOTFILES/vim/custom-dictionary.utf-8.add
 "nnoremap zG 2zg
 
+" profile syntax : `syntime report`
+set synmaxcol=256
 syntax sync fromstart
 "}}}
 
