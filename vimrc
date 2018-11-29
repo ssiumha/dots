@@ -65,6 +65,13 @@ if s:is_ms_windows
     let Tlist_Ctags_Cmd='' "take action ctags not found
 endif
 
+let g:fzf_layout = { 'down' : '~40%' }
+if has('terminal')
+    let g:fzf_layout = { 'window' : 'botright 10split enew' }
+endif
+
+
+let g:ctrlp_map = ''
 let g:ctrlp_cmd = 'CtrlPCurWD'
 let g:ctrlp_clear_cache_on_exit = 0
 
@@ -304,7 +311,22 @@ endif
 nnoremap <space>n <esc>:Lexplore \| vertical resize 24<cr>
 nnoremap <space>nc <esc>:Lexplore %:p:h \| vertical resize 24<cr>
 
-nnoremap <space>p <esc>:CtrlPCurWD<cr>
+nnoremap <c-p> <esc>:FZF<cr>
+nnoremap <space>p <esc>:FZF<cr>
+
+"call fzf#run({ 'down':'~40%', 'sink':'tabe' })<cr>
+
+function ListActive()
+    let result = ""
+    silent! redir => result | silent! exe "ls" | redir END
+    let active = ""
+    for i in split(result, "\n")
+      if matchstr(i, '\m[0-9][0-9]* .a.. ') != ""
+        let active .= "\n".i
+      endif
+    endfor
+    echo active
+endfunction
 nnoremap <space>pp <esc>:CtrlPBuffer<cr>
 nnoremap <space>p[ <esc>:CtrlPMRUFiles<cr>
 nnoremap <space>pt <esc>:CtrlPTag<cr>
