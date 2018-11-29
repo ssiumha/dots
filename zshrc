@@ -70,7 +70,7 @@ alias grep="grep --color=auto --exclude-dir={.git,.hg,.svn}"
 
 export TIME_STYLE=long-iso
 
-export MOSH_ESCAPE_KEY=''
+export MOSH_ESCAPE_KEY='~'
 
 export VOLTPATH="$DOTFILES/local/vim/volt"
 
