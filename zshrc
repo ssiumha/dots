@@ -435,7 +435,7 @@ precmd() {
   #[%D{%y-%d-%m %H:%M}]
   # TODO : %~ coloring. symbolic:cyan(6), current:bold?
   # %F-fg, %K-bg, %S-reverse
-  reset_color="\e[49m"
+  reset_color="\e[49m\e[39m"
   txt="\n"
   if [[ -n $SSH_CLIENT ]]; then
     txt+="%K{10} ${reset_color}"
@@ -443,7 +443,7 @@ precmd() {
   if [ ! -n "$TMUX" ]; then
     txt+="%K{8} %n@%m ${reset_color}"
   fi
-  txt+="%K{7} %~ ${reset_color}"
+  txt+="%K{0} %~ ${reset_color}"
   txt+="%K{8}$(git_repo_info)${reset_color}"
   txt+=" %F{11}$(cmd_exec_time)"
   print -P $txt
