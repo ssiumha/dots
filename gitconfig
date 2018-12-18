@@ -25,6 +25,8 @@
     autosetuprebase = always
 [push]
     default = simple
+[pull]
+    rebase = true
 [interactive]
     diffFilter = diff-highlight
 [pager]
@@ -65,8 +67,8 @@
 
     p = pull
     pp = pull --prune --ff-only
-    pr = pull --rebase --autostash --ff-only
-    prp = pull --rebase --prune --autostash --ff-only
+    pr = pull --autostash --ff-only
+    prp = pull --prune --autostash --ff-only
     pu = push
     puu = push -u
     puo = push origin HEAD
