@@ -342,8 +342,6 @@ nnoremap <space>ptt <esc>:CtrlPBufTag<cr>
 
 noremap <space>ww :CtrlP ~/doc<cr>
 
-nnoremap <space>t <esc>:Tlist<cr>
-
 nnoremap <space>q <esc>:%norm<space>
 vnoremap <space>q :norm<space>
 
