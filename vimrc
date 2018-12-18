@@ -1,6 +1,6 @@
 " vim: ff=unix
 scripte utf-8
-source $DOTFILES/vimrc.minimal
+source $HOME/dotfiles/vimrc.minimal
 
 let did_install_default_menus = 0
 let did_install_syntax_menu = 0
@@ -57,7 +57,11 @@ endif
 "}}}
 
 set background=dark
-colorscheme horizon
+try
+    colorscheme horizon
+    let g:lightline = { 'colorscheme' : 'horizon' }
+catch
+endtry
 "}}}
 
 "setup plugin {{{
