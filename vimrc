@@ -118,8 +118,6 @@ nnoremap <silent> <space>t :TagbarToggle<cr>
 let g:surround_no_mappings = 1
 nnoremap cs <Plug>Csurround
 
-let g:lightline = { 'colorscheme' : 'horizon' }
-
 let g:ackprg = 'ag --vimgrep --smart-case'
 "}}}
 
@@ -249,6 +247,8 @@ set mouse=
 "set switchbuf=useopen
 
 set iminsert=0 imsearch=0 "imdisable
+
+"set diffopt+=algorithm:patience
 
 "set dictionary=/usr/share/dict/words
 "set spellfile=$DOTFILES/vim/custom-dictionary.utf-8.add
