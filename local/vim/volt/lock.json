@@ -106,6 +106,16 @@
       "type": "git",
       "path": "github.com/nikvdp/ejs-syntax",
       "version": "f72681c127727781ee127615e30263e9d43af57d"
+    },
+    {
+      "type": "git",
+      "path": "github.com/leafgarland/typescript-vim",
+      "version": "0e9d92eead2df21abe342c4341c55536dd36b0af"
+    },
+    {
+      "type": "git",
+      "path": "github.com/peitalin/vim-jsx-typescript",
+      "version": "5cfc3e3ef516177f9dd5e073c091bc82eae68098"
     }
   ],
   "profiles": [
@@ -132,7 +142,9 @@
         "github.com/majutsushi/tagbar",
         "github.com/digitaltoad/vim-pug",
         "github.com/mxw/vim-jsx",
-        "github.com/nikvdp/ejs-syntax"
+        "github.com/nikvdp/ejs-syntax",
+        "github.com/leafgarland/typescript-vim",
+        "github.com/peitalin/vim-jsx-typescript"
       ]
     }
   ]
