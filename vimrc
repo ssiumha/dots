@@ -322,8 +322,10 @@ endif
 nnoremap <space>n <esc>:Lexplore \| vertical resize 24<cr>
 nnoremap <space>nc <esc>:Lexplore %:p:h \| vertical resize 24<cr>
 
-nnoremap <c-p> <esc>:FZF<cr>
-nnoremap <space>p <esc>:FZF<cr>
+nnoremap <c-p> <esc>:CtrlP<cr>
+nnoremap <space>p <esc>:CtrlP<cr>
+"nnoremap <c-p> <esc>:FZF<cr>
+"nnoremap <space>p <esc>:FZF<cr>
 
 "call fzf#run({ 'down':'~40%', 'sink':'tabe' })<cr>
 
