@@ -3,7 +3,7 @@ export LC_CTYPE=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 
-[[ ! -v $DOTFILES ]] && export DOTFILES=$(dirname $0)
+export DOTFILES=${DOTFILES:-$(dirname $0)}
 
 ZSH=$DOTFILES/zsh
 
