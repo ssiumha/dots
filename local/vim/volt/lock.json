@@ -15,7 +15,7 @@
     {
       "type": "git",
       "path": "github.com/tpope/vim-vinegar",
-      "version": "c38ea2195a43747aedf0bb4b7eb5aa8870260296"
+      "version": "09ac84c4d152a944caa341e913220087211c72ef"
     },
     {
       "type": "git",
@@ -25,7 +25,7 @@
     {
       "type": "git",
       "path": "github.com/tpope/vim-surround",
-      "version": "597068870b8f093a8b2d11536c62ff31222ee8d0"
+      "version": "fab8621670f71637e9960003af28365129b1dfd0"
     },
     {
       "type": "git",
@@ -40,52 +40,52 @@
     {
       "type": "git",
       "path": "github.com/terryma/vim-multiple-cursors",
-      "version": "dd9289af03abafa76b28c503e20747ff7d7d89e5"
+      "version": "2609c9b054b562b6bf46936f3e80a25042c5d572"
     },
     {
       "type": "git",
       "path": "github.com/elixir-lang/vim-elixir",
-      "version": "bce7aa0bcacda890f5c4e7b456ef41fe2205872e"
+      "version": "e8d59d115c8153a7de9872b3c4419f2354c0f14b"
     },
     {
       "type": "git",
       "path": "github.com/itchyny/lightline.vim",
-      "version": "0532dff598abca9975d3f80128eaadadbf1d91d4"
+      "version": "c9ab296e856bed4e694180efb6ffb692cf18ed8f"
     },
     {
       "type": "git",
       "path": "github.com/mrtazz/simplenote.vim",
-      "version": "eb14cbee9d6b436aa2bc324ac06f6dcf98cf1fb4"
+      "version": "7be7b390b9a9ff3f7bfc3069d2c8de57c9c84926"
     },
     {
       "type": "git",
       "path": "github.com/easymotion/vim-easymotion",
-      "version": "1a0244c90c3ff46219cf9597bb13662be4232407"
+      "version": "85e90c9759e14633d878ed534ef313876ab96555"
     },
     {
       "type": "git",
       "path": "github.com/ctrlpvim/ctrlp.vim",
-      "version": "43cc73b8e7d4ab45f17118573eb81fd45704b989"
+      "version": "6bca8770a04c099e8c6ec7c7ea58cf9a17c8e44d"
     },
     {
       "type": "git",
       "path": "github.com/tpope/vim-fugitive",
-      "version": "45c21fc38411da91f25978ce6473a9592a8b05dc"
+      "version": "eedfd2a570b608e1609af97d49018cb8bf3b5e37"
     },
     {
       "type": "git",
       "path": "github.com/pangloss/vim-javascript",
-      "version": "39e332a3c36c0115e1eab85c34cf121b7585869d"
+      "version": "b6c8c8419240bdd29b5eb51a47d488fd390deed5"
     },
     {
       "type": "git",
       "path": "github.com/posva/vim-vue",
-      "version": "23043a7ebfa03b4a25bdb4fa6b7e4f3df6df6b1c"
+      "version": "c424294e769b26659176065f9713c395731f7b3a"
     },
     {
       "type": "git",
       "path": "github.com/junegunn/fzf",
-      "version": "8540902a35361dba217cc3ad86ff2215ae51918e"
+      "version": "ab11b74be4b0c9fac88d95f0f563d0dc0cb06ed3"
     },
     {
       "type": "git",
@@ -95,12 +95,12 @@
     {
       "type": "git",
       "path": "github.com/digitaltoad/vim-pug",
-      "version": "3f341b48e46a84891e19d449a5e336bcfc5a57a0"
+      "version": "ea39cd942cf3194230cf72bfb838901a5344d3b3"
     },
     {
       "type": "git",
       "path": "github.com/mxw/vim-jsx",
-      "version": "ffc0bfd9da15d0fce02d117b843f718160f7ad27"
+      "version": "8879e0d9c5ba0e04ecbede1c89f63b7a0efa24af"
     },
     {
       "type": "git",
@@ -110,12 +110,17 @@
     {
       "type": "git",
       "path": "github.com/leafgarland/typescript-vim",
-      "version": "0e9d92eead2df21abe342c4341c55536dd36b0af"
+      "version": "5a319ea5504e18215d155576c78d1b7fb8e22c8f"
     },
     {
       "type": "git",
       "path": "github.com/peitalin/vim-jsx-typescript",
-      "version": "5cfc3e3ef516177f9dd5e073c091bc82eae68098"
+      "version": "09c723a54f07a46a9a9fbbc3899344cc2ffb3b52"
+    },
+    {
+      "type": "git",
+      "path": "github.com/udalov/kotlin-vim",
+      "version": "b9fa728701a0aa0b9a2ffe92f10880348fc27a8f"
     }
   ],
   "profiles": [
@@ -144,7 +149,8 @@
         "github.com/mxw/vim-jsx",
         "github.com/nikvdp/ejs-syntax",
         "github.com/leafgarland/typescript-vim",
-        "github.com/peitalin/vim-jsx-typescript"
+        "github.com/peitalin/vim-jsx-typescript",
+        "github.com/udalov/kotlin-vim"
       ]
     }
   ]
