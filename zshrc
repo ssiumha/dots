@@ -130,6 +130,8 @@ vzv_func() {
 }
 alias vzv=vzv_func
 
+alias rg="rg --no-ignore"
+
 # suffix
 alias -s py=python
 alias -s html=open
