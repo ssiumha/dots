@@ -119,6 +119,9 @@ let g:surround_no_mappings = 1
 nnoremap cs <Plug>Csurround
 
 let g:ackprg = 'ag --vimgrep --smart-case'
+
+
+nmap <silent> gd <Plug>(coc-definition)
 "}}}
 
 "autocmd{{{
@@ -255,7 +258,7 @@ set iminsert=0 imsearch=0 "imdisable
 "nnoremap zG 2zg
 
 " profile syntax : `syntime report`
-set synmaxcol=256
+"set synmaxcol=256
 syntax sync fromstart
 "}}}
 
