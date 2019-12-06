@@ -4,93 +4,8 @@
   "repos": [
     {
       "type": "git",
-      "path": "github.com/vim-scripts/html-improved-indentation",
-      "version": "c29aa3137d9065b08117394fea25024ed88c58fa"
-    },
-    {
-      "type": "git",
-      "path": "github.com/vim-scripts/AnsiEsc.vim",
-      "version": "d2bb7878622e4c16203acf1c92a0f4bc7ac58003"
-    },
-    {
-      "type": "git",
-      "path": "github.com/tpope/vim-vinegar",
-      "version": "09ac84c4d152a944caa341e913220087211c72ef"
-    },
-    {
-      "type": "git",
-      "path": "github.com/lambdatoast/elm.vim",
-      "version": "04df290781f8a8a9a800e568262e0f2a077f503e"
-    },
-    {
-      "type": "git",
-      "path": "github.com/tpope/vim-surround",
-      "version": "fab8621670f71637e9960003af28365129b1dfd0"
-    },
-    {
-      "type": "git",
-      "path": "github.com/mileszs/ack.vim",
-      "version": "36e40f9ec91bdbf6f1adf408522a73a6925c3042"
-    },
-    {
-      "type": "git",
-      "path": "github.com/vim-scripts/TwitVim",
-      "version": "7ca751b444427b62158a44942748f8dbf8ea9a91"
-    },
-    {
-      "type": "git",
-      "path": "github.com/terryma/vim-multiple-cursors",
-      "version": "2609c9b054b562b6bf46936f3e80a25042c5d572"
-    },
-    {
-      "type": "git",
-      "path": "github.com/elixir-lang/vim-elixir",
-      "version": "e8d59d115c8153a7de9872b3c4419f2354c0f14b"
-    },
-    {
-      "type": "git",
-      "path": "github.com/itchyny/lightline.vim",
-      "version": "c9ab296e856bed4e694180efb6ffb692cf18ed8f"
-    },
-    {
-      "type": "git",
-      "path": "github.com/mrtazz/simplenote.vim",
-      "version": "7be7b390b9a9ff3f7bfc3069d2c8de57c9c84926"
-    },
-    {
-      "type": "git",
-      "path": "github.com/easymotion/vim-easymotion",
-      "version": "85e90c9759e14633d878ed534ef313876ab96555"
-    },
-    {
-      "type": "git",
       "path": "github.com/ctrlpvim/ctrlp.vim",
-      "version": "6bca8770a04c099e8c6ec7c7ea58cf9a17c8e44d"
-    },
-    {
-      "type": "git",
-      "path": "github.com/tpope/vim-fugitive",
-      "version": "eedfd2a570b608e1609af97d49018cb8bf3b5e37"
-    },
-    {
-      "type": "git",
-      "path": "github.com/pangloss/vim-javascript",
-      "version": "b6c8c8419240bdd29b5eb51a47d488fd390deed5"
-    },
-    {
-      "type": "git",
-      "path": "github.com/posva/vim-vue",
-      "version": "c424294e769b26659176065f9713c395731f7b3a"
-    },
-    {
-      "type": "git",
-      "path": "github.com/junegunn/fzf",
-      "version": "ab11b74be4b0c9fac88d95f0f563d0dc0cb06ed3"
-    },
-    {
-      "type": "git",
-      "path": "github.com/majutsushi/tagbar",
-      "version": "387bbadda98e1376ff3871aa461b1f0abd4ece70"
+      "version": "44c8e24956d7dcfee3ee6083a0573fed31d136ed"
     },
     {
       "type": "git",
@@ -99,13 +14,28 @@
     },
     {
       "type": "git",
-      "path": "github.com/mxw/vim-jsx",
-      "version": "8879e0d9c5ba0e04ecbede1c89f63b7a0efa24af"
+      "path": "github.com/easymotion/vim-easymotion",
+      "version": "85e90c9759e14633d878ed534ef313876ab96555"
     },
     {
       "type": "git",
-      "path": "github.com/nikvdp/ejs-syntax",
-      "version": "f72681c127727781ee127615e30263e9d43af57d"
+      "path": "github.com/elixir-lang/vim-elixir",
+      "version": "057ac39b5982a2decf52d48cffc405ff6a666ca5"
+    },
+    {
+      "type": "git",
+      "path": "github.com/itchyny/lightline.vim",
+      "version": "e6f282f5e9ae931f0b404dd15aab2e5e249ae092"
+    },
+    {
+      "type": "git",
+      "path": "github.com/junegunn/fzf",
+      "version": "5e42b1c9f8f61c3dd6165c1a9a8321e865a06601"
+    },
+    {
+      "type": "git",
+      "path": "github.com/lambdatoast/elm.vim",
+      "version": "04df290781f8a8a9a800e568262e0f2a077f503e"
     },
     {
       "type": "git",
@@ -114,43 +44,119 @@
     },
     {
       "type": "git",
+      "path": "github.com/majutsushi/tagbar",
+      "version": "a0f51bd5a6514632bf3d2df1b001df27361892bd"
+    },
+    {
+      "type": "git",
+      "path": "github.com/mileszs/ack.vim",
+      "version": "36e40f9ec91bdbf6f1adf408522a73a6925c3042"
+    },
+    {
+      "type": "git",
+      "path": "github.com/mrtazz/simplenote.vim",
+      "version": "3b8cf4a218ea6cd6f031129a1e580a7431333528"
+    },
+    {
+      "type": "git",
+      "path": "github.com/mxw/vim-jsx",
+      "version": "8879e0d9c5ba0e04ecbede1c89f63b7a0efa24af"
+    },
+    {
+      "type": "git",
+      "path": "github.com/neoclide/coc.nvim",
+      "version": "920aa12cf44e3025519a398026fe4f315d1aa79e"
+    },
+    {
+      "type": "git",
+      "path": "github.com/nikvdp/ejs-syntax",
+      "version": "f72681c127727781ee127615e30263e9d43af57d"
+    },
+    {
+      "type": "git",
+      "path": "github.com/pangloss/vim-javascript",
+      "version": "2e4a8c485cdf601bb2f2761ea68c09750a0b82e0"
+    },
+    {
+      "type": "git",
       "path": "github.com/peitalin/vim-jsx-typescript",
-      "version": "09c723a54f07a46a9a9fbbc3899344cc2ffb3b52"
+      "version": "671befd0f585534fad7d319ed250f6a4c952efbb"
+    },
+    {
+      "type": "git",
+      "path": "github.com/posva/vim-vue",
+      "version": "c424294e769b26659176065f9713c395731f7b3a"
+    },
+    {
+      "type": "git",
+      "path": "github.com/terryma/vim-multiple-cursors",
+      "version": "6ab4dc7dd012e23adee74ef4596ad3e9659a20c7"
+    },
+    {
+      "type": "git",
+      "path": "github.com/tpope/vim-fugitive",
+      "version": "671a85dabaed7e21aa7e435adfdad9b9461cb7d8"
+    },
+    {
+      "type": "git",
+      "path": "github.com/tpope/vim-surround",
+      "version": "f51a26d3710629d031806305b6c8727189cd1935"
+    },
+    {
+      "type": "git",
+      "path": "github.com/tpope/vim-vinegar",
+      "version": "fcce70f1403ba4101668a4c960c577bddbd00f06"
     },
     {
       "type": "git",
       "path": "github.com/udalov/kotlin-vim",
       "version": "b9fa728701a0aa0b9a2ffe92f10880348fc27a8f"
+    },
+    {
+      "type": "git",
+      "path": "github.com/vim-scripts/AnsiEsc.vim",
+      "version": "d2bb7878622e4c16203acf1c92a0f4bc7ac58003"
+    },
+    {
+      "type": "git",
+      "path": "github.com/vim-scripts/TwitVim",
+      "version": "7ca751b444427b62158a44942748f8dbf8ea9a91"
+    },
+    {
+      "type": "git",
+      "path": "github.com/vim-scripts/html-improved-indentation",
+      "version": "c29aa3137d9065b08117394fea25024ed88c58fa"
     }
   ],
   "profiles": [
     {
       "name": "default",
       "repos_path": [
-        "github.com/vim-scripts/html-improved-indentation",
-        "github.com/vim-scripts/AnsiEsc.vim",
-        "github.com/tpope/vim-vinegar",
-        "github.com/lambdatoast/elm.vim",
-        "github.com/tpope/vim-surround",
-        "github.com/mileszs/ack.vim",
-        "github.com/vim-scripts/TwitVim",
-        "github.com/terryma/vim-multiple-cursors",
+        "github.com/ctrlpvim/ctrlp.vim",
+        "github.com/digitaltoad/vim-pug",
+        "github.com/easymotion/vim-easymotion",
         "github.com/elixir-lang/vim-elixir",
         "github.com/itchyny/lightline.vim",
-        "github.com/mrtazz/simplenote.vim",
-        "github.com/easymotion/vim-easymotion",
-        "github.com/ctrlpvim/ctrlp.vim",
-        "github.com/tpope/vim-fugitive",
-        "github.com/pangloss/vim-javascript",
-        "github.com/posva/vim-vue",
         "github.com/junegunn/fzf",
-        "github.com/majutsushi/tagbar",
-        "github.com/digitaltoad/vim-pug",
-        "github.com/mxw/vim-jsx",
-        "github.com/nikvdp/ejs-syntax",
+        "github.com/lambdatoast/elm.vim",
         "github.com/leafgarland/typescript-vim",
+        "github.com/majutsushi/tagbar",
+        "github.com/mileszs/ack.vim",
+        "github.com/mrtazz/simplenote.vim",
+        "github.com/mxw/vim-jsx",
+        "github.com/neoclide/coc.nvim",
+        "github.com/nikvdp/ejs-syntax",
+        "github.com/pangloss/vim-javascript",
         "github.com/peitalin/vim-jsx-typescript",
-        "github.com/udalov/kotlin-vim"
+        "github.com/posva/vim-vue",
+        "github.com/terryma/vim-multiple-cursors",
+        "github.com/tpope/vim-fugitive",
+        "github.com/tpope/vim-surround",
+        "github.com/tpope/vim-vinegar",
+        "github.com/udalov/kotlin-vim",
+        "github.com/vim-scripts/AnsiEsc.vim",
+        "github.com/vim-scripts/TwitVim",
+        "github.com/vim-scripts/html-improved-indentation"
       ]
     }
   ]
