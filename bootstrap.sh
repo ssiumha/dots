@@ -7,7 +7,7 @@ DOTFILES=${DOTFILES:-$HOME/dotfiles}
 [[ ! -s "$HOME/.zshrc" ]] && echo "source $DOTFILES/zshrc" > "$HOME/.zshrc"
 
 mkdir -p "$HOME/.local/"{repo,bin,vim,zsh/completion,zsh/zplug,emacs/tmp}
-mkdir -p "$HOME/.local/vim/tmp/"{undo,backup,sawp}
+mkdir -p "$HOME/.local/vim/tmp/"{undo,backup,swap}
 
 
 _check_y() {
