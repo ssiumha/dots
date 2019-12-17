@@ -77,6 +77,14 @@ let g:ctrlp_custom_ignore = {
             \ 'file': '\v\.(pyc|svn-base|meta|prefab|class)$',
             \ }
 
+if has('job')
+    let g:ctrlp_user_command_async = 1
+endif
+
+if executable('ag')
+    let g:ctrlp_user_command = 'ag %s -l --nocolor -g ""'
+endif
+
 nnoremap <c-p> <esc>:CtrlP<cr>
 nnoremap <space>p <esc>:CtrlP<cr>
 nnoremap <space>pp <esc>:CtrlPBuffer<cr>
