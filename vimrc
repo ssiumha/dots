@@ -21,6 +21,9 @@ set backspace=2 "indent,eol,start
 
 "set: layout {{{
 set laststatus=2
+
+set background=dark
+colorscheme horizon
 "}}}
 
 "set: file {{{
@@ -31,6 +34,9 @@ let &backupdir = expand(s:local_vim_path . '/tmp/backup')
 let &directory = expand(s:local_vim_path . '/tmp/swap')
 "}}}
 
+"set: gui {{{
+set mouse=
+"}}}
 
 "plug {{{
 let s:vim_plug_install_path = expand('$HOME/.vim/autoload/plug.vim')
