@@ -2,12 +2,16 @@
 scripte utf-8
 source $HOME/dotfiles/vimrc.minimal
 
-" default plugin off
-let did_install_default_menus = 0
-let did_install_syntax_menu = 0
-let do_syntax_sel_menu = 0
+" env
+let s:local_vim_path = expand('$HOME/.local/vim')
+let s:dot_vim_path = expand('$HOME/dotfiles/vim')
 
-let s:local_vim_path = expand('~/.local/vim')
+let s:is_ms_windows = has('win32') || has('win16')
+
+let mapleader = '\\'
+let maplocalleader = '\\'
+
+execute 'set runtimepath^='.s:dot_vim_path
 
 "set: editing {{{
 set tabstop=4 shiftwidth=0 softtabstop=-1
@@ -29,7 +33,7 @@ let &directory = expand(s:local_vim_path . '/tmp/swap')
 
 
 "plug {{{
-let s:vim_plug_install_path = expand('~/.vim/autoload/plug.vim')
+let s:vim_plug_install_path = expand('$HOME/.vim/autoload/plug.vim')
 
 func! InstallVimPlug()
     call system("curl -fLo ".s:vim_plug_install_path." --create-dirs
@@ -54,6 +58,14 @@ if executable('ag')
 endif
 "}}}
 
+"plug: built-in {{{
+let g:netrw_list_hide = '\.pyc$,\~$,\.meta$'
+
+"" default plugin off
+let did_install_default_menus = 0
+let did_install_syntax_menu = 0
+let do_syntax_sel_menu = 0
+"}}}
 
 "functions {{{
 func! s:removeTrailingWhiteSpace()
