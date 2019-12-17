@@ -60,7 +60,7 @@ endif
 "plug: ack {{{
 nnoremap <space>a :Ack!<space>
 if executable('ag')
-    let g:ackarg = 'ag --vimgrep --smart-case'
+    let g:ackprg = 'ag --vimgrep --smart-case'
 endif
 "}}}
 
