@@ -64,6 +64,31 @@ if executable('ag')
 endif
 "}}}
 
+"plug: ctrlp {{{
+let g:ctrlp_map = ''
+let g:ctrlp_cmd = 'CtrlPCurWD'
+let g:ctrlp_clear_cache_on_exit = 0
+let g:ctrlp_cache_dir = (s:is_ms_windows
+            \   ? expand(s:local_vim_path . '/ctrlp_win')
+            \   : expand(s:local_vim_path . '/ctrlp')
+            \ )
+let g:ctrlp_custom_ignore = {
+            \ 'dir': '\v[\/](AppData[\/]Local[\/]Temp)|(\.(git|svn))$|node_module',
+            \ 'file': '\v\.(pyc|svn-base|meta|prefab|class)$',
+            \ }
+
+nnoremap <c-p> <esc>:CtrlP<cr>
+nnoremap <space>p <esc>:CtrlP<cr>
+nnoremap <space>pp <esc>:CtrlPBuffer<cr>
+nnoremap <space>p[ <esc>:CtrlPMRUFiles<cr>
+nnoremap <space>pt <esc>:CtrlPTag<cr>
+nnoremap <space>ptt <esc>:CtrlPBufTag<cr>
+"}}}
+
+"plug: lightline {{{
+let g:lightline = { 'colorscheme' : 'horizon' }
+"}}}
+
 "plug: built-in {{{
 let g:netrw_list_hide = '\.pyc$,\~$,\.meta$'
 
