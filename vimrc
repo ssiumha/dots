@@ -51,6 +51,9 @@ if filereadable(s:vim_plug_install_path)
         Plug 'ctrlpvim/ctrlp.vim'
         Plug 'itchyny/lightline.vim'
         Plug 'mileszs/ack.vim'
+        Plug 'majutsushi/tagbar'
+
+        Plug 'neoclide/coc.nvim', {'branch': 'release'}
     call plug#end()
 else
     echo 'not installed vim-plug, please :call InstallVimPlug()'
@@ -95,6 +98,10 @@ nnoremap <space>ptt <esc>:CtrlPBufTag<cr>
 
 "plug: lightline {{{
 let g:lightline = { 'colorscheme' : 'horizon' }
+"}}}
+
+"plug: tagbar {{{
+nnoremap <silent> <space>t :TagbarToggle<cr>
 "}}}
 
 "plug: built-in {{{
