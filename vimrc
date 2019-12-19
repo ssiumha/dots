@@ -75,6 +75,7 @@ endif
 "plug: ctrlp {{{
 let g:ctrlp_map = ''
 let g:ctrlp_cmd = 'CtrlPCurWD'
+let g:ctrlp_lazy_update = 250 "ms
 let g:ctrlp_clear_cache_on_exit = 0
 let g:ctrlp_cache_dir = (s:is_ms_windows
             \   ? expand(s:local_vim_path . '/ctrlp_win')
@@ -85,7 +86,7 @@ let g:ctrlp_custom_ignore = {
             \ 'file': '\v\.(pyc|svn-base|meta|prefab|class)$',
             \ }
 
-if has('job')
+if has('job') || has('nvim')
     let g:ctrlp_user_command_async = 1
 endif
 
