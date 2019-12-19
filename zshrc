@@ -115,7 +115,12 @@ l_func() {
 alias l=l_func
 
 alias g="git"
-alias v="vim"
+
+if type nvim &>/dev/null; then
+  alias v="nvim"
+else
+  alias v="vim"
+fi
 
 vzv_func() {
     local T="/tmp/v.amp1.$RANDOM";
