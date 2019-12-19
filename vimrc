@@ -38,6 +38,11 @@ let &directory = expand(s:local_vim_path . '/tmp/swap')
 set mouse=
 "}}}
 
+"keymap {{{
+nnoremap <silent> *
+            \ :let stay_view = winsaveview()<cr>*:call winrestview(stay_view)<cr>
+"}}}
+
 "plug {{{
 let s:vim_plug_install_path = expand('$HOME/.vim/autoload/plug.vim')
 
