@@ -66,6 +66,13 @@ if filereadable(s:vim_plug_install_path)
         Plug 'majutsushi/tagbar'
 
         Plug 'neoclide/coc.nvim', {'branch': 'release'}
+
+        Plug 'digitaltoad/vim-pug'
+
+        Plug 'pangloss/vim-javascript'
+        Plug 'mxw/vim-jsx'
+
+        Plug 'tpope/vim-fugitive'
     call plug#end()
 else
     echo 'not installed vim-plug, please :call InstallVimPlug()'
