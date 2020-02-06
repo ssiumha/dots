@@ -32,6 +32,13 @@ set backup swapfile
 let &undodir = expand(s:local_vim_path . '/tmp/undo')
 let &backupdir = expand(s:local_vim_path . '/tmp/backup')
 let &directory = expand(s:local_vim_path . '/tmp/swap')
+
+set wildignore+=.hg,.git,.svn
+set wildignore+=*.jpg,*.bmp,*.gif,*.png,*.jpeg
+set wildignore+=*.o,*.obj,*.exe,*.dll,*.manifest
+set wildignore+=*.DS_Store
+set wildignore+=*.luac,*.pyc
+set wildignore+=*.meta
 "}}}
 
 "set: gui {{{
