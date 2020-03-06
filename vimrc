@@ -18,7 +18,9 @@ set tabstop=4 shiftwidth=0 softtabstop=-1
 set expandtab shiftround
 set backspace=2 "indent,eol,start
 
-set timeoutlen=140  "delay of an input key sequence
+set nowrap
+
+set timeoutlen=200  "delay of an input key sequence
 "}}}
 
 "set: layout {{{
