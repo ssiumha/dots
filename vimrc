@@ -52,6 +52,15 @@ set mouse=
 "keymap {{{
 nnoremap <silent> *
             \ :let stay_view = winsaveview()<cr>*:call winrestview(stay_view)<cr>
+
+vnoremap * :<c-u>call <sid>visualSearch()<cr>//<cr><c-o>
+vnoremap # :<c-u>call <sid>visualSearch()<cr>??<cr><c-o>
+func! s:visualSearch()
+    let temp = @@
+    norm! gvy
+    let @/ = '\V' . substitute(escape(@@, '/\'), '\n', '\\n', 'g')
+    let @@ = temp
+endfunc
 "}}}
 
 "plug {{{
@@ -145,6 +154,13 @@ func! s:removeTrailingWhiteSpace()
     let @/ = l:old_search
 endfunc
 
+func! s:ensureParentDirectory()
+    let l:dir = expand('<afile>:p:h')
+    if !isdirectory(l:dir)
+        call mkdir(l:dir, 'p')
+    endif
+endfunc
+
 func! s:moveCursorToLastPosition()
     if line("'\"") > 0 && line("'\"") <= line('$')
         execute 'norm! g`"zvzz'
@@ -157,6 +173,7 @@ augroup filetype_all
     autocmd!
 
     autocmd BufWritePre * :call s:removeTrailingWhiteSpace()
+    autocmd BufWritePre * :call s:ensureParentDirectory()
     autocmd BufReadPost * :call s:moveCursorToLastPosition()
 augroup END
 "}}}
