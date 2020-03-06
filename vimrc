@@ -77,16 +77,24 @@ if filereadable(s:vim_plug_install_path)
         Plug 'itchyny/lightline.vim'
         Plug 'mileszs/ack.vim'
         Plug 'majutsushi/tagbar'
+        Plug 'tpope/vim-fugitive'
 
         Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
+        " Language
         Plug 'digitaltoad/vim-pug'
 
         Plug 'pangloss/vim-javascript'
         Plug 'mxw/vim-jsx'
 
-        Plug 'tpope/vim-fugitive'
+        Plug 'leafgarland/typescript-vim'
+        Plug 'peitalin/vim-jsx-typescript'
     call plug#end()
+
+
+    augroup filetype_plug
+        autocmd BufNewFile,BufRead *.tsx    setfiletype typescript.tsx
+    augroup END
 else
     echo 'not installed vim-plug, please :call InstallVimPlug()'
 endif
