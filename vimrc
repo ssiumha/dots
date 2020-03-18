@@ -152,7 +152,7 @@ let do_syntax_sel_menu = 0
 "}}}
 
 "functions {{{
-func! s:removeTrailingWhiteSpace()
+func! s:removeTrailingWhitespace()
     let [l:old_search, l:stay_view] = [@/, winsaveview()]
 
     if &filetype != 'diff'
@@ -162,6 +162,7 @@ func! s:removeTrailingWhiteSpace()
     call winrestview(l:stay_view)
     let @/ = l:old_search
 endfunc
+command! TraillingWhitespace :call s:removeTrailingWhitespace()
 
 func! s:ensureParentDirectory()
     let l:dir = expand('<afile>:p:h')
@@ -181,7 +182,7 @@ endfunc
 augroup filetype_all
     autocmd!
 
-    autocmd BufWritePre * :call s:removeTrailingWhiteSpace()
+    autocmd BufWritePre * :call s:removeTrailingWhitespace()
     autocmd BufWritePre * :call s:ensureParentDirectory()
     autocmd BufReadPost * :call s:moveCursorToLastPosition()
 augroup END
