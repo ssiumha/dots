@@ -78,6 +78,7 @@ if filereadable(s:vim_plug_install_path)
         Plug 'mileszs/ack.vim'
         Plug 'majutsushi/tagbar'
         Plug 'tpope/vim-fugitive'
+        Plug 'tpope/vim-surround'
 
         Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
