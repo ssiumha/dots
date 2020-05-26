@@ -164,6 +164,11 @@ func! s:removeTrailingWhitespace()
 endfunc
 command! TraillingWhitespace :call s:removeTrailingWhitespace()
 
+command! EchoSyntax
+            \ for id in synstack(line('.'), col('.'))
+            \| echomsg synIDattr(id, 'name')
+            \| endfor
+
 func! s:ensureParentDirectory()
     let l:dir = expand('<afile>:p:h')
     if !isdirectory(l:dir)
@@ -178,7 +183,7 @@ func! s:moveCursorToLastPosition()
 endfunc
 "}}}
 
-"autocmd {{{
+"autocmd: * {{{
 augroup filetype_all
     autocmd!
 
@@ -186,4 +191,16 @@ augroup filetype_all
     autocmd BufWritePre * :call s:ensureParentDirectory()
     autocmd BufReadPost * :call s:moveCursorToLastPosition()
 augroup END
+"}}}
+
+"autocmd: markdown {{{
+augroup github_markdown
+    autocmd!
+
+    " github markdown에서는 _에 기능이 없으므로 제거한다
+    autocmd FileType markdown :syn clear markdownError markdownItalic
+
+    " TODO markdownLinkText의 conceal 기능 추가
+    autocmd FileType markdown :setlocal conceallevel=1 concealcursor=
+augroup ENd
 "}}}
