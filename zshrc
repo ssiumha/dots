@@ -115,7 +115,12 @@ l_func() {
 alias l=l_func
 
 alias g="git"
-alias v="vim"
+
+if type nvim &>/dev/null; then
+  alias v="nvim"
+else
+  alias v="vim"
+fi
 
 vzv_func() {
     local T="/tmp/v.amp1.$RANDOM";
@@ -416,9 +421,10 @@ cmd_exec_time() {
 }
 
 git_repo_info() {
+  # 다음 경우를 파싱: ## branch_name...origin/branch_name
   git status --short --branch --untracked-files=no 2>/dev/null | \
     perl -lane '
-      printf s/^## ([^.]+).+$/ \1/r if $. == 1;
+      printf s/^## ([^.]+)(\.\.\..+)?$/ \1/r if $. == 1;
       $a = "+"  if /^A/;
       $m = "!"  if /^[^?#][^?#]/;
       END{ printf "$a$m " if $.; }
