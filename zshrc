@@ -97,6 +97,10 @@ fi
 # }}}
 
 # ALIAS {{{
+alias mv="mv -i"
+alias cp="cp -i"
+
+
 alias ll="ls -lAh"
 alias l="ls -lh"
 
