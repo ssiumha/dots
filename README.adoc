@@ -14,7 +14,12 @@ exec zsh
 
 === Windows - Windows Subsystem Linux
 
-install wsl-terminal: https://github.com/goreliu/wsl-terminal
+install wsl-terminal: https://github.com/goreliu/wsl-terminal (deprecated)
+
+install ms-terminal: https://github.com/microsoft/terminal
+
++ `<c-,>` -> change defaultProfile
+
 
 // TODO:: need for update : https://docs.microsoft.com/en-us/windows/wsl/wsl-config#set-wsl-launch-settings
 //.WSL bash
