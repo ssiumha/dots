@@ -46,7 +46,15 @@ set wildignore+=*.meta
 "}}}
 
 "set: gui {{{
-set mouse=
+if s:is_ms_windows
+    set mouse=
+    set guifont=DejaVu_Sans_Mono:h11:w6:cANSI "download: http://dejavu-fonts.org/wiki/Download
+    set guifontwide=Dotumche:h10.5:cCHINESEBIG5
+endif
+
+if has('gui_running')
+    set guioptions=
+endif
 "}}}
 
 "keymap {{{
