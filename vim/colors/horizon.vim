@@ -101,7 +101,7 @@ call s:H("diffRemoved",     s:RD1, s:NUL, s:NUL)
 
 
 " Code Groups {{{
-call s:H("Comment",         s:GY1, s:NUL, s:NUL)
+call s:H("Comment",         s:GN1, s:NUL, s:NUL)
 
 call s:H("Constant",        s:YL1, s:NUL, s:NUL)
 call s:H("Number",          s:YL2, s:NUL, s:NUL)
