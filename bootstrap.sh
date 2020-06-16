@@ -5,6 +5,10 @@ DOTFILES=${DOTFILES:-$HOME/dotfiles}
 [[ ! -s "$HOME/.tmux.conf" ]] && echo "source-file $DOTFILES/tmux.conf" > $HOME/.tmux.conf
 [[ ! -s "$HOME/.vimrc" ]] && echo "source $DOTFILES/vimrc" > "$HOME/.vimrc"
 [[ ! -s "$HOME/.zshrc" ]] && echo "source $DOTFILES/zshrc" > "$HOME/.zshrc"
+[[ ! -s "$HOME/.config/nvim/init.vim" ]] && \
+	mkdir -p "$HOME/.config/nvim" && \
+	echo "set rtp+=$HOME/.vim" > "$HOME/.config/nvim/init.vim" && \
+	echo "source $HOME/.vimrc" >> "$HOME/.config/nvim/init.vim"
 
 mkdir -p "$HOME/.local/"{repo,bin,vim,zsh/completion,zsh/zplug,emacs/tmp}
 mkdir -p "$HOME/.local/vim/tmp/"{undo,backup,swap}
