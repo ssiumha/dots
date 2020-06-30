@@ -72,4 +72,8 @@
     pu = push
     puu = push -u
     puo = push origin HEAD
+
+    fu  = fetch up
+    mff = merge --ff-only
+
     #echo = !echo testecho
