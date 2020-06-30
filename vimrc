@@ -87,6 +87,7 @@ if filereadable(s:vim_plug_install_path)
         Plug 'majutsushi/tagbar'
         Plug 'tpope/vim-fugitive'
         Plug 'tpope/vim-surround'
+        Plug 'junegunn/vim-easy-align'
 
         Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
