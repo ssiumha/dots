@@ -62,6 +62,7 @@
     cv = commit -v
     cva = commit -va
 
+    sw = switch
     co = checkout
     br = branch
 
