@@ -63,6 +63,7 @@
     cva = commit -va
 
     sw = switch
+    swf = !git branch | fzf --expect=c-c | cut -c2- | xargs -I% git checkout %
     co = checkout
     br = branch
 
