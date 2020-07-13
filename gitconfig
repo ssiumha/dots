@@ -62,10 +62,15 @@
     cv = commit -v
     cva = commit -va
 
+    s = switch
+    sf = !git branch | fzf | cut -c2- | xargs -I% git checkout %
+
     sw = switch
-    swf = !git branch | fzf --expect=c-c | cut -c2- | xargs -I% git checkout %
+    swf = !git branch | fzf | cut -c2- | xargs -I% git checkout %
     co = checkout
+
     br = branch
+    fzf-br-rm = !git branch | fzf -m | cut -c2- | xargs -I% git branch -D %
 
     p = pull
     pp = pull --prune --ff-only
