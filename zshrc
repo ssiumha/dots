@@ -12,24 +12,6 @@ PATH=~/.local/bin:$DOTFILES/bin:$PATH
 
 # ZSH CONFIG
 
-# leave minimum completion {{{
-if [[ $OSTYPE == msys* ]]; then
-  fpath=(
-    $HOME/.local/zsh/completion
-    ${(@)fpath:#*/Completion/(Linux|Unix|X)}
-  )
-
-  if [[ ! -f "$HOME/.local/zcompdump" ]]; then
-    for i in {_files,_have_glob_qual,_list_files,_path_files,_hosts,_path_commands,_path_files};
-    do
-      cp "/usr/share/zsh/functions/Completion/Unix/$i" "$HOME/.local/zsh/completion/"
-      zcompile "$HOME/.local/zsh/completion/$i"
-    done
-  fi
-fi
-#}}}
-
-autoload -Uz compinit && compinit -C -d "$HOME/.local/zcompdump"
 
 #default_fpath=${default_fpath:-$FPATH}
 #FPATH=$ZSH/functions:$default_fpath # lower case fpath is array
@@ -180,72 +162,7 @@ setopt autocd
 # LIBRARY {{{
 # reference: https://github.com/robbyrussell/oh-my-zsh
 
-# completion {{{
-unsetopt menu_complete   # do not autoselect the first completion entry
-unsetopt flowcontrol
-setopt auto_menu         # show completion menu on succesive tab press
-setopt complete_in_word
-setopt always_to_end
-
-WORDCHARS=''
-
-zmodload -i zsh/complist
-
-bindkey -M menuselect '^o' accept-and-infer-next-history
-
-## case-insensitive (all),partial-word and then substring completion
-#zstyle ':completion:*' matcher-list 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'  # CASE_SENSITIVE
-zstyle ':completion:*' matcher-list 'm:{a-zA-Z-_}={A-Za-z_-}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'  # HYPHEN_INSENSITIVE
-#zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
-
-zstyle '*' single-ignored show
-zstyle ':completion:*:*:*:*:*' menu select
-
-zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#) ([0-9a-z-]#)*=01;34=0=01'
-
-zstyle ':completion:*' list-separator '-->'
-zstyle ':completion:*:manuals' separate-sections true
-
-# disable named-directories autocompletion
-zstyle ':completion:*:cd:*' tag-order local-directories directory-stack path-directories
-
-# Use caching so that commands like apt and dpkg complete are useable
-zstyle ':completion::complete:*' use-cache 1
-zstyle ':completion::complete:*' cache-path $ZSH_CACHE_DIR
-
-# Don't complete uninteresting users
-zstyle ':completion:*:*:*:users' ignored-patterns \
-        adm amanda apache at avahi avahi-autoipd beaglidx bin cacti canna \
-        clamav daemon dbus distcache dnsmasq dovecot fax ftp games gdm \
-        gkrellmd gopher hacluster haldaemon halt hsqldb ident junkbust kdm \
-        ldap lp mail mailman mailnull man messagebus  mldonkey mysql nagios \
-        named netdump news nfsnobody nobody nscd ntp nut nx obsrun openvpn \
-        operator pcap polkitd postfix postgres privoxy pulse pvm quagga radvd \
-        rpc rpcuser rpm rtkit scard shutdown squid sshd statd svn sync tftp \
-        usbmux uucp vcsa wwwrun xfs '_*'
-
-if [ "$OSTYPE[0,7]" = "solaris" ]
-then
-  zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm"
-else
-  zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm -w -w"
-fi
-
-# completion waiting dots
-expand-or-complete-with-dots() {
-  # toggle line-wrapping off and back on again
-  [[ -n "$terminfo[rmam]" && -n "$terminfo[smam]" ]] && echoti rmam
-  print -Pn "%{%F{red}......%f%}"
-  [[ -n "$terminfo[rmam]" && -n "$terminfo[smam]" ]] && echoti smam
-
-  zle expand-or-complete
-  zle redisplay
-}
-zle -N expand-or-complete-with-dots
-bindkey "^I" expand-or-complete-with-dots
-
-# }}}
+source $ZSH/completion.zsh
 
 # directories {{{
 setopt auto_pushd
@@ -395,135 +312,8 @@ git-echo-username-and-email() {
 }
 # }}}
 
-# PROMPT {{{
-git_dirty() {
-  rev-parse --is-inside-work-tree &>/dev/null || return
-  diff --quiet --ignore-submodules HEAD &>/dev/null; [ $? -eq 1 ] && echo "*"
-}
-
-repo_type() {
-  git branch &>/dev/null && echo 'git' && return
-  echo ''
-}
-
-battery_charge() {
-  echo $(ioreg -rc AppleSmartBattery 2>/dev/null |
-    awk '/CurrentCap/{a=$3}
-      /MaxCap/{b=$3}
-      END{printf("%.1f%%", a/b*100)}
-    ' 2>/dev/null)
-}
-
-venv_info() {
-  [ $VIRTUAL_ENV ] && echo '('`basename $VIRTUAL_ENV`') '
-}
-
-cmd_exec_time() {
-  [ ${cmd_timestamp:-0} -eq 0 ] && return
-  let local elapsed=$(date +%s)-$cmd_timestamp
-  [ $elapsed -gt 3 ] && echo "${elapsed}s"
-}
-
-git_repo_info() {
-  # 다음 경우를 파싱: ## branch_name...origin/branch_name
-  git status --short --branch --untracked-files=no 2>/dev/null | \
-    perl -lane '
-      printf s/^## ([^.]+)(\.\.\..+)?$/ \1/r if $. == 1;
-      $a = "+"  if /^A/;
-      $m = "!"  if /^[^?#][^?#]/;
-      END{ printf "$a$m " if $.; }
-    '
-}
-
-chpwd() {
-  [ ! -f "$HOME/.zsh_cdhistory" ] && touch .zsh_cdhistory
-  [ "`pwd`" != ~ ] && perl -i'' -ne 'print `pwd` if $. == 1; print if 1..9999' ~/.zsh_cdhistory
-}
-
-preexec() {
-  cmd_timestamp=`date +%s`
-}
-
-precmd() {
-  #[%D{%y-%d-%m %H:%M}]
-  # TODO : %~ coloring. symbolic:cyan(6), current:bold?
-  # %F-fg, %K-bg, %S-reverse
-  reset_color="\e[49m\e[39m"
-  txt="\n"
-  if [[ -n $SSH_CLIENT ]]; then
-    txt+="%K{10} ${reset_color}"
-  fi
-  if [ ! -n "$TMUX" ]; then
-    txt+="%K{8} %n@%m ${reset_color}"
-  fi
-  txt+="%K{0} %~ ${reset_color}"
-  txt+="%K{8}$(git_repo_info)${reset_color}"
-  txt+=" %F{11}$(cmd_exec_time)"
-  print -P $txt
-  cmd_timestamp=0
-}
-
-rprompt_func() {
-  # RPROMPT="%F{8}${SSH_TTY:+%n@%m}%f"
-  txt=""
-  [[ ! -z $PYENV_VERSION ]] && txt+="%F{7}venv:${PYENV_VERSION}%F{0}"
-
-  echo -e $txt
-}
-
-
-PROMPT='%(?.%F{13}.%F{1})❯%f '
-RPROMPT='$(rprompt_func)'
-PS1=$PROMPT
-
-# }}}
-
-# COLOR {{{
-
-# '\e[x;ym $TEXT \e[m'
-# x;y;.. is color pair
-# 0:ResetAll, 1:Bold, 2:Dim, 4:Underline, 5:Blink, 7:Invert, 8:Hidden
-# 21:ResetBold, 22:RestDim, 24:Reset UL, 25: Reset Blink ...
-# 30 ~ 37, 90~97 : Foreground
-# 39 : Default Foreground
-# 40 ~ 47, 100~107 : Background
-# 49 : Default Foreground
-# 38;5;colcode or 48;5;colcode : use 255 colors
-# 90~97 == 1;30~1;37
-#
-# or
-# echo $(tput setaf 4) TEXT
-# tput [ bold | rev | sgr0 | setaf $colcode | setab $colcode ]
-#
-# pirnt current rgb: printf "\033Ptmux;\033\033]4;9;?\007\033\\"
-
-if [ -n "$TMUX" ]; then
-  # tell tmux to pass the escape sequences through
-  # (Source: http://permalink.gmane.org/gmane.comp.terminal-emulators.tmux.user/1324)
-  printf_template="\033Ptmux;\033\033]4;%d;#%s\007\033\\"
-  printf_template_var="\033Ptmux;\033\033]%d;#%s\007\033\\"
-elif [ "${TERM%%-*}" = "screen" ]; then
-  # GNU screen (screen, screen-256color, screen-256color-bce)
-  printf_template="\033P\033]4;%d;#%s\007\033\\"
-  printf_template_var="\033P\033]%d;#%s\007\033\\"
-else
-  printf_template="\033]4;%d;#%s\033\\"
-  printf_template_var="\033]%d;#%s\033\\"
-fi
-
-printf $printf_template \
-  0  "31353c" 1  "b44b4b" 2  "5c9e5c" 3  "ce955b" \
-  4  "3879b7" 5  "905ddb" 6  "1cbfbf" 7  "737680" \
-  8  "505059" 9  "fe93be" 10 "b0ea77" 11 "dbdb70" \
-  12 "95acda" 13 "d47fd4" 14 "7ec4a0" 15 "989ca7"
-
-# fg bg cursor
-printf $printf_template_var \
-  10 "e1e1e1" 11 "1d1f21" 12 "e1e1e1"
-
-unset printf_template
-unset printf_template_var
-# }}}
+source $ZSH/prompt.zsh
+source $ZSH/color.zsh
 
 # SSH AGENT {{{
 # ref: http://rabexc.org/posts/pitfalls-of-ssh-agents
@@ -543,36 +333,4 @@ attach_agent() {
     echo "failed ssh-add"
   fi
 }
-# }}}
-
-# COMP {{{
-
-compdef _ssh ssh
-_ssh() {
-  _ssh_keys() {
-    if [[ -r "$HOME/.ssh" ]]; then
-      compadd -M 'm:{a-zA-Z}={A-Za-z} r:|.=* r:|=*' \
-        ${(@M)$(ls "$HOME/.ssh"):#(id_*[^p][^u][^b]|*.pem)}
-    fi
-  }
-
-  _ssh_hosts() {
-    if [[ -r "$HOME/.ssh/config" ]]; then
-      compadd -M 'm:{a-zA-Z}={A-Za-z} r:|.=* r:|=*' \
-        $( while IFS=$'=\t ' read -r key hosts; do
-            if [[ "$key" == Host ]]; then
-              echo ${(z)hosts:gs/*//:gs/?//};
-            fi
-          done < "$HOME/.ssh/config"
-        )
-    fi
-  }
-
-  _arguments -C -s \
-    '-i: :_ssh_keys' \
-    '*: :_ssh_hosts'
-
-  return 0
-}
-
 # }}}
