@@ -73,7 +73,7 @@
     fzf-br-rm = !git branch | fzf -m | cut -c2- | xargs -I% git branch -D %
 
     sync-up = !git checkout master && \
-        git fetch up && git merge --ff-only up/master \
+        git fetch up master && git merge --ff-only up/master && git push origin master && \
         git checkout - && git rebase master
 
     p = pull
