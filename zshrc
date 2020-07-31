@@ -12,12 +12,16 @@ PATH=~/.local/bin:$DOTFILES/bin:$PATH
 
 # ZSH CONFIG
 
-
 #default_fpath=${default_fpath:-$FPATH}
 #FPATH=$ZSH/functions:$default_fpath # lower case fpath is array
 
+autoload -Uz compaudit && compaudit | xargs chmod g-w
+autoload -Uz compinit && compinit -C -d "$HOME/.local/zcompdump"
+
+source $ZSH/completion.zsh
+
 # ZPLUG
-export ZPLUG_HOME="$HOME/.local/zsh/zplug"
+export ZPLUG_HOME="${ZPLUG_HOME:-$HOME/.local/zsh/zplug}"
 if [[ -s "$ZPLUG_HOME/init.zsh" ]] && source "$ZPLUG_HOME/init.zsh"; then
   zplug "zsh-users/zsh-syntax-highlighting", defer:3
 
@@ -161,8 +165,6 @@ setopt autocd
 
 # LIBRARY {{{
 # reference: https://github.com/robbyrussell/oh-my-zsh
-
-source $ZSH/completion.zsh
 
 # directories {{{
 setopt auto_pushd
