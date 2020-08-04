@@ -61,7 +61,11 @@ fi
 if [[ -z $SSH_CLIENT ]]; then
   tmux -- \
     set -sq status-right '#{?client_prefix,#[reverse],}' \; \
-    set -sqa status-right '#(whoami)@#h' \; \
+    set -sqa status-right '#[fg=colour09]' \; \
+    set -sqa status-right '#(test kubectl && kubectl config get-contexts \
+                            | perl -nale "printf q( <k8s:%%s> ),
+                                @F[1] =~ s!.+/(.+)!\$1!r if /^\*/")' \; \
+    set -sqa status-right '#[fg=colour11]#(whoami)@#h' \; \
     set -sqa status-right '#[fg=colour15]|' \; \
     set -sqa status-right '#[fg=colour14]%y-%m-%d(%a) %H:%M' \; \
     set -sq pane-border-fg colour1 \; \
