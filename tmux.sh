@@ -52,8 +52,8 @@ else
     bind -t vi-copy C-f    page-down \; \
     bind -t vi-copy C-u    halfpage-up \; \
     bind -t vi-copy C-d    halfpage-down \; \
-    bind -t vi-copy Enter copy-pipe "$DPATH/bin/clipcopy" \; \
-    bind -t vi-copy y     copy-pipe "$DPATH/bin/clipcopy" \; \
+    bind -t vi-copy Enter copy-pipe "$DOTFILES/bin/clipcopy" \; \
+    bind -t vi-copy y     copy-pipe "$DOTFILES/bin/clipcopy" \; \
   ;
 fi
 
