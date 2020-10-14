@@ -6,3 +6,6 @@ docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}'
 docker ps | perl -pe 's/\s{2,}/\t/g' | column -ts$'\t'
 sort -n -t'.' -k1,1 -k2,2 -k3,3 -k4,4
 git config user.name hassium16 && git config user.email hassium16@gmail.com
+bundle exec rubocop --color $(git status --short | cut -c4- | egrep '\.(rb|ru)$') | less -SR
+bundle exec erblint $(git status --short | cut -c4- | egrep '\.erb$') | less -SR
+() { aws ecr describe-images --repository-name $1 | jq -r '.imageDetails[] | "\(.imagePushedAt|todate) | \(.repositoryName) | \(.imageTags) | \(.imageDigest)"' | column -ts "|" | sort } X

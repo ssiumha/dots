@@ -69,6 +69,12 @@ func! s:visualSearch()
     let @/ = '\V' . substitute(escape(@@, '/\'), '\n', '\\n', 'g')
     let @@ = temp
 endfunc
+
+nnoremap <space>cd :cd %:p:h<cr>
+nnoremap <space>lc :lc %:p:h<cr>
+
+nnoremap <space>n <esc>:Lexplore \| vertical resize 24<cr>
+nnoremap <space>nc <esc>:Lexplore %:p:h \| vertical resize 24<cr>
 "}}}
 
 "plug {{{
@@ -88,6 +94,9 @@ if filereadable(s:vim_plug_install_path)
         Plug 'tpope/vim-fugitive'
         Plug 'tpope/vim-surround'
         Plug 'junegunn/vim-easy-align'
+        Plug 'mechatroner/rainbow_csv'
+
+        Plug 'simnalamburt/vim-tiny-ime', { 'do' : './build' }
 
         Plug 'neoclide/coc.nvim', {'branch': 'release'}
 

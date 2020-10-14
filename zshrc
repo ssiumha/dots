@@ -49,7 +49,10 @@ export TERM=xterm-256color
 export EDITOR="vim"
 
 export PAGER="less"
-export LESS="-R -x4"
+
+# brew install lesspipe
+#test lesspipe.sh && export LESSOPEN="|lesspipe.sh %s" LESS_ADVANCED_PREPROCESSOR=1
+export LESS="-R -x4 -i -W -M"
 
 export GREP_COLOR="1;32"
 alias grep="grep --color=auto --exclude-dir={.git,.hg,.svn}"

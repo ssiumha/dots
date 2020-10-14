@@ -80,7 +80,7 @@ fzf-move-path() {
   cd "$(find . -type d | egrep -v '(.git|.svn)' |
       awk 'NR>1' | fzf --query "$LBUFFER")"
 }
-alias -g c='fzf-move-path'
+alias -g cdf='fzf-move-path'
 
 mru() {
   cd "$(cat ~/.zsh_cdhistory 2>/dev/null |
