@@ -6,7 +6,7 @@
 .run home path
 [source, sh]
 -----------------------------------------------
-git clone https://github.com/hassium16/dotfiles
+git clone https://github.com/ssiumha/dotfiles
 . ~/dotfiles/bootstrap.sh
 exec zsh
 -----------------------------------------------
