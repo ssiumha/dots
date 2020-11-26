@@ -41,12 +41,17 @@
     compactionHeuristic = true
 [pretty]
     logfmt = %C(green)%h %C(reset)%ad %C(blue)%an %C(auto)%d %C(reset)%s
+    logfmt2 = \t%C(green)%h%C(reset)\t%C(reset)%ad\t%<(16,trunc)%C(blue)%an\t%C(reset)%s\t%C(auto)%d
 [alias]
     gr = log --graph --oneline --format=logfmt
-    gra = log --graph --oneline --all --format=logfmt
+    #gra = log --graph --oneline --all --format=logfmt
+
+    # $1:graph / $2:hash / $3:date / $4:name / $5:subject / $6:branch
+    gra = "!f() { git log --graph --oneline --all --format=logfmt2 --color $@ \
+        | awk -F '\t' '{ printf \"%-6s\\t%s\\t%s %s %s %s\\t%s\\n\", $1, $2, $3, $4, $5, $6, $7 }' \
+        | less -S; }; f"
     lg = log --graph --stat --find-renames
     lgp = log --graph --stat --find-renames -p origin/master..
-    # first-parent
 
     d = diff
     ds = diff --staged
