@@ -4,13 +4,7 @@ then
     return 1
 fi
 
-
 export FZF_DEFAULT_OPTS="--extended --cycle --reverse --height=40% --ansi"
-
-[[ $- == *i* ]] && source "$HOME/.local/repo/fzf/shell/completion.zsh" 2> /dev/null
-#source "$HOME/.local/repo/fzf/shell/key-bindings.zsh"
-
-
 
 # --preview $LINES, ECOLUMNS {+} or {-1..n} or {n}
 # --preview-window=up:n
@@ -40,7 +34,6 @@ fshow() {
   done
 }
 
-
 fzf-select-history() {
   BUFFER="$(history | perl -e 'print reverse <>' |
     perl -pe 's/^\s*\d+\*?\s+//' |
@@ -61,6 +54,15 @@ fzf-favorite() {
 }
 zle -N fzf-favorite
 bindkey '^F' fzf-favorite
+
+# TODO LBUFFER control
+# fzf-make() {
+#   BUFFER="$(make -f ~/scripts/tower/Makefile help | fzf --query "$LBUFFER")"
+#   CURSOR=$#BUFFER
+#   zle reset-prompt
+# }
+# zle -N fzf-make
+# bindkey '^[m' fzf-make
 
 
 fzf-ssh() {
@@ -106,5 +108,51 @@ alias -g gS='$( \
 )'
 
 # preview-page-up, preview-page-down : <S-up>, <S-down>
+
+# Custom Completion {{{
+_fzf_complete_make() {
+  _fzf_complete -m --preview 'echo {}' --preview-window down:3:wrap --min-height 15 -- "$@" < <(
+    command make help
+  )
+}
+
+_fzf_complete_make_post() {
+  awk '{print $1}'
+}
+
+# ref: fzf-completion
+export fzf_default_completion=_fzf_default_completion
+_fzf_default_completion() {
+  if [ ${#tokens} -lt 1 ]; then
+    zle expand-or-complete
+    return
+  fi
+
+
+  if [ "$cmd" = make -a ${LBUFFER[-1]} = ' ' ]; then
+    tail=$trigger
+    tokens+=$trigger
+    lbuf="$lbuf$trigger"
+
+    d_cmds=(${=FZF_COMPLETION_DIR_COMMANDS:-cd pushd rmdir})
+
+    [ -z "$trigger"      ] && prefix=${tokens[-1]} || prefix=${tokens[-1]:0:-${#trigger}}
+    [ -n "${tokens[-1]}" ] && lbuf=${lbuf:0:-${#tokens[-1]}}
+
+    prefix="$prefix" eval _fzf_complete_${cmd} ${(q)lbuf}
+    return
+  fi
+
+  zle expand-or-complete
+}
+zle -N _fzf_default_completion
+
+# }}}
+
+# check shell is interactive mode
+[[ $- == *i* ]] \
+    && source "$HOME/.local/repo/fzf/shell/completion.zsh" 2> /dev/null
+
+#source "$HOME/.local/repo/fzf/shell/key-bindings.zsh"
 
 return 0;
