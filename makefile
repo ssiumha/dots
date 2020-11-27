@@ -84,7 +84,6 @@ util-install-zplug:
 	fi
 
 
-
 # TODO: pure linux install case (need to build?)
 
 util-install-brew:
@@ -109,6 +108,21 @@ util-install-fzf:
         $HOME/.local/repo/fzf/install --bin && \
         ln -s $HOME/.local/repo/fzf/bin/fzf $HOME/.local/bin/fzf && \
         ln -s $HOME/.local/repo/fzf/bin/fzf-tmux $HOME/.local/bin/fzf-tmux
+
+util-install-jq: util-install-brew
+util-install-jq:
+	brew install jq
+
+util-install-q: util-install-brew
+util-install-q:
+	brew install q
+
+util-install-all: util-install-z util-install-diffhighlight
+util-install-all: util-install-vimplug util-install-zplug
+util-install-all: util-install-brew
+util-install-all: util-install-ag util-install-ack
+util-install-all: util-install-fzf
+util-install-all: util-install-jq util-install-q
 
 
 #util-install-volt:
@@ -176,14 +190,10 @@ opt-firefox-hidetab-remove:
 
 # }}}
 
-all:
-	make init-local-directory
-	make install-gitconfig
-	make install-tmuxconfig
-	make install-vimrc
-	make install-zshrc
-	make install-nvimrc
-	#[[ "$$OSTYPE" == darwin* && $(defaults domains | grep com.googlecode.iterm2) ]] && make load-setting-iterm2
+all: init-local-directory
+all: install-gitconfig install-tmuxconfig install-vimrc install-zshrc install-nvimrc
+
+#[[ "$$OSTYPE" == darwin* && $(defaults domains | grep com.googlecode.iterm2) ]] && make load-setting-iterm2
 
 
 test:
