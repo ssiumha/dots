@@ -31,6 +31,8 @@ colorscheme horizon
 "}}}
 
 "set: file {{{
+let g:netrw_home=expand('$HOME/.vim')
+
 set undofile undoreload=1000
 set backup swapfile
 let &undodir = expand(s:local_vim_path . '/tmp/undo')
@@ -87,18 +89,25 @@ endfunc
 
 if filereadable(s:vim_plug_install_path)
     call plug#begin(expand(s:local_vim_path . '/plugged'))
-        Plug 'ctrlpvim/ctrlp.vim'
-        Plug 'itchyny/lightline.vim'
+        " External
         Plug 'mileszs/ack.vim'
-        Plug 'majutsushi/tagbar'
+        Plug 'simnalamburt/vim-tiny-ime', { 'do' : './build' }
+
         Plug 'tpope/vim-fugitive'
+        Plug 'neoclide/coc.nvim', {'branch': 'release'}
+
+        Plug 'junegunn/fzf' ", { 'do': { -> fzf#install() } }
+        Plug 'junegunn/fzf.vim'
+
+        " UI
+        Plug 'itchyny/lightline.vim'
+        Plug 'majutsushi/tagbar'
+
+        " Edit
         Plug 'tpope/vim-surround'
         Plug 'junegunn/vim-easy-align'
         Plug 'mechatroner/rainbow_csv'
-
-        Plug 'simnalamburt/vim-tiny-ime', { 'do' : './build' }
-
-        Plug 'neoclide/coc.nvim', {'branch': 'release'}
+        Plug 'ctrlpvim/ctrlp.vim'
 
         " Language
         Plug 'digitaltoad/vim-pug'
