@@ -218,6 +218,7 @@ bindkey '\C-x\C-e' edit-command-line
 ## IMPORT
 source "$ZSH/alias.zsh"
 source "$ZSH/fzf.zsh"
+source "$ZSH/kube.zsh"
 
 __cd_up() { builtin pushd .. > /dev/null; zle accept-line }
 zle -N __cd_up
