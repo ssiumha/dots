@@ -154,11 +154,15 @@ if has('job') || has('nvim')
 endif
 
 nnoremap <c-p> <esc>:CtrlP<cr>
-nnoremap <space>p <esc>:CtrlPCurWD<cr>
+"nnoremap <space>p <esc>:CtrlPCurWD<cr>
 nnoremap <space>pp <esc>:CtrlPBuffer<cr>
 nnoremap <space>p[ <esc>:CtrlPMRUFiles<cr>
 nnoremap <space>pt <esc>:CtrlPTag<cr>
 nnoremap <space>ptt <esc>:CtrlPBufTag<cr>
+"}}}
+
+"plug: fzf {{{
+nnoremap <space>p <esc>:Files<cr>
 "}}}
 
 "plug: lightline {{{
