@@ -38,6 +38,7 @@ fzf-select-history() {
   BUFFER="$(history | perl -e 'print reverse <>' |
     perl -pe 's/^\s*\d+\*?\s+//' |
     awk '!a[$0]++' |
+    awk 'length<256' |
     fzf --no-sort --query "$LBUFFER" |
     sed 's/\\n/\n/')"
   CURSOR=$#BUFFER             # cursor move to line end
