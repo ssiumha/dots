@@ -1,12 +1,16 @@
 # https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md#configuration-file
 
---max-columns=150
+--max-columns=256
 --max-columns-preview
 
+--smart-case
+--color=always
+
+# TODO make ignore file?
 --glob=!**/bundle/ruby/*
 --glob=!**/node_modules/*
-
---smart-case
+--glob=!**/log/development.log
+--glob=!**/terraform.tfstate.backup
 
 # usecase: `rg -tweb xxx`
 --type-add=web:*.{html,css,js}*
