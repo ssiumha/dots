@@ -5,6 +5,7 @@ then
 fi
 
 export FZF_DEFAULT_OPTS="--extended --cycle --reverse --height=40% --ansi"
+type rg &> /dev/null && export FZF_DEFAULT_COMMAND='rg --files --hidden'
 
 # --preview $LINES, ECOLUMNS {+} or {-1..n} or {n}
 # --preview-window=up:n

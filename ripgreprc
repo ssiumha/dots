@@ -9,7 +9,10 @@
 # TODO make ignore file?
 --glob=!**/bundle/ruby/*
 --glob=!**/node_modules/*
---glob=!**/log/development.log
+--glob=!**/tmp/*
+--glob=!**/vendor/*
+
+--glob=!**/log/*.log
 --glob=!**/terraform.tfstate.backup
 
 # usecase: `rg -tweb xxx`
