@@ -99,6 +99,8 @@ if filereadable(s:vim_plug_install_path)
         Plug 'junegunn/fzf' ", { 'do': { -> fzf#install() } }
         Plug 'junegunn/fzf.vim'
 
+        Plug 'diepm/vim-rest-console'
+
         " UI
         Plug 'itchyny/lightline.vim'
         Plug 'majutsushi/tagbar'
@@ -171,6 +173,23 @@ let g:lightline = { 'colorscheme' : 'horizon' }
 
 "plug: tagbar {{{
 nnoremap <silent> <space>t :TagbarToggle<cr>
+"}}}
+
+"plug: vim-rest-console {{{
+let g:vrc_trigger = '<cr>'
+let g:vrc_response_default_content_type = 'application/json'
+let g:vrc_split_request_body = 1 "line-by-line query arguments
+
+let s:vrc_auto_format_response_patterns = {
+  \ 'json': 'jq',
+  \ 'xml': 'xmllint --format -',
+\}
+
+let g:vrc_curl_opts = {}
+let g:vrc_curl_opts['--connect-timeout'] = 10
+let g:vrc_curl_opts['--silent'] = ''
+let g:vrc_curl_opts['-L'] = '' "redirect
+let g:vrc_curl_opts['-i'] = '' "include header
 "}}}
 
 "plug: built-in {{{
