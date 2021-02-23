@@ -1,5 +1,6 @@
 *.pyc
-.note
-.ignore
 .idea
+.ignore
+.note
+.tool-versions
 tags

@@ -63,6 +63,7 @@ export MOSH_ESCAPE_KEY='~'
 
 export VOLTPATH="$DOTFILES/local/vim/volt"
 export RIPGREP_CONFIG_PATH="$DOTFILES/ripgreprc"
+export ASDF_CONFIG_FILE="$DOTFILES/asdfrc"
 
 export LS_COLORS="di=0;34:fi=0:ln=31:pi=5:so=5:bd=5:cd=5:or=31:mi=0:ex=35:ow=0:*.rpm=90"
 
