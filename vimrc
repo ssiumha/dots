@@ -176,11 +176,12 @@ nnoremap <silent> <space>t :TagbarToggle<cr>
 "}}}
 
 "plug: vim-rest-console {{{
-let g:vrc_trigger = '<cr>'
-let g:vrc_response_default_content_type = 'application/json'
-let g:vrc_split_request_body = 1 "line-by-line query arguments
+autocmd FileType rest :noremap <buffer> <cr> :call VrcQuery()<cr>
 
-let s:vrc_auto_format_response_patterns = {
+let g:vrc_response_default_content_type = 'application/json'
+let g:vrc_allow_get_request_body = 1
+
+let g:vrc_auto_format_response_patterns = {
   \ 'json': 'jq',
   \ 'xml': 'xmllint --format -',
 \}
