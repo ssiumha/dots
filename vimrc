@@ -132,8 +132,10 @@ endif
 
 "plug: ack {{{
 nnoremap <space>a :Ack!<space>
-if executable('ag')
-    let g:ackprg = 'ag --vimgrep --smart-case'
+if executable('rg')
+  let g:ackprg = 'rg --vimgrep --smart-case --color=never'
+elseif executable('ag')
+  let g:ackprg = 'ag --vimgrep --smart-case'
 endif
 "}}}
 
