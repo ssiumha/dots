@@ -23,8 +23,7 @@ source $ZSH/completion.zsh
 # ZPLUG
 export ZPLUG_HOME="${ZPLUG_HOME:-$HOME/.local/zsh/zplug}"
 if [[ -s "$ZPLUG_HOME/init.zsh" ]] && source "$ZPLUG_HOME/init.zsh"; then
-  zplug "zsh-users/zsh-syntax-highlighting", defer:3
-
+  zplug "zsh-users/zsh-syntax-highlighting"
   zplug "zsh-users/zsh-autosuggestions"
 
   if ! zplug check --verbose; then
@@ -75,13 +74,6 @@ if [[ "$OSTYPE" != darwin* || $(which ls) != /bin/ls ]]; then
   export LS_OPTIONS="--color=tty"
 fi
 alias ls="ls $LS_OPTIONS"
-
-if [[ $OSTYPE == msys* ]]; then
-  alias ipconfig="winpty ipconfig"
-  alias nslookup="winpty nslookup"
-  alias ping="winpty ping"
-fi
-
 # }}}
 
 
@@ -112,33 +104,9 @@ alias d='dirs -v | head -10'
 # }}}
 
 # functions {{{
-function zsh_stats() {
-  fc -l 1 | awk '{CMD[$2]++;count++;}END { for (a in CMD)print CMD[a] " " CMD[a]/count*100 "% " a;}' | grep -v "./" | column -c3 -s " " -t | sort -nr | nl |  head -n20
-}
-
-function open_command() {
-  emulate -L zsh
-  setopt shwordsplit
-
-  local open_cmd
-
-  # define the open command
-  case "$OSTYPE" in
-    darwin*)  open_cmd='open' ;;
-    cygwin*)  open_cmd='cygstart' ;;
-    linux*)   open_cmd='xdg-open' ;;
-    msys*)    open_cmd='start ""' ;;
-    *)        echo "Platform $OSTYPE not supported"
-              return 1
-              ;;
-  esac
-
-  # don't use nohup on OSX
-  if [[ "$OSTYPE" == darwin* ]]; then
-    $open_cmd "$@" &>/dev/null
-  else
-    nohup $open_cmd "$@" &>/dev/null
-  fi
+zsh_stats() {
+  fc -l 1 | awk '{CMD[$2]++;count++;}END { for (a in CMD)print CMD[a] " " CMD[a]/count*100 "% " a;}'  \
+    | grep -v "./" | column -c3 -s " " -t | sort -nr | nl |  head -n20
 }
 # }}}
 
@@ -215,21 +183,14 @@ bindkey '\C-x\C-e' edit-command-line
 
 # }}}
 
-# FUNCTIONS {{{
-
 ## IMPORT
 source "$ZSH/alias.zsh"
 source "$ZSH/fzf.zsh"
 source "$ZSH/kube.zsh"
+source "$ZSH/prompt.zsh"
+source "$ZSH/color.zsh"
 
-__cd_up() { builtin pushd .. > /dev/null; zle accept-line }
-zle -N __cd_up
-bindkey "^[i" __cd_up
-
-__cd_down() { builtin popd > /dev/null && zle accept-line }
-zle -N __cd_down
-bindkey "^[o" __cd_down
-
+# FUNCTIONS {{{
 tmux-version-check() {
   [[ $(echo "$(tmux -V | awk '{print $2}') > $1" | bc) != 0 ]]
 }
@@ -247,25 +208,3 @@ git-echo-username-and-email() {
 }
 # }}}
 
-source $ZSH/prompt.zsh
-source $ZSH/color.zsh
-
-# SSH AGENT {{{
-# ref: http://rabexc.org/posts/pitfalls-of-ssh-agents
-attach_agent() {
-  timeout 3 ssh-add -l &>/dev/null
-  if [[ "$?" == 2 ]]; then
-    test -r ~/.ssh-agent && \
-      eval "$(<~/.ssh-agent)" >/dev/null
-
-    ssh-add -l &>/dev/null
-    if [[ "$?" == 2 ]]; then
-      (umask 066; ssh-agent > ~/.ssh-agent)
-      eval "$(<~/.ssh-agent)" >/dev/null
-      ssh-add
-    fi
-  elif [[ "$?" == 124 ]]; then
-    echo "failed ssh-add"
-  fi
-}
-# }}}

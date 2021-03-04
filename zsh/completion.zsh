@@ -1,20 +1,3 @@
-# leave minimum completion {{{
-if [[ $OSTYPE == msys* ]]; then
-  fpath=(
-    $HOME/.local/zsh/completion
-    ${(@)fpath:#*/Completion/(Linux|Unix|X)}
-  )
-
-  if [[ ! -f "$HOME/.local/zcompdump" ]]; then
-    for i in {_files,_have_glob_qual,_list_files,_path_files,_hosts,_path_commands,_path_files};
-    do
-      cp "/usr/share/zsh/functions/Completion/Unix/$i" "$HOME/.local/zsh/completion/"
-      zcompile "$HOME/.local/zsh/completion/$i"
-    done
-  fi
-fi
-#}}}
-
 [[ $commands[kubectl] ]] && source <(kubectl completion zsh)
 
 unsetopt menu_complete   # do not autoselect the first completion entry
@@ -36,6 +19,7 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z-_}={A-Za-z_-}' 'r:|[._-]=* r:|=*'
 
 zstyle '*' single-ignored show
 zstyle ':completion:*:*:*:*:*' menu select
+zstyle ':completion:*' menu select
 
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#) ([0-9a-z-]#)*=01;34=0=01'
@@ -61,25 +45,7 @@ zstyle ':completion:*:*:*:users' ignored-patterns \
         rpc rpcuser rpm rtkit scard shutdown squid sshd statd svn sync tftp \
         usbmux uucp vcsa wwwrun xfs '_*'
 
-if [ "$OSTYPE[0,7]" = "solaris" ]
-then
-  zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm"
-else
-  zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm -w -w"
-fi
-
-# completion waiting dots
-expand-or-complete-with-dots() {
-  # toggle line-wrapping off and back on again
-  [[ -n "$terminfo[rmam]" && -n "$terminfo[smam]" ]] && echoti rmam
-  print -Pn "%{%F{red}......%f%}"
-  [[ -n "$terminfo[rmam]" && -n "$terminfo[smam]" ]] && echoti smam
-
-  zle expand-or-complete
-  zle redisplay
-}
-zle -N expand-or-complete-with-dots
-bindkey "^I" expand-or-complete-with-dots
+zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm -w -w"
 
 
 compdef _ssh ssh
