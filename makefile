@@ -53,6 +53,9 @@ install-nvimrc:
 		&& echo "source $$HOME/.vimrc" >> "$$HOME/.config/nvim/init.vim" \
 	fi
 
+install-all: init-local-directory
+install-all: install-gitconfig install-tmuxconfig install-vimrc install-zshrc install-nvimrc
+install-all: util-install-all
 # }}}
 
 # UTIL {{{
@@ -197,9 +200,6 @@ opt-firefox-hidetab-remove:
 	fi
 
 # }}}
-
-all: init-local-directory
-all: install-gitconfig install-tmuxconfig install-vimrc install-zshrc install-nvimrc
 
 #[[ "$$OSTYPE" == darwin* && $(defaults domains | grep com.googlecode.iterm2) ]] && make load-setting-iterm2
 
