@@ -1,10 +1,7 @@
 # vim: et ts=2
 
-# Profiling
-# time zsh -i -c exit
-#
-# zmodload zsh/zprof
-# zprof # run at eof
+# time RUN_ZSH_PROFILE=true zsh -i -c exit
+[ "$RUN_ZSH_PROFILE" = "true" ] && zmodload zsh/zprof
 
 export LC_CTYPE=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
@@ -84,3 +81,4 @@ zsh_stats() {
     | grep -v "./" | column -c3 -s " " -t | sort -nr | nl |  head -n20
 }
 
+[ "$RUN_ZSH_PROFILE" = "true" ] && zprof
