@@ -1,8 +1,6 @@
 autoload -Uz compaudit && compaudit | xargs chmod g-w
 autoload -Uz compinit && compinit -C -d "$HOME/.local/zcompdump"
 
-[[ $commands[kubectl] ]] && source <(kubectl completion zsh)
-
 unsetopt menu_complete   # do not autoselect the first completion entry
 unsetopt flowcontrol
 setopt auto_menu         # show completion menu on succesive tab press
