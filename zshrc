@@ -20,18 +20,21 @@ PATH=~/.local/bin:$DOTFILES/bin:$PATH
 #FPATH=$ZSH/functions:$default_fpath
 
 #--------------------------------
-# Zplug
+# Zinit
 #--------------------------------
-export ZPLUG_HOME="${ZPLUG_HOME:-$HOME/.local/zsh/zplug}"
-if [[ -s "$ZPLUG_HOME/init.zsh" ]] && source "$ZPLUG_HOME/init.zsh"; then
-  zplug "zsh-users/zsh-syntax-highlighting"
-  zplug "zsh-users/zsh-autosuggestions"
+ZINIT_HOME="$HOME/.local/zsh/zinit"
+declare -A ZINIT=( \
+  ["HOME_DIR"]="$ZINIT_HOME" \
+  ["BIN_DIR"]="$ZINIT_HOME/bin" \
+  ["ZCOMPDUMP_PATH"]="$HOME/.local/zcompdump" \
+)
 
-  if ! zplug check --verbose; then
-    printf 'Install? [y/N]:' && read -q && echo && zplug install
-  fi
+if [[ -s "$ZINIT_HOME/bin/zinit.zsh" ]] && source "$ZINIT_HOME/bin/zinit.zsh"; then
+  autoload -Uz _zinit
+  (( ${+_comps} )) && _comps[zinit]=_zinit
 
-  zplug load
+  zinit light zsh-users/zsh-autosuggestions
+  zinit light zdharma/fast-syntax-highlighting
 fi
 
 #--------------------------------

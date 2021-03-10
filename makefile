@@ -88,10 +88,17 @@ util-install-fzy:
 		cd "$$HOME/.local/repo/fzy" && make && make install -e "PREFIX=$$HOME/.local/" && cd -
 
 util-install-zplug:
-	echo -e 'load item2 setting? [y/N]: '; \
+	echo -e 'install zplug? [y/N]: '; \
 	read line && if [[ $$line = "y" ]]; \
 	then ZPLUG_HOME=$$HOME/.local/zsh/zplug \
 		&& git clone https://github.com/zplug/zplug $$ZPLUG_HOME && source $$ZPLUG_HOME/init.zsh; \
+	fi
+
+util-install-zinit:
+	echo -e 'install zinit? [y/N]: '; \
+	read line && if [[ $$line = "y" ]]; \
+	then ZINIT_HOME=$$HOME/.local/zsh/zinit \
+		&& git clone --depth=5 https://github.com/zdharma/zinit $$ZINIT_HOME/bin; \
 	fi
 
 
