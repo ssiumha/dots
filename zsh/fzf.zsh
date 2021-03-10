@@ -112,6 +112,13 @@ alias -g gS='$( \
 # preview-page-up, preview-page-down : <S-up>, <S-down>
 
 # Custom Completion {{{
+alias tow="make -f $HOME/scripts/tower/makefile"
+_fzf_complete_tow() {
+  _fzf_complete -m --preview 'echo {}' --preview-window down:3:wrap --min-height 15 -- "$@" < <(
+    tow help
+  )
+}
+
 _fzf_complete_make() {
   _fzf_complete -m --preview 'echo {}' --preview-window down:3:wrap --min-height 15 -- "$@" < <(
     command make help
@@ -130,8 +137,7 @@ _fzf_default_completion() {
     return
   fi
 
-
-  if [ "$cmd" = make -a ${LBUFFER[-1]} = ' ' ]; then
+  if [ "$cmd" = make -o "$cmd" = tow ] && [ ${LBUFFER[-1]} = ' ' ]; then
     tail=$trigger
     tokens+=$trigger
     lbuf="$lbuf$trigger"

@@ -8,4 +8,3 @@ sort -n -t'.' -k1,1 -k2,2 -k3,3 -k4,4
 git config user.name ssiumha && git config user.email ssiumha@gmail.com
 bundle exec rubocop --color $(git status --short | cut -c4- | egrep '\.(rb|ru)$') | less -SR
 bundle exec erblint $(git status --short | cut -c4- | egrep '\.erb$') | less -SR
-() { aws ecr describe-images --repository-name $1 | jq -r '.imageDetails[] | "\(.imagePushedAt|todate) | \(.repositoryName) | \(.imageTags) | \(.imageDigest)"' | column -ts "|" | sort } X
