@@ -119,6 +119,11 @@ _fzf_complete_tow() {
   )
 }
 
+_fzf_complete_tow_post() {
+  awk '{print $1}'
+}
+
+
 _fzf_complete_make() {
   _fzf_complete -m --preview 'echo {}' --preview-window down:3:wrap --min-height 15 -- "$@" < <(
     command make help
