@@ -104,6 +104,7 @@ if filereadable(s:vim_plug_install_path)
         " UI
         Plug 'itchyny/lightline.vim'
         Plug 'majutsushi/tagbar'
+        Plug 'nathanaelkane/vim-indent-guides'
 
         " Edit
         Plug 'tpope/vim-surround'
@@ -176,6 +177,17 @@ let g:lightline = { 'colorscheme' : 'horizon' }
 "plug: tagbar {{{
 nnoremap <silent> <space>t :TagbarToggle<cr>
 "}}}
+
+"plug: indent-guides {{{
+let g:indent_guides_enable_on_vim_startup = 1
+let g:indent_guides_indent_levels = 16
+let g:indent_guides_guide_size = 1
+let g:indent_guides_start_level = 2
+
+let g:indent_guides_auto_colors = 0
+hi IndentGuidesEven  ctermbg=black
+"hi IndentGuidesOdd ctermbg=black
+" }}}
 
 "plug: vim-rest-console {{{
 autocmd FileType rest :noremap <buffer> <cr> :call VrcQuery()<cr>
