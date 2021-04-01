@@ -113,6 +113,7 @@ if filereadable(s:vim_plug_install_path)
         Plug 'ctrlpvim/ctrlp.vim'
 
         " Language
+        Plug 'powerman/vim-plugin-AnsiEsc'
         Plug 'digitaltoad/vim-pug'
 
         Plug 'pangloss/vim-javascript'
@@ -217,6 +218,11 @@ let do_syntax_sel_menu = 0
 "}}}
 
 "functions {{{
+func! s:stripAnsiColorCode()
+  execute "%!perl -MTerm::ANSIColor=colorstrip -ne 'print colorstrip $_'"
+endfunc
+command! AnsiStrip :call s:stripAnsiColorCode()
+
 func! s:removeTrailingWhitespace()
     let [l:old_search, l:stay_view] = [@/, winsaveview()]
 
