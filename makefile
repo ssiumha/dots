@@ -135,6 +135,10 @@ util-install-q: util-install-brew
 util-install-q:
 	brew install q
 
+util-install-kube-forwarder: util-install-brew
+util-install-kube-forwarder:
+	brew install kube-forwarder
+
 util-install-all: util-install-z util-install-diffhighlight
 util-install-all: util-install-vimplug util-install-zplug
 util-install-all: util-install-brew
