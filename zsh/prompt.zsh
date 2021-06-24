@@ -26,6 +26,10 @@ cmd_exec_time() {
   [ $elapsed -gt 3 ] && echo "${elapsed}s"
 }
 
+cmd_current_time() {
+  echo "$(date +%H:%M:%S)"
+}
+
 git_repo_info() {
   # 다음 경우를 파싱: ## branch_name...origin/branch_name
   git status --short --branch --untracked-files=no 2>/dev/null | \
@@ -64,7 +68,7 @@ precmd() {
   fi
   txt+="%K{0} %~ ${reset_color}"
   txt+="%K{8}$(git_repo_info)${reset_color}"
-  txt+=" %F{11}$(cmd_exec_time)"
+  txt+=" %F{11}$(cmd_current_time)"
   print -P $txt
   cmd_timestamp=0
 }

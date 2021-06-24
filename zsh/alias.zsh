@@ -1,6 +1,3 @@
-#alias history='fc -il 1'
-alias history='fc -l 1'
-
 alias mv="mv -i"
 alias cp="cp -i"
 
@@ -43,6 +40,7 @@ vzv_func() {
 }
 alias vzv=vzv_func
 
+alias rake="noglob rake"
 alias rg="rg --no-ignore"
 
 # suffix

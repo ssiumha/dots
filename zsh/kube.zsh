@@ -4,14 +4,17 @@ alias k="kubectl"
 
 alias kw="watch -n1 kubectl"
 alias kwg="watch -n1 kubectl get"
-alias kwga="watch -n1 kubectl get all"
-alias kwgp="watch -n1 kubectl get pods"
-
+alias ky="kubectl get -oyaml"
 alias kg="kubectl get"
-alias kga="kubectl get all"
-alias kgp="kubectl get pods"
-
 alias kd="kubectl describe"
+alias ke="kubectl explain"
+
+# has confused usecase.. ex) kga svc ...
+#alias kwga="watch -n1 kubectl get all"
+#alias kwgp="watch -n1 kubectl get pods"
+#alias kya="kubectl get -oyaml all"
+#alias kga="kubectl get all"
+#alias kgp="kubectl get pods"
 
 kl() {
   local ns n;

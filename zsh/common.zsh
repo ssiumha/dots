@@ -63,8 +63,12 @@ if [ -z "$HISTFILE" ]; then
     HISTFILE=$HOME/.zsh_history
 fi
 
-HISTSIZE=10000
-SAVEHIST=10000
+#alias history='fc -il 1'
+alias history='fc -l 1'
+
+export HISTSIZE=10000
+export SAVEHIST=10000
+export HISTFILESIZE=10000
 
 setopt append_history
 setopt extended_history
