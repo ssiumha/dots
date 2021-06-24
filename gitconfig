@@ -19,6 +19,9 @@
     autocorrect = 1
 [color]
     ui = true
+[commit]
+    # show diff when interactive rebase
+    verbose = true
 [merge]
     tool = vimdiff
 [branch]
