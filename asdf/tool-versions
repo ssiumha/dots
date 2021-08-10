@@ -1,0 +1,22 @@
+awscli 1.18.202
+bundler 2.2.11
+helm 3.2.4
+kubectl 1.21.1
+pre-commit 2.7.1
+python system
+ruby 3.0.0
+terraform 0.12.29
+yq 3.3.2
+
+perl 5.32.1
+jq 1.6
+
+neovim nightly
+
+fzf system
+vim system
+
+#TODO
+#poetry
+#ripgrep
+#tmux

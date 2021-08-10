@@ -60,14 +60,6 @@ install-all: util-install-all
 
 # UTIL {{{
 
-util-install-asdf:
-	@if [[ -s "$$HOME/.asdf" ]]; \
-	then echo -e "\033[91malready exists asdf\033[0m"; \
-	else git clone https://github.com/asdf-vm/asdf.git ~/.asdf \
-			&& cd ~/.asdf && git checkout "$$(git describe --abbrev=0 --tags)"; \
-		echo "source $$HOME/.asdf/asdf.sh" >> "$$HOME/.zshrc"; \
-	fi
-
 util-install-z:
 	curl https://raw.githubusercontent.com/rupa/z/master/z.sh > ~/.local/sh/z.sh
 	curl https://raw.githubusercontent.com/rupa/z/master/z.1 > ~/.local/share/man/man1/z.1
@@ -145,7 +137,6 @@ util-install-all: util-install-brew
 util-install-all: util-install-ag util-install-ack
 util-install-all: util-install-fzf
 util-install-all: util-install-jq util-install-q
-
 
 #util-install-volt:
 #[[ ! -s "$HOME/.local/bin/volt" ]] && \

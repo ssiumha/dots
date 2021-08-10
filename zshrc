@@ -43,11 +43,13 @@ export MOSH_ESCAPE_KEY='~'
 
 #export VOLTPATH="$DOTFILES/local/vim/volt" # deprecated
 export RIPGREP_CONFIG_PATH="$DOTFILES/ripgreprc"
-export ASDF_CONFIG_FILE="$DOTFILES/asdfrc"
+export ASDF_CONFIG_FILE="$DOTFILES/asdf/asdfrc"
 
 #--------------------------------
 # Import
 #--------------------------------
+[ -d "$HOME/.asdf" ] && source "$HOME/.asdf/asdf.sh"
+
 source "$ZSH/common.zsh"
 source "$ZSH/completion.zsh"
 source "$ZSH/key-binding.zsh"
