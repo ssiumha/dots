@@ -84,3 +84,12 @@ zsh_stats() {
 }
 
 [ "$RUN_ZSH_PROFILE" = "true" ] && zprof
+
+#--------------------------------
+# Launcher
+#--------------------------------
+
+if [ ! -n "$TMUX" ] && [ "$__IN_DOCKER" = "true" ] && [ -x "$(command -v tmux)" ];
+then
+  exec tmux
+fi

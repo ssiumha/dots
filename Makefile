@@ -14,10 +14,13 @@ DOTFILES:=$$HOME/dotfiles
 # read -> $REPLY not working
 CHECK_Y=@read line; if [ $$line != "y" ]; then echo 1 ; fi
 
-init-local-directory:
+# PREPARE {{{
+prepare-local-directory:
 	mkdir -p "$$HOME/.local/"{repo,bin,vim,zsh/completion,zsh/zplug,emacs/tmp}
 	mkdir -p "$$HOME/.local/"{sh,share/man/man1}
 	mkdir -p "$$HOME/.local/vim/tmp/"{undo,backup,swap}
+
+# }}}
 
 # INSTALL {{{
 
@@ -61,9 +64,6 @@ install-alacritty:
 		&& echo -e "import:\n  - ~/dotfiles/alacritty.yml" > "$$TARGET_PATH"; \
 	fi
 
-install-all: init-local-directory
-install-all: install-gitconfig install-tmuxconfig install-vimrc install-zshrc install-nvimrc
-install-all: util-install-all
 # }}}
 
 # UTIL {{{
@@ -211,11 +211,32 @@ opt-firefox-hidetab-remove:
 
 # }}}
 
-#[[ "$$OSTYPE" == darwin* && $(defaults domains | grep com.googlecode.iterm2) ]] && make load-setting-iterm2
+build:
+	docker buildx build --progress=plain \
+		-f docker/Dockerfile -t home .
 
+run:
+	docker run -it --rm \
+		--name home \
+		--hostname home-docker \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v $$HOME/dotfiles:/home/me/dotfiles \
+		-v $$HOME/.ssh:/home/me/.ssh \
+		-e HOST_HOME=$$HOME \
+		-e HOST_USER_ID=$$(id -u $$USER) \
+		-e HOST_GROUP_ID=$$(id -g $$USER) \
+		home:latest
+
+run-root:
+	docker run -it --rm \
+		--name home \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		home:latest root
 
 test:
 	$(if $(shell [[ "$$OSTYPE" = darwin* ]]), echo 1, echo 2)
+
+#[[ "$$OSTYPE" == darwin* && $(defaults domains | grep com.googlecode.iterm2) ]] && make load-setting-iterm2
 
 # STATEMENT MEMO
 # if-statement:
