@@ -2,7 +2,14 @@
 #
 # install: `mkdir -p ~/.config/alacritty && echo -e "import:\n  - ~/dotfiles/alacritty.yml" > ~/.config/alacritty/alacritty.yml`
 
-background_opacity: 0.95
+background_opacity: 1.0
+
+selection:
+  save_to_clipboard: true
+
+startup_mode: Maximized
+
+alt_send_esc: true
 
 key_bindings:
   - { key: A,        mods: Alt,     chars: "\x1ba"                       }
