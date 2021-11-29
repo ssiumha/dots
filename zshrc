@@ -20,18 +20,25 @@ PATH=~/.local/bin:$DOTFILES/bin:$PATH
 # Zinit
 #--------------------------------
 ZINIT_HOME="$HOME/.local/zsh/zinit"
-declare -A ZINIT=( \
-  ["HOME_DIR"]="$ZINIT_HOME" \
-  ["BIN_DIR"]="$ZINIT_HOME/bin" \
-  ["ZCOMPDUMP_PATH"]="$HOME/.local/zcompdump" \
-)
+
+declare -A ZINIT
+ZINIT[HOME_DIR]="$ZINIT_HOME"
+ZINIT[BIN_DIR]="$ZINIT_HOME/bin"
+ZINIT[ZCOMPDUMP_PATH]="$HOME/.local/zcompdump"
+
+# not working in zsh 5.3
+# declare -A ZINIT=( \
+#   ["HOME_DIR"]="$ZINIT_HOME" \
+#   ["BIN_DIR"]="$ZINIT_HOME/bin" \
+#   ["ZCOMPDUMP_PATH"]="$HOME/.local/zcompdump" \
+# )
 
 if [[ -s "$ZINIT_HOME/bin/zinit.zsh" ]] && source "$ZINIT_HOME/bin/zinit.zsh"; then
   autoload -Uz _zinit
   (( ${+_comps} )) && _comps[zinit]=_zinit
 
   zinit light zsh-users/zsh-autosuggestions
-  zinit light zdharma/fast-syntax-highlighting
+  zinit light zdharma-continuum/fast-syntax-highlighting
 fi
 
 #--------------------------------

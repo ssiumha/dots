@@ -98,7 +98,7 @@ util-install-zinit:
 	echo -e 'install zinit? [y/N]: '; \
 	read line && if [[ $$line = "y" ]]; \
 	then ZINIT_HOME=$$HOME/.local/zsh/zinit \
-		&& git clone --depth=5 https://github.com/zdharma/zinit $$ZINIT_HOME/bin; \
+		&& git clone --depth=5 https://github.com/zdharma-continuum/zinit $$ZINIT_HOME/bin; \
 	fi
 
 
