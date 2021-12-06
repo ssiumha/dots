@@ -25,7 +25,7 @@ init-plugins:
 	( \
 		source $$HOME/.asdf/asdf.sh; \
 		for x in jq yq neovim tmux fzf; do asdf plugin add $$x; done; \
-		for x in awscli kubectl helm terraform; do asdf plugin add $$x; done; \
+		for x in awscli kubectl k9s helm terraform; do asdf plugin add $$x; done; \
 		for x in ruby bundler; do asdf plugin add $$x; done; \
 	)
 

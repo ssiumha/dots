@@ -15,6 +15,7 @@ awscli 1.18.202
 kubectl 1.21.4 1.16.15
 eksctl 0.63.0
 helm 3.2.4
+k9s 0.25.8
 
 ################
 # shell env
