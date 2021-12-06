@@ -1,0 +1,3 @@
+# $XDG_CONFIG_HOME/k9s/config.yml
+k9s:
+  readOnly: true

@@ -64,6 +64,14 @@ install-alacritty:
 		&& touch ${TARGET_PATH} && echo -e "import:\n  - ~/dotfiles/alacritty.yml" > "${TARGET_PATH}"; \
 	fi
 
+link-k9s-config: TARGET_PATH="$$HOME/.config/k9s/config.yml"
+link-k9s-config:
+	@if [[ -s "${TARGET_PATH}" ]]; \
+	then echo -e "\033[91malready exists k9s.yml\033[0m"; \
+	else mkdir -p $$(dirname ${TARGET_PATH}) \
+		&& ln -s "$$HOME/dotfiles/k9s.yml" "${TARGET_PATH}"; \
+	fi
+
 # }}}
 
 # UTIL {{{
