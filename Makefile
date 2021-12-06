@@ -58,10 +58,10 @@ install-nvimrc:
 
 install-alacritty: TARGET_PATH=$$HOME/.config/alacritty/alacritty.yml
 install-alacritty:
-	@if [[ -s "$$TARGET_PATH" ]]; \
+	@if [[ -s "${TARGET_PATH}" ]]; \
 	then echo -e "\033[91malready exists alacritty.yml\033[0m"; \
-	else mkdir -p $$(dirname $$TARGET_PATH) \
-		&& echo -e "import:\n  - ~/dotfiles/alacritty.yml" > "$$TARGET_PATH"; \
+	else mkdir -p $$(dirname ${TARGET_PATH}) \
+		&& touch ${TARGET_PATH} && echo -e "import:\n  - ~/dotfiles/alacritty.yml" > "${TARGET_PATH}"; \
 	fi
 
 # }}}
