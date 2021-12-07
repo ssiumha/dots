@@ -1,3 +1,5 @@
+.EXPORT_ALL_VARIABLES:
+
 SHELL := /usr/bin/env bash
 SHELL_OPTIONS ?= -euo pipefail
 
@@ -21,13 +23,12 @@ link-versions:
 	else ln -s "$$HOME/dotfiles/asdf/tool-versions" "$$HOME/.tool-versions"; \
 	fi
 
+init-plugins: PLUGIN_LIST = jq yq neovim tmux fzf \
+                            awscli kubectl k9s helm terraform \
+                            ruby bundler
 init-plugins:
-	( \
-		source $$HOME/.asdf/asdf.sh; \
-		for x in jq yq neovim tmux fzf; do asdf plugin add $$x; done; \
-		for x in awscli kubectl k9s helm terraform; do asdf plugin add $$x; done; \
-		for x in ruby bundler; do asdf plugin add $$x; done; \
-	)
+	source $$HOME/.asdf/asdf.sh && \
+		for x in ${PLUGIN_LIST}; do asdf plugin add $$x; done;
 
 install-tools:
 	source $$HOME/.asdf/asdf.sh && asdf install
