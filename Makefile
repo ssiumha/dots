@@ -24,11 +24,16 @@ prepare-local-directory:
 
 # INSTALL {{{
 
-install-gitconfig:
-	@if [[ -s "$$HOME/.gitconfig" ]]; \
-	then echo -e "\033[91malready exists gitconfig\033[0m"; \
-	else git config --global include.path "$(DOTFILES)/gitconfig"; \
-	fi
+# TODO: -sFh is BSD ln option
+symlink-config: CONFIG_PATH=$$HOME/dotfiles/config
+symlink-config:
+	touch "$$HOME/.gitconfig"; # save to user.name, user.email
+	mkdir -p "$$HOME/.config";
+	for CONFIG_DIR in $$(ls "${CONFIG_PATH}"); \
+	do \
+		echo "${CONFIG_PATH}/$$CONFIG_DIR -> $$HOME/.config/$$CONFIG_DIR"; \
+		ln -sFh "${CONFIG_PATH}/$$CONFIG_DIR" "$$HOME/.config/$$CONFIG_DIR"; \
+	done
 
 install-tumxconfig:
 	@if [[ -s "$$HOME/.tmux.conf" ]]; \
@@ -46,30 +51,6 @@ install-zshrc:
 	@if [[ -s "$$HOME/.zshrc" ]]; \
 	then echo -e "\033[91malready exists zshrc\033[0m"; \
 	else echo "source $(DOTFILES)/zshrc" > "$$HOME/.zshrc"; \
-	fi
-
-install-nvimrc:
-	@if [[ -s "$$HOME/.config/nvim" ]]; \
-	then echo -e "\033[91malready exists nvimrc\033[0m"; \
-	else mkdir -p "$$HOME/.config/nvim" \
-		&& echo "set rtp+=$$HOME/.vim" > "$$HOME/.config/nvim/init.vim" \
-		&& echo "source $$HOME/.vimrc" >> "$$HOME/.config/nvim/init.vim"; \
-	fi
-
-install-alacritty: TARGET_PATH=$$HOME/.config/alacritty/alacritty.yml
-install-alacritty:
-	@if [[ -s "${TARGET_PATH}" ]]; \
-	then echo -e "\033[91malready exists alacritty.yml\033[0m"; \
-	else mkdir -p $$(dirname ${TARGET_PATH}) \
-		&& touch ${TARGET_PATH} && echo -e "import:\n  - ~/dotfiles/alacritty.yml" > "${TARGET_PATH}"; \
-	fi
-
-link-k9s-config: TARGET_PATH="$$HOME/.config/k9s/config.yml"
-link-k9s-config:
-	@if [[ -s "${TARGET_PATH}" ]]; \
-	then echo -e "\033[91malready exists k9s.yml\033[0m"; \
-	else mkdir -p $$(dirname ${TARGET_PATH}) \
-		&& ln -s "$$HOME/dotfiles/k9s.yml" "${TARGET_PATH}"; \
 	fi
 
 # }}}
