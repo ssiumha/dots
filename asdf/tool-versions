@@ -20,9 +20,9 @@ k9s 0.25.8
 ################
 # shell env
 ################
-neovim nightly
-fzf system
-vim system
+neovim 0.6.0
+fzf 0.28.0
+#vim system
 #tmux
 
 ################
