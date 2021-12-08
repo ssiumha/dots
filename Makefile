@@ -1,3 +1,5 @@
+.EXPORT_ALL_VARIABLES:
+
 .PHONY: help test
 help:
 	@awk 'BEGIN {FS = ":.*?##"} \
@@ -35,12 +37,6 @@ symlink-config:
 		ln -sFh "${CONFIG_PATH}/$$CONFIG_DIR" "$$HOME/.config/$$CONFIG_DIR"; \
 	done
 
-install-tumxconfig:
-	@if [[ -s "$$HOME/.tmux.conf" ]]; \
-	then echo -e "\033[91malready exists tmuxconfig\033[0m"; \
-	else echo "source-file $(DOTFILES)/tmux.conf" > $$HOME/.tmux.conf; \
-	fi
-
 install-vimrc:
 	@if [[ -s "$$HOME/.vimrc" ]]; \
 	then echo -e "\033[91malready exists vimrc\033[0m"; \
@@ -64,10 +60,6 @@ util-install-z:
 		then echo "source ~/.local/sh/z.sh" >> $$HOME/.zshrc; \
 	fi
 
-util-install-vimplug:
-	curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
-		https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-
 util-install-diffhighlight:
 	curl https://raw.githubusercontent.com/git/git/master/contrib/diff-highlight/{DiffHighlight.pm,diff-highlight.perl}) > "~/.local/bin/diff-highlight" \
 		&& chmod +x "~/.local/bin/diff-highlight"
@@ -90,35 +82,13 @@ util-install-zinit:
 		&& git clone --depth=5 https://github.com/zdharma-continuum/zinit $$ZINIT_HOME/bin; \
 	fi
 
-
-# TODO: pure linux install case (need to build?)
-
 util-install-brew:
 	@if ! command -v brew &> /dev/null; \
 		then /bin/bash -c "$$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"; \
 	fi
 
-util-install-ack: util-install-brew
 util-install-ack:
-	brew install ack
-	#curl -fL http://beyondgrep.com/ack-2.14-single-file > $HOME/.local/bin/ack && chmod 0755 $HOME/.local/bin/ack
-
-util-install-ag: util-install-brew
-util-install-ag:
-	brew install ag
-
-util-install-fzf: util-install-brew
-util-install-fzf:
-	brew install fzf
-
-#        git clone --depth=1 "git@github.com:junegunn/fzf.git" "$HOME/.local/repo/fzf" && \
-        $HOME/.local/repo/fzf/install --bin && \
-        ln -s $HOME/.local/repo/fzf/bin/fzf $HOME/.local/bin/fzf && \
-        ln -s $HOME/.local/repo/fzf/bin/fzf-tmux $HOME/.local/bin/fzf-tmux
-
-util-install-jq: util-install-brew
-util-install-jq:
-	brew install jq
+	curl -fL http://beyondgrep.com/ack-3.5.0 > $HOME/.local/bin/ack && chmod 0755 $HOME/.local/bin/ack
 
 util-install-q: util-install-brew
 util-install-q:
@@ -131,9 +101,8 @@ util-install-kube-forwarder:
 util-install-all: util-install-z util-install-diffhighlight
 util-install-all: util-install-vimplug util-install-zplug
 util-install-all: util-install-brew
-util-install-all: util-install-ag util-install-ack
-util-install-all: util-install-fzf
-util-install-all: util-install-jq util-install-q
+util-install-all: util-install-ack
+util-install-all: util-install-q
 
 #util-install-volt:
 #[[ ! -s "$HOME/.local/bin/volt" ]] && \
