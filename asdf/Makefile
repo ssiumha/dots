@@ -3,7 +3,7 @@
 SHELL := /usr/bin/env bash
 SHELL_OPTIONS ?= -euo pipefail
 
-ASDF_PATH := $$HOME/.asdf
+ASDF_PATH := ${HOME}/.asdf
 
 help:
 	@echo "install        - clone asdf-vm/asdf.git to $$ASDF_PATH"
