@@ -37,6 +37,7 @@
 [delta]
     navigate = true
     line-numbers = true
+    diff-highlight = true
     #side-by-side = true
     plus-style = syntax "#003800"
     minus-style = syntax "#3f0001"
