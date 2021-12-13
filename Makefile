@@ -60,10 +60,6 @@ util-install-z:
 		then echo "source ~/.local/sh/z.sh" >> $$HOME/.zshrc; \
 	fi
 
-util-install-diffhighlight:
-	curl https://raw.githubusercontent.com/git/git/master/contrib/diff-highlight/{DiffHighlight.pm,diff-highlight.perl}) > "~/.local/bin/diff-highlight" \
-		&& chmod +x "~/.local/bin/diff-highlight"
-
 util-install-fzy:
 	git clone --depth=1 "https://github.com/jhawthorn/fzy.git" "$$HOME/.local/repo/fzy" && \
 		cd "$$HOME/.local/repo/fzy" && make && make install -e "PREFIX=$$HOME/.local/" && cd -

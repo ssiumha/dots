@@ -7,6 +7,7 @@
 
 [core]
     editor = vim
+    pager = delta
     #attributesfile = ~/dotfiles/gitattributes
     #excludesfile = ~/dotfiles/gitignore
     autocrlf = no
@@ -32,17 +33,19 @@
 [pull]
     rebase = true
 [interactive]
-    diffFilter = diff-highlight
-[pager]
-    #log = diff-highlight | vim -R +'setfiletype gitlog' +'setlocal buftype=nofile' -
-    log = diff-highlight | less
-    show = diff-highlight | less
-    diff = diff-highlight | less
+    diffFilter = delta --color-only
+[delta]
+    navigate = true
+    line-numbers = true
+    #side-by-side = true
+    plus-style = syntax "#003800"
+    minus-style = syntax "#3f0001"
 [diff]
     renames = true
     tool = vimdiff
     algorithm = histogram
     compactionHeuristic = true
+    colorMoved = default
 [pretty]
     logfmt = %C(green)%h %C(reset)%ad %C(blue)%an %C(auto)%d %C(reset)%s
     logfmt2 = \t%C(green)%h%C(reset)\t%C(reset)%ad\t%<(16,trunc)%C(blue)%an\t%C(reset)%s\t%C(auto)%d
