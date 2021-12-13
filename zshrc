@@ -49,7 +49,7 @@ export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=7"
 export MOSH_ESCAPE_KEY='~'
 
 #export VOLTPATH="$DOTFILES/local/vim/volt" # deprecated
-export RIPGREP_CONFIG_PATH="$DOTFILES/ripgreprc"
+export RIPGREP_CONFIG_PATH="$HOME/.config/ripgrep/ripgreprc"
 export ASDF_CONFIG_FILE="$DOTFILES/asdf/asdfrc"
 
 #--------------------------------
