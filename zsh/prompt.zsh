@@ -64,6 +64,7 @@ precmd() {
   txt="\n"
   if [[ -n $SSH_CLIENT ]]; then
     txt+="%K{10} ${reset_color}"
+    # RPROMPT="%F{8}${SSH_TTY:+%n@%m}%f"
   fi
   if [ ! -n "$TMUX" ]; then
     txt+="%K{8} %n@%m ${reset_color}"
@@ -71,21 +72,22 @@ precmd() {
   txt+="%K{0} %~ ${reset_color}"
   txt+="%K{8}$(git_repo_info)${reset_color}"
   txt+=" %F{11}$(cmd_current_time)"
+
+  # [[ ! -z $PYENV_VERSION ]] && txt+="%F{7}py:${PYENV_VERSION}%F{0}"
+  if [[ ! -z $VIRTUAL_ENV ]]; then
+    txt+="        %F{7}venv:${VIRTUAL_ENV##*/}%F{0}"
+  fi
+
   print -P $txt
   cmd_timestamp=0
 }
 
-rprompt_func() {
-  # RPROMPT="%F{8}${SSH_TTY:+%n@%m}%f"
-  txt=""
-  [[ ! -z $PYENV_VERSION ]] && txt+="%F{7}py:${PYENV_VERSION}%F{0}"
-  txt+=${VIRTUAL_ENV:+%F{7}venv:${VIRTUAL_ENV##*/}%F{0}}
+# tmux를 통한 커맨드 복붙 동작이 불편해져서 봉인..
+# rprompt_func() { }
+# RPROMPT='$(rprompt_func)'
 
-  echo -e $txt
-}
-
-# TODO: working only login zsh?
+# TODO working only login zsh?
+# TODO respond bash?
 export VIRTUAL_ENV_DISABLE_PROMPT=1
 PROMPT='%(?.%F{13}.%F{1})❯%f '
-RPROMPT='$(rprompt_func)'
 PS1=$PROMPT
