@@ -78,12 +78,14 @@ precmd() {
 rprompt_func() {
   # RPROMPT="%F{8}${SSH_TTY:+%n@%m}%f"
   txt=""
-  [[ ! -z $PYENV_VERSION ]] && txt+="%F{7}venv:${PYENV_VERSION}%F{0}"
+  [[ ! -z $PYENV_VERSION ]] && txt+="%F{7}py:${PYENV_VERSION}%F{0}"
+  txt+=${VIRTUAL_ENV:+%F{7}venv:${VIRTUAL_ENV##*/}%F{0}}
 
   echo -e $txt
 }
 
-
+# TODO: working only login zsh?
+export VIRTUAL_ENV_DISABLE_PROMPT=1
 PROMPT='%(?.%F{13}.%F{1})❯%f '
 RPROMPT='$(rprompt_func)'
 PS1=$PROMPT
