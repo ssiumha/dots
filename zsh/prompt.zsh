@@ -31,14 +31,16 @@ cmd_current_time() {
 }
 
 git_repo_info() {
-  # 다음 경우를 파싱: ## branch_name...origin/branch_name
-  git status --short --branch --untracked-files=no 2>/dev/null | \
-    perl -lane '
-      printf s/^## ([^.]+)(\.\.\..+)?$/ \1/r if $. == 1;
-      $a = "+"  if /^A/;
-      $m = "!"  if /^[^?#][^?#]/;
-      END{ printf "$a$m " if $.; }
-    '
+  if ! git rev-parse --quiet --verify HEAD &>/dev/null; then
+    return
+  fi
+
+  local branch=$(git rev-parse --abbrev-ref HEAD)
+  local changes=$(git diff-index --quiet HEAD || echo '!')
+  local added=$(git diff-index --cached --diff-filter=A --quiet HEAD || echo '+')
+
+  # ex) master+!
+  printf " $branch$added$changes "
 }
 
 kube_info() {
