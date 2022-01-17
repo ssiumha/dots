@@ -4,3 +4,6 @@
 .note
 .tool-versions
 tags
+
+.envrc
+.direnv/
