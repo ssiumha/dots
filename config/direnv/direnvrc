@@ -1,1 +1,8 @@
 source "$(asdf direnv hook asdf)"
+
+use_rails() {
+  PATH_add $(dirname $(find_up bin/rails))
+}
+
+# load parents envrc
+#source_up .envrc

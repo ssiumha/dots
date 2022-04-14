@@ -3,7 +3,8 @@
 ################
 python system
 ruby 3.0.0
-bundler 2.2.11
+bundler system
+#bundler 2.2.11
 perl 5.32.1
 nodejs 16.13.1
 #poetry
