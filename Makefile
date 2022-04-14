@@ -37,6 +37,9 @@ symlink-config:
 		ln -sFh "${CONFIG_PATH}/$$CONFIG_DIR" "$$HOME/.config/$$CONFIG_DIR"; \
 	done
 
+setup-direnv:
+	asdf direnv setup --shell zsh --version latest
+
 install-vimrc:
 	@if [[ -s "$$HOME/.vimrc" ]]; \
 	then echo -e "\033[91malready exists vimrc\033[0m"; \
