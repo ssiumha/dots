@@ -45,7 +45,7 @@ task 'config:install' => ['init:dir'] do
     when :linked
       txt += ' already linked'.rjust(txt_col - txt.length).yellow
     else
-      txt += ' linked'.rjust(txt_col - txt.length).green
+      txt += ' -> linked'.rjust(txt_col - txt.length).green
       FileUtils.ln_s st[:cfg_path], st[:xdg_path]
     end
 
@@ -168,7 +168,7 @@ def xdg_config_statuses
 
     {
       name: name,
-      cfg_path: config_path,
+      cfg_path: File.expand_path(config_path),
       xdg_path: xdg_path,
       status: file_status(xdg_path)
     }
