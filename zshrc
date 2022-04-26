@@ -56,10 +56,6 @@ export ASDF_CONFIG_FILE="$DOTFILES/asdf/asdfrc"
 # Import
 #--------------------------------
 [ -d "$HOME/.asdf" ] && source "$HOME/.asdf/asdf.sh"
-if command -v direnv &>/dev/null; then
-  eval "$(asdf exec direnv hook zsh)"
-  direnv() { asdf exec direnv "$@"; }
-fi
 
 source "$ZSH/common.zsh"
 source "$ZSH/completion.zsh"
