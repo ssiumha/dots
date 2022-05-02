@@ -1,9 +1,15 @@
 *.pyc
+
 .idea
 .ignore
 .note
-.tool-versions
 tags
 
+.tool-versions
 .envrc
 .direnv/
+
+# ref: https://github.com/github/gitignore
+.DS_Store
+
+.terraform
