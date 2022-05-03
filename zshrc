@@ -48,9 +48,13 @@ export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=7"
 
 export MOSH_ESCAPE_KEY='~'
 
+export XDG_CONFIG_HOME="$HOME/.config"
+
 #export VOLTPATH="$DOTFILES/local/vim/volt" # deprecated
-export RIPGREP_CONFIG_PATH="$HOME/.config/ripgrep/ripgreprc"
 export ASDF_CONFIG_FILE="$DOTFILES/asdf/asdfrc"
+
+export RIPGREP_CONFIG_PATH="$XDG_CONFIG_HOME/ripgrep/ripgreprc"
+export K9SCONFIG="$XDG_CONFIG_HOME/k9s"
 
 #--------------------------------
 # Import

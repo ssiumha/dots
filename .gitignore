@@ -1,2 +1,3 @@
 # auto generate
 config/direnv/lib/use_asdf.sh
+config/k9s/config.yml
