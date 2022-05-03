@@ -7,24 +7,24 @@ bundler system
 #bundler 2.2.11
 perl 5.32.1
 nodejs 16.13.1
-#poetry
+poetry 1.1.13
 
 ################
 # infra
 ################
-terraform 0.13.7 0.12.29 1.0.6
+terraform 1.1.8 0.13.7 0.12.29 1.0.6
 awscli 1.18.202
 kubectl 1.21.4 1.16.15
 eksctl 0.63.0
 helm 3.2.4
-k9s 0.25.8
+k9s 0.25.18
 
 ################
 # shell env
 ################
 neovim 0.6.0
 fzf 0.28.0
-direnv 2.30.3
+direnv 2.31.0
 #vim system
 #tmux
 
