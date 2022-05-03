@@ -116,6 +116,8 @@ if filereadable(s:vim_plug_install_path)
           Plug 'neovim/nvim-lspconfig'
         endif
 
+        Plug 'hashivim/vim-terraform'
+
         Plug 'powerman/vim-plugin-AnsiEsc'
         Plug 'digitaltoad/vim-pug'
 
