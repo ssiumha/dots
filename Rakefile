@@ -1,10 +1,15 @@
 # frozen_string_literal: true
 
+# rubocop:disable Lint/MissingCopEnableDirective
+# rubocop:disable Style/PerlBackrefs, Metrics/BlockLength, Metrics/MethodLength
+
 require 'fileutils'
 require 'json'
 
-DOT_ZSHRC_PATH = "#{Dir.home}/.zshrc"
-DOT_VIMRC_PATH = "#{Dir.home}/.vimrc"
+DOT_ZSHRC = "#{Dir.home}/.zshrc"
+DOT_VIMRC = "#{Dir.home}/.vimrc"
+DOT_ASDF = "#{Dir.home}/.asdf"
+DOT_VERSIONS = "#{Dir.home}/.tool-versions"
 
 DOTFILES_DIR = File.dirname(__FILE__)
 CONFIG_DIR = "#{Dir.home}/.config"
@@ -22,16 +27,80 @@ task :default do
   system 'rake -sP'
 end
 
-task 'init:dir' do
-  FileUtils.mkdir_p(MY_LOCAL_DIRS)
-  FileUtils.mkdir_p CONFIG_DIR
+namespace :init do
+  desc 'initalize environments: dir, rc, asdf'
+  task all: %i[dir rc asdf]
+
+  task :dir do
+    FileUtils.mkdir_p(MY_LOCAL_DIRS)
+    FileUtils.mkdir_p CONFIG_DIR
+  end
+
+  task :rc do
+    File.write(DOT_ZSHRC, "source #{DOTFILES_DIR}/zshrc").tap { puts 'created .zshrc' } unless File.exist?(DOT_ZSHRC)
+    File.write(DOT_VIMRC, "source #{DOTFILES_DIR}/vimrc").tap { puts 'created .vimrc' } unless File.exist?(DOT_VIMRC)
+  end
+
+  task :asdf do
+    unless File.exist?(DOT_ASDF)
+      system "git clone https://github.com/asdf-vm/asdf.git #{DOT_ASDF}"
+      Dir.chdir DOT_ASDF do
+        system 'git checkout $(git describe --abbrev=0 --tags)'
+      end
+    end
+  end
+end
+
+namespace :asdf do
+  namespace :setup do
+    task :direnv do
+      `asdf direnv setup --shell zsh --version latest`
+    end
+  end
+
+  ASDF_TOOLS = {
+    fzf: %i[base cli env],
+    direnv: %i[base cli env]
+  }.freeze
+
+  # lang - python, perl, poetry, ruby, nodejs
+  # infra - terraform, awscli, kubectl, eksctl, helm, k9s
+  # ide - neovim, tmux, pre-commit, delta
+  # utils - yq, jq, ripgrep, exa, fd, dust, bat
+  # zoxide??
+
+  desc 'install base tools: fzf, direnv'
+  task :base do
+    %i[fzf direnv].each { asdf_regist _1 and asdf_install _1 }
+  end
+
+  def asdf_regist(plugin_name)
+    system "asdf plugin add #{plugin_name}"
+    latest = `asdf latest #{plugin_name}`.chomp
+
+    lines = File.readlines(DOT_VERSIONS)
+    target = lines.find_index { /^(#{plugin_name} )(.+?)$/ }
+
+    if target
+      lines[target] = (_1 =~ /^(#{plugin_name} )(.+?)$/ and [$1, $2.split.unshift(latest).uniq, "\n"].join(' '))
+    else
+      lines << [plugin_name, latest].join(' ')
+    end
+
+    FileUtils.cp DOT_VERSIONS, '/tmp/.tool-versions.bak'
+    File.write DOT_VERSIONS, lines.join
+  end
+
+  def asdf_install(plugin_name)
+    system "asdf install #{plugin_name}"
+  end
 end
 
 task 'config:status' do
   xdg_config_statuses.map { puts config_status_text _1 }
 end
 
-task 'config:install' => ['init:dir'] do
+task 'config:install' do
   FileUtils.touch "#{Dir.home}/.gitconfig"
   # TODO: if not git username & useremail, set to..
 
@@ -53,27 +122,8 @@ task 'config:install' => ['init:dir'] do
   end
 end
 
-task 'rc:install' => ['init:dir'] do
-  unless File.exist?(DOT_ZSHRC_PATH)
-    File.write(DOT_ZSHRC_PATH, "source #{DOTFILES_DIR}/zshrc").tap { puts 'created .zshrc' }
-  end
-  unless File.exist?(DOT_VIMRC_PATH)
-    File.write(DOT_VIMRC_PATH, "source #{DOTFILES_DIR}/vimrc").tap { puts 'created .vimrc' }
-  end
-end
-
-task 'asdf:install' => ['init:dir'] do
-  # inlcude setup direnv
-end
-
-task 'util:install' => ['init:dir'] do
-  os_arch = `uname -m`.chop # x86_64|aarch64|i686|arm
-  os_type = case `uname -s`.chop.to_s
-            when 'Darwin' then :osx
-            when 'Linux' then :linux
-            else :unknown
-            end
-
+task 'util:install' do
+  os_type, os_arch = os_info
   filter_proc = case os_type
                 when :osx
                   proc { (_1 =~ /(darwin|apple)/) && (_1 =~ /#{os_arch}/) }
@@ -82,8 +132,6 @@ task 'util:install' => ['init:dir'] do
                 else
                   proc { false }
                 end
-
-  # TODO: rg, exa, fd, delta, fzf, zoxide, bat?
 
   {
     'ajeetdsouza/zoxide' => 'z'
@@ -113,9 +161,20 @@ task 'util:install' => ['init:dir'] do
   # TODO: download from github release
 end
 
-# install asdf (template)
-
-# TODO
+# - [x] prepare-local-directory
+# - [x] symlink-config
+# - [x] setup-direnv
+# - [x] install-vimrc
+# - [x] install-zshrc
+#
+# - [ ] util-install-z
+# - [ ] util-install-zinit -> move to zi
+# - [ ] util-install-brew -> docker, alacritty, gureumkim, alfred, mycli, dbeaver
+# - [ ] opt-firefox-hidetab, opt-firefox-hidetab-remove
+# - [ ] install system ruby -> use sh?
+#
+#
+#
 # TEST gitssh key -> ssh git@github.com
 #
 # install gnucmds? ->
@@ -141,6 +200,17 @@ end
 # opt:guremkim:install
 
 # ---- methods ----
+
+def os_info
+  os_arch = `uname -m`.chop # x86_64|aarch64|i686|arm
+  os_type = case `uname -s`.chop.to_s
+            when 'Darwin' then :osx
+            when 'Linux' then :linux
+            else :unknown
+            end
+
+  [os_type, os_arch]
+end
 
 def config_status_text(config_status)
   status = case config_status[:status]
