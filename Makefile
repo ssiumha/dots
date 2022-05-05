@@ -26,7 +26,6 @@ prepare-local-directory:
 
 # INSTALL {{{
 
-# TODO: -sFh is BSD ln option
 symlink-config: CONFIG_PATH=$$HOME/dotfiles/config
 symlink-config:
 	touch "$$HOME/.gitconfig"; # save to user.name, user.email
@@ -34,7 +33,11 @@ symlink-config:
 	for CONFIG_DIR in $$(ls "${CONFIG_PATH}"); \
 	do \
 		echo "${CONFIG_PATH}/$$CONFIG_DIR -> $$HOME/.config/$$CONFIG_DIR"; \
-		ln -sFh "${CONFIG_PATH}/$$CONFIG_DIR" "$$HOME/.config/$$CONFIG_DIR"; \
+		if [[ $$OSTYPE == darwin* ]]; then \
+			ln -sFh "${CONFIG_PATH}/$$CONFIG_DIR" "$$HOME/.config/$$CONFIG_DIR"; \
+		else \
+			ln -sF "${CONFIG_PATH}/$$CONFIG_DIR" "$$HOME/.config/$$CONFIG_DIR"; \
+		fi; \
 	done
 
 setup-direnv:
@@ -51,6 +54,15 @@ install-zshrc:
 	then echo -e "\033[91malready exists zshrc\033[0m"; \
 	else echo "source $(DOTFILES)/zshrc" > "$$HOME/.zshrc"; \
 	fi
+
+install-cargo:
+	@if [[ -s "$$HOME/.cargo" ]]; \
+	then echo -e "\033[91malready exists cargo\033[0m"; \
+	else curl https://sh.rustup.rs -sSf | sh; \
+	fi
+
+install-tmux-dependencies:
+	sudo apt install autotools-dev automake pkg-config libevent-dev ncurses-dev byacc
 
 # }}}
 

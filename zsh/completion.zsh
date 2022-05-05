@@ -1,4 +1,7 @@
-autoload -Uz compaudit && compaudit | xargs chmod g-w
+if [[ $OSTYPE == darwin* ]]; then
+  autoload -Uz compaudit && compaudit | xargs chmod g-w
+else
+fi
 autoload -Uz compinit && compinit -C -d "$HOME/.local/zcompdump"
 
 unsetopt menu_complete   # do not autoselect the first completion entry

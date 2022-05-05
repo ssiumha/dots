@@ -59,6 +59,9 @@ export K9SCONFIG="$XDG_CONFIG_HOME/k9s"
 #--------------------------------
 # Import
 #--------------------------------
+
+[ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"
+
 [ -d "$HOME/.asdf" ] && source "$HOME/.asdf/asdf.sh"
 
 source "$ZSH/common.zsh"
