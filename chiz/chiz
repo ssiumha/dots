@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+
+require 'thor'
+require '~/dotfiles/ruby/all.rb'
+
+Dir["#{__dir__}/lib/**.rb"].each { require _1 }
+
+class Chiz < Thor
+  desc 'ruby', 'ruby tip & tricks'
+  subcommand 'ruby', Lib::RubyChiz
+
+  desc 'rails', 'rails cheatsheet'
+  subcommand 'rails', Lib::RailsChiz
+
+  desc 'python', 'python cheatsheet'
+  subcommand 'python', Lib::PythonChiz
+end
+
+Chiz.start(ARGV)
