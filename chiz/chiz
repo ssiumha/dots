@@ -14,6 +14,9 @@ class Chiz < Thor
 
   desc 'python', 'python cheatsheet'
   subcommand 'python', Lib::PythonChiz
+
+  desc 'bash', 'bash cheatsheet'
+  subcommand 'bash', Lib::BashChiz
 end
 
 Chiz.start(ARGV)

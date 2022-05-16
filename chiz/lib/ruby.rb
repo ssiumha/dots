@@ -48,5 +48,36 @@ module Lib
         #     - Module#const_set(sym, obj)
       END
     end
+
+    desc 'doc', ''
+    def doc
+      puts doc(<<~END)
+        # rubydoc tag
+        #   https://www.rubydoc.info/gems/yard/file/docs/Tags.md
+
+        # basic ->
+        # 함수 설졍은 주석으로 작성
+        # @return [String, Array<String>, nil] 반환 값에 대한 설명
+        #   줄바꿈도 사용할 수 있다
+        # @param name [String] 인자에 대한 설명 작성
+        # @param io [#read] 함수 이름은 #xxx 형태로 작성할 수 있다
+        def awesome(name, io); io.read end
+
+        # more ->
+        # @param (see #awesome) # reference도 가능
+        # @deprecated Use {#awesome} instead.
+        # @example 예시 코드를 표현할 수도 있다
+        #   foo.awesome2 #=> nil
+        # @note 설명을 적거나
+        # @todo TODO도 관리할 수 있다
+        def awesome2(name, io) end
+
+        # hash ->
+        # @param [Hash] opts 해시 값을 옵션으로 받을 경우
+        # @option opts [String] :subject The subject
+        # @option opts [String] :body 이런 식으로 표시할 수 있다
+        def send_email(opts = {}) end
+      END
+    end
   end
 end
