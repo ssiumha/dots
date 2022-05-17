@@ -49,8 +49,8 @@ module Lib
       END
     end
 
-    desc 'doc', ''
-    def doc
+    desc 'rubydoc', ''
+    def rubydoc
       puts doc(<<~END)
         # rubydoc tag
         #   https://www.rubydoc.info/gems/yard/file/docs/Tags.md
