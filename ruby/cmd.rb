@@ -8,3 +8,12 @@ def jq(input)
     pipe.readlines
   end
 end
+
+# @return [Array<String>]
+def fzf(input)
+  IO.popen('fzf', 'r+') do |pipe|
+    pipe.puts input
+    pipe.close_write
+    pipe.readlines
+  end
+end
