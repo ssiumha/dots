@@ -4,13 +4,22 @@ module Lib
 
     desc 'default', ''
     def default(args: nil)
-      #puts self.class.methods
-      puts self.class.instance_methods(false)
+      # name, description, usage, ancestor_name, options
+      commands = self.class.commands.filter_map do |name, command|
+        next if name.to_sym == :help
+
+        '%-10s %s' % [name, command.description]
+      end
+
+      fzf(commands).map do
+        puts _1
+        invoke _1.split.first
+      end
     end
 
     no_tasks do
-      def doc(str)
-        str.split("\n").map { _1.start_with?('#') ? _1.green : _1 }
+      def doc(text)
+        text.split("\n").map { |line| line.gsub(/(#.+)/) { _1.green } }
       end
     end
   end
