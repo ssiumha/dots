@@ -1,5 +1,13 @@
 module Lib
   class BashChiz < Base
+    desc 'date', 'format date'
+    def date
+      puts doc(<<~END)
+        # GNU date
+        date +'%Y-%m-%d %H:%M:%S'
+      END
+    end
+
     desc 'if', 'bash if methods'
     def if
       puts doc(<<~END)

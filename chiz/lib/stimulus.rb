@@ -1,7 +1,7 @@
 module Lib
   class StimulusChiz < Base
-    desc 'action', 'bind action cheatsheep'
-    def action
+    desc 'bind_action', 'bind action cheatsheet'
+    def bind_action
       puts doc(<<~END)
         # event.preventDefault, event.stopPropagation shorthand
         <div data-controller="modal">
