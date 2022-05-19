@@ -8,7 +8,20 @@ module Lib
       END
     end
 
-    desc 'var', ''
+    desc 'svar', 'specific variable'
+    def svar
+      puts doc(<<~END)
+        $0 : 스크립트 실행 시작 파일 이름
+        __FILE__ : 현재 파일 이름
+        my_file_path = File.expand_path(File.dirname(__FILE__))
+
+        ```
+          puts 'main!' if __FILE__ == $0
+        ```
+      END
+    end
+
+    desc 'var', 'variable usecase'
     def var
       puts doc(<<~END)
         # extract variable from hash
