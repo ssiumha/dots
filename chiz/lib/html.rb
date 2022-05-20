@@ -1,8 +1,21 @@
 module Lib
   class HtmlChiz < Base
+    desc 'email_validate', 'easy email validate'
+    def email_validate
+      puts doc(<<~END)
+        const validateEmail = (email) => {
+          const input = document.createElement('input');
+          input.type = 'email';
+          input.required = true;
+          input.value = email;
+          return input.checkValidity();
+        }
+      END
+    end
+
     desc 'input_validate', 'input tag validation'
     def input_validate
-      puts <<~END
+      puts doc(<<~END)
         # simply regex
         <input required pattern="[A-Za-z]{3}">
 
