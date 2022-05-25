@@ -17,28 +17,35 @@ PATH=~/.local/bin:$DOTFILES/bin:$PATH
 #FPATH=$ZSH/functions:$default_fpath
 
 #--------------------------------
-# Zinit
+# ZI
 #--------------------------------
-ZINIT_HOME="$HOME/.local/zsh/zinit"
+zi_home="${HOME}/.local/zsh/zi"
 
-declare -A ZINIT
-ZINIT[HOME_DIR]="$ZINIT_HOME"
-ZINIT[BIN_DIR]="$ZINIT_HOME/bin"
-ZINIT[ZCOMPDUMP_PATH]="$HOME/.local/zcompdump"
+declare -A ZI
+ZI[HOME_DIR]="${zi_home}"
+ZI[BIN_DIR]="${zi_home}/bin"
+ZI[ZMODULES_DIR]="${zi_home}/zmodules"
+ZI[ZCOMPDUMP_PATH]="${HOME}/.local/zcompdump"
 
-# not working in zsh 5.3
-# declare -A ZINIT=( \
-#   ["HOME_DIR"]="$ZINIT_HOME" \
-#   ["BIN_DIR"]="$ZINIT_HOME/bin" \
-#   ["ZCOMPDUMP_PATH"]="$HOME/.local/zcompdump" \
-# )
+if [[ -s "${zi_home}/bin/zi.zsh" ]]
+then
+  source "${zi_home}/bin/zi.zsh"
+  autoload -Uz _zi
+  (( ${+_comps} )) && _comps[zi]=_zi
 
-if [[ -s "$ZINIT_HOME/bin/zinit.zsh" ]] && source "$ZINIT_HOME/bin/zinit.zsh"; then
-  autoload -Uz _zinit
-  (( ${+_comps} )) && _comps[zinit]=_zinit
+  zi light zsh-users/zsh-autosuggestions
+  zi light zsh-users/zsh-syntax-highlighting #zi light z-shell/F-Sy-H
 
-  zinit light zsh-users/zsh-autosuggestions
-  zinit light zdharma-continuum/fast-syntax-highlighting
+  # zi lucid light-mode for pick"z.sh" z-shell/z
+
+  zi wait lucid light-mode for \
+    from'gh-r' atclone'cp fzf ~/.local/bin' nocompile \
+    junegunn/fzf
+
+  zi snippet 'https://github.com/junegunn/fzf/blob/master/shell/completion.zsh'
+else
+  command -v git &>/dev/null \
+    && git clone https://github.com/z-shell/zi.git "${zi_home}/bin"
 fi
 
 #--------------------------------

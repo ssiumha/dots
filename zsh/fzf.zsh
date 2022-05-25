@@ -162,10 +162,4 @@ zle -N _fzf_default_completion
 
 # }}}
 
-# check shell is interactive mode
-[[ $- == *i* ]] \
-    && source "$HOME/.local/repo/fzf/shell/completion.zsh" 2> /dev/null
-
-#source "$HOME/.local/repo/fzf/shell/key-bindings.zsh"
-
 return 0;
