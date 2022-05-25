@@ -42,6 +42,7 @@ then
     from'gh-r' atclone'cp fzf ~/.local/bin' nocompile \
     junegunn/fzf
 
+  zi ice wait lucid has'fzf'
   zi snippet 'https://github.com/junegunn/fzf/blob/master/shell/completion.zsh'
 else
   command -v git &>/dev/null \
