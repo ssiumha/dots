@@ -8,15 +8,25 @@ module Lib
       END
     end
 
+    desc 'if_interactive', 'check shell is interactive mode'
+    def if_interactive
+      puts doc(<<~END)
+        # check shell is interactive mode
+        [[ $- == *i* ]] && echo 'interactive mode!'
+        [[ -o interactive ]] && echo 'interactive mode!'
+      END
+    end
+
     desc 'if', 'bash if methods'
     def if
       puts doc(<<~END)
         # [ vs [[
           - [ : builtin command. `/bin/[`
             - [ ] 사이의 모든 값은 인자로써 적용
+            - test 커맨드의 alias라고 생각해도 된다
           - [[ : bash shell 문법
 
-        # cehck exit code
+        # check exit code
         if [ $? -ne 0 ]; then
           echo 'run failed'
         fi
@@ -24,6 +34,14 @@ module Lib
         if ! run command; then
           echo 'run failed'
         fi
+
+        # check command exist
+        ## command, type - builtin 기능. POSIX 호환적
+        ## which - /usr/bin/which 기능
+        test -x <path>
+        command -v <command> &>/dev/null
+        type <command> &>/dev/null
+        which <command> &>/dev/null
 
         # condition
         [ -z $STR ] # str.length == 0
@@ -33,6 +51,7 @@ module Lib
         [ -e $PATH ] # path.exist_file?
         [ -L $PATH ] # path.symbolic_link?
         [ -s $PATH ] # path.file_size > 0
+        [ -x $PATH ] # path.executable?
       END
     end
   end

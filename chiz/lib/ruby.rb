@@ -92,5 +92,15 @@ module Lib
         def send_email(opts = {}) end
       END
     end
+
+    desc 'nokogiri', 'html parse library nokogiri'
+    def nokogiri
+      puts doc(<<~END)
+        require 'nokogiri'
+
+        doc = Nokogiri::HTML(html)
+        doc.attr('data-title') # Nokogiri::XML::Attr
+      END
+    end
   end
 end
