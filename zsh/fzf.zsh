@@ -75,16 +75,16 @@ fzf-ssh() {
 }
 
 
-fzf-move-path() {
-  #if git rev-parse 2> /dev/null; then
-  #  source_files=$(git ls-files)
-  #else
-  #  source_files=$(find . -type f)
-  #fi
-  cd "$(find . -type d | egrep -v '(.git|.svn)' |
-      awk 'NR>1' | fzf --query "$LBUFFER")"
-}
-alias -g cdf='fzf-move-path'
+#fzf-move-path() {
+#  #if git rev-parse 2> /dev/null; then
+#  #  source_files=$(git ls-files)
+#  #else
+#  #  source_files=$(find . -type f)
+#  #fi
+#  cd "$(find . -type d | egrep -v '(.git|.svn)' |
+#      awk 'NR>1' | fzf --query "$LBUFFER")"
+#}
+#alias -g cdf='fzf-move-path'
 
 mru() {
   cd "$(cat ~/.zsh_cdhistory 2>/dev/null |

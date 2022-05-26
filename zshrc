@@ -33,17 +33,27 @@ then
   autoload -Uz _zi
   (( ${+_comps} )) && _comps[zi]=_zi
 
+  # @see https://z.digitalclouds.dev/docs/gallery/collection/
   zi light zsh-users/zsh-autosuggestions
   zi light zsh-users/zsh-syntax-highlighting #zi light z-shell/F-Sy-H
 
   # zi lucid light-mode for pick"z.sh" z-shell/z
 
+  ### fzf
   zi wait lucid light-mode for \
-    from'gh-r' atclone'cp fzf ~/.local/bin' nocompile \
+    from'gh-r' nocompile atclone'rm -f ~/.local/bin/fzf; ln -s $(pwd)/fzf ~/.local/bin/fzf' \
     junegunn/fzf
 
   zi ice wait lucid has'fzf'
   zi snippet 'https://github.com/junegunn/fzf/blob/master/shell/completion.zsh'
+
+  ### nvim
+  # TODO nvim-linux64.tar.gz nvim-macos.tar.gz
+  zi ice wait lucid from'gh-r' bpick'*macos*' nocompile \
+    mv'nvim-* -> nvim' \
+    atclone'rm -f ~/.local/bin/nvim; ln -s $(pwd)/nvim/bin/nvim ~/.local/bin/nvim' \
+    ver'stable'
+  zi light neovim/neovim
 else
   command -v git &>/dev/null \
     && git clone https://github.com/z-shell/zi.git "${zi_home}/bin"

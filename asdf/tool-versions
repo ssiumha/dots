@@ -22,9 +22,9 @@ k9s 0.25.18
 ################
 # shell env
 ################
-neovim 0.6.0
-fzf 0.28.0
+#neovim 0.6.0 # managed zi
 direnv 2.31.0
+#fzf 0.28.0 # managed zi
 #vim system
 #tmux
 
