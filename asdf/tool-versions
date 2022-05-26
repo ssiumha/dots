@@ -34,7 +34,7 @@ direnv 2.31.0
 pre-commit 2.7.1
 yq 3.3.2
 jq 1.6
-ripgrep 13.0.0
+#ripgrep 13.0.0 # managed zi
 exa 0.10.1
 fd 8.3.0
 delta 0.11.2

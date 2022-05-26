@@ -37,7 +37,11 @@ then
   zi light zsh-users/zsh-autosuggestions
   zi light zsh-users/zsh-syntax-highlighting #zi light z-shell/F-Sy-H
 
+  # TODO
   # zi lucid light-mode for pick"z.sh" z-shell/z
+  #
+  # TODO
+  # exa, fd, delta
 
   ### fzf
   zi wait lucid light-mode for \
@@ -48,12 +52,17 @@ then
   zi snippet 'https://github.com/junegunn/fzf/blob/master/shell/completion.zsh'
 
   ### nvim
-  # TODO nvim-linux64.tar.gz nvim-macos.tar.gz
-  zi ice wait lucid from'gh-r' bpick'*macos*' nocompile \
+  zi ice wait lucid from'gh-r' nocompile \
+    bpick"$([[ "$OSTYPE" == darwin* ]] && echo "*macos*" || echo "*linux*tar*")" \
     mv'nvim-* -> nvim' \
     atclone'rm -f ~/.local/bin/nvim; ln -s $(pwd)/nvim/bin/nvim ~/.local/bin/nvim' \
     ver'stable'
   zi light neovim/neovim
+
+  ### ripgrep
+  zi ice wait lucid from'gh-r' nocompile \
+    mv'ripgrep-* -> ripgrep' atclone'rm -f ~/.local/bin/rg; ln -s $(pwd)/ripgrep/rg ~/.local/bin/rg'
+  zi light BurntSushi/ripgrep
 else
   command -v git &>/dev/null \
     && git clone https://github.com/z-shell/zi.git "${zi_home}/bin"
