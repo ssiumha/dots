@@ -12,7 +12,11 @@ export DOTFILES=${DOTFILES:-$(dirname $0)}
 ZSH=$DOTFILES/zsh
 
 default_path=${default_path:-$PATH}
-PATH=~/.local/bin:$DOTFILES/bin:$PATH
+
+if [ ! $__MY_PATH_INITED ]; then
+  PATH=~/.local/bin:$DOTFILES/bin:$PATH
+fi
+
 #default_fpath=${default_fpath:-$FPATH}
 #FPATH=$ZSH/functions:$default_fpath
 
@@ -127,7 +131,27 @@ zsh_stats() {
     | grep -v "./" | column -c3 -s " " -t | sort -nr | nl |  head -n20
 }
 
+get_path() {
+  echo $PATH | perl -lape 's/:/\n/g'
+}
+
 [ "$RUN_ZSH_PROFILE" = "true" ] && zprof
+
+#--------------------------------
+# Path Celansing
+#--------------------------------
+
+if [ ! $__MY_PATH_INITED ] && command -v perl &>/dev/null; then
+  PATH=$(echo $PATH | perl -pe 's/:/\n/g' | perl -lpe '
+          if (/asdf/)            { s/^/01 / }
+          elsif (/\.local/)      { s/^/02 / }
+          elsif (/.dotfiles/)    { s/^/03 / }
+          elsif (/$ENV{"HOME"}/) { s/^/04 / }
+          else { s/^/99 / }
+        ' | sort -s -n -k 1,1 | awk '!u[$0]++ {print $2}' | tr '\n' ':' | sed 's/:$//')
+fi
+
+export __MY_PATH_INITED=true
 
 #--------------------------------
 # Launcher
