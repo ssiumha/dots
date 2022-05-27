@@ -33,6 +33,10 @@ then
   autoload -Uz _zi
   (( ${+_comps} )) && _comps[zi]=_zi
 
+  zi snippet OMZ::lib/key-bindings.zsh
+  zi snippet OMZ::lib/completion.zsh
+  zi snippet OMZ::lib/clipboard.zsh
+
   # @see https://z.digitalclouds.dev/docs/gallery/collection/
   zi light zsh-users/zsh-autosuggestions
   zi light zsh-users/zsh-syntax-highlighting #zi light z-shell/F-Sy-H
@@ -93,7 +97,6 @@ export K9SCONFIG="$XDG_CONFIG_HOME/k9s"
 
 source "$ZSH/common.zsh"
 source "$ZSH/completion.zsh"
-source "$ZSH/key-binding.zsh"
 source "$ZSH/alias.zsh"
 source "$ZSH/fzf.zsh"
 source "$ZSH/kube.zsh"
