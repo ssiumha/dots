@@ -1,27 +1,25 @@
 alias mv="mv -i"
 alias cp="cp -i"
 
-
-alias ll="ls -lAh"
-alias l="ls -lh"
-
-l_func() {
-  LS_OPTIONS=--color=always CLICOLOR_FORCE=1 ls -lh $@ | awk '
-  $1 ~ /^[[:alpha:]-]{10}$/{ a=1; }
-  !a{ print }
-  a{
-    if(!/^d/){ d = d$0"\n"; }
-    else{ print }
-  }
-  /^$/{ printf d; a=0; d=""; }
-  END{ printf d; }
-  '
-}
-alias l=l_func
-
 alias g="git"
 
-if type nvim &>/dev/null; then
+alias rake="noglob rake"
+alias rg="rg --no-ignore"
+
+if command -v exa &>/dev/null; then
+  alias l="exa -s type"
+  alias la="exa -s type -a"
+  alias ll="exa -s type -l --git"
+  alias lla="exa -s type -la --git"
+  alias lt="exa -s type --tree -l --git"
+else
+  alias l="ls -lh"
+  alias la="ls -Ah"
+  alias ll="ls -lh"
+  alias lla="ls -lAh"
+fi
+
+if command -v nvim &>/dev/null; then
   alias v="nvim"
 else
   alias v="vim"
@@ -39,9 +37,6 @@ vzv_func() {
     rm -f $T;
 }
 alias vzv=vzv_func
-
-alias rake="noglob rake"
-alias rg="rg --no-ignore"
 
 # suffix
 alias -s py=python

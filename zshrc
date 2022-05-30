@@ -49,7 +49,7 @@ then
   # zi lucid light-mode for pick"z.sh" z-shell/z
   #
   # TODO
-  # exa, fd, delta
+  # fd, delta
 
   ### fzf
   zi wait lucid light-mode for \
@@ -71,6 +71,11 @@ then
   zi ice wait lucid from'gh-r' nocompile \
     mv'ripgrep-* -> ripgrep' atclone'rm -f ~/.local/bin/rg; ln -s $(pwd)/ripgrep/rg ~/.local/bin/rg'
   zi light BurntSushi/ripgrep
+
+  ## exa
+  zi ice wait lucid from'gh-r' nocompile \
+    atclone'rm -f ~/.local/bin/exa; ln -s $(pwd)/bin/exa ~/.local/bin/exa'
+  zi light ogham/exa
 else
   command -v git &>/dev/null \
     && git clone https://github.com/z-shell/zi.git "${zi_home}/bin"
