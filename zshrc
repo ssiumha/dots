@@ -51,9 +51,18 @@ then
   # TODO
   # fd, delta
 
+  __install_local_bin() {
+    local name=$1
+    local binpath=$2
+    local manpath=$3 # TODO
+
+    rm -f "$HOME/.local/bin/$name"
+    ln -s "$PWD/$binpath" "$HOME/.local/bin/$name"
+  }
+
   ### fzf
   zi wait lucid light-mode for \
-    from'gh-r' nocompile atclone'rm -f ~/.local/bin/fzf; ln -s $(pwd)/fzf ~/.local/bin/fzf' \
+    from'gh-r' nocompile atclone'__install_local_bin fzf fzf' \
     junegunn/fzf
 
   zi ice wait lucid has'fzf'
@@ -62,20 +71,20 @@ then
   ### nvim
   zi ice wait lucid from'gh-r' nocompile \
     bpick"$([[ "$OSTYPE" == darwin* ]] && echo "*macos*" || echo "*linux*tar*")" \
-    mv'nvim-* -> nvim' \
-    atclone'rm -f ~/.local/bin/nvim; ln -s $(pwd)/nvim/bin/nvim ~/.local/bin/nvim' \
+    mv'nvim-* -> nvim' atclone'__install_local_bin nvim nvim/bin/nvim' \
     ver'stable'
   zi light neovim/neovim
 
   ### ripgrep
   zi ice wait lucid from'gh-r' nocompile \
-    mv'ripgrep-* -> ripgrep' atclone'rm -f ~/.local/bin/rg; ln -s $(pwd)/ripgrep/rg ~/.local/bin/rg'
+    mv'ripgrep-* -> ripgrep' atclone'__install_local_bin rg ripgrep/rg'
   zi light BurntSushi/ripgrep
 
   ## exa
-  zi ice wait lucid from'gh-r' nocompile \
-    atclone'rm -f ~/.local/bin/exa; ln -s $(pwd)/bin/exa ~/.local/bin/exa'
+  zi ice wait lucid from'gh-r' nocompile atclone'__install_local_bin exa bin/exa'
   zi light ogham/exa
+
+  unset -f __install_local_bin
 else
   command -v git &>/dev/null \
     && git clone https://github.com/z-shell/zi.git "${zi_home}/bin"
