@@ -1,6 +1,16 @@
-
 module Lib
   class PythonChiz < Base
+    desc 'web_server', 'oneline python webserver'
+    def web_server
+      puts doc(<<~END)
+        # python3
+        python -m http.server --bind 0.0.0.0 8000
+
+        # python2
+        python -m SimpleHTTPServer
+      END
+    end
+
     desc 'poetry', 'python poetry project'
     def poetry
       puts doc(<<~END)
