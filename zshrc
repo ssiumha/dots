@@ -46,9 +46,6 @@ then
   zi light zsh-users/zsh-syntax-highlighting #zi light z-shell/F-Sy-H
 
   # TODO
-  # zi lucid light-mode for pick"z.sh" z-shell/z
-  #
-  # TODO
   # fd, delta
 
   __install_local_bin() {
@@ -84,6 +81,15 @@ then
   zi ice wait lucid from'gh-r' nocompile atclone'__install_local_bin exa bin/exa'
   zi light ogham/exa
 
+  ## delta
+  zi ice wait lucid from'gh-r' nocompile \
+    mv'delta-* -> delta' atclone'__install_local_bin delta delta/delta'
+  zi light dandavison/delta
+
+  ## zoxide
+  zi ice wait lucid from'gh-r' nocompile atclone'__install_local_bin zoxide zoxide'
+  zi light ajeetdsouza/zoxide
+
   unset -f __install_local_bin
 else
   command -v git &>/dev/null \
@@ -112,6 +118,13 @@ export K9SCONFIG="$XDG_CONFIG_HOME/k9s"
 [ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"
 
 [ -d "$HOME/.asdf" ] && source "$HOME/.asdf/asdf.sh"
+
+if command -v zoxide &>/dev/null; then
+  export _ZO_DATA_DIR="$HOME/.local/zsh/zoxide"
+  eval "$(zoxide init zsh --no-cmd)"
+  alias z=__zoxide_z
+  alias zz=__zoxide_zi
+fi
 
 source "$ZSH/common.zsh"
 source "$ZSH/completion.zsh"

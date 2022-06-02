@@ -1,4 +1,4 @@
-autoload -Uz compinit && compinit -C -d "$HOME/.local/zcompdump"
+autoload -Uz compinit && compinit -C -d "$HOME/.local/zsh/zcompdump"
 
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 

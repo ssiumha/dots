@@ -37,4 +37,4 @@ jq 1.6
 #ripgrep 13.0.0 # managed zi
 #exa 0.10.1
 fd 8.3.0
-delta 0.11.2
+#delta 0.11.2
