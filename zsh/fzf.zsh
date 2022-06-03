@@ -87,7 +87,7 @@ fzf-ssh() {
 #alias -g cdf='fzf-move-path'
 
 mru() {
-  cd "$(cat ~/.zsh_cdhistory 2>/dev/null |
+  cd "$(cat ~/.local/zsh/cdhistory 2>/dev/null |
     egrep -v '(.git|.svn)' | sort -u | fzf --query "$LBUFFER")"
 }
 

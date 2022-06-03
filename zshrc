@@ -20,6 +20,13 @@ fi
 #default_fpath=${default_fpath:-$FPATH}
 #FPATH=$ZSH/functions:$default_fpath
 
+export HISTFILE="$HOME/.local/zsh/history"
+
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_STATE_HOME="$HOME/.local/state"
+export XDG_CACHE_HOME="$HOME/.cache"
+
 #--------------------------------
 # ZI
 #--------------------------------
@@ -41,12 +48,12 @@ then
   zi snippet OMZ::lib/completion.zsh
   zi snippet OMZ::lib/clipboard.zsh
 
+  zi ice wait lucid as'completion'
+  zi snippet 'https://github.com/asdf-vm/asdf/blob/master/completions/_asdf'
+
   # @see https://z.digitalclouds.dev/docs/gallery/collection/
   zi light zsh-users/zsh-autosuggestions
   zi light zsh-users/zsh-syntax-highlighting #zi light z-shell/F-Sy-H
-
-  # TODO
-  # fd, delta
 
   __install_local_bin() {
     local name=$1
@@ -102,8 +109,6 @@ fi
 export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=7"
 
 export MOSH_ESCAPE_KEY='~'
-
-export XDG_CONFIG_HOME="$HOME/.config"
 
 #export VOLTPATH="$DOTFILES/local/vim/volt" # deprecated
 export ASDF_CONFIG_FILE="$DOTFILES/asdf/asdfrc"

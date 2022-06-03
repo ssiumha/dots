@@ -48,8 +48,8 @@ kube_info() {
 }
 
 chpwd() {
-  [ ! -f "$HOME/.zsh_cdhistory" ] && touch .zsh_cdhistory
-  [ "`pwd`" != ~ ] && perl -i'' -ne 'print `pwd` if $. == 1; print if 1..9999' ~/.zsh_cdhistory
+  [ ! -f "$HOME/.local/zsh/cdhistory" ] && touch "$HOME/.local/zsh/cdhistory"
+  [ "`pwd`" != ~ ] && perl -i'' -ne 'print `pwd` if $. == 1; print if 1..9999' "$HOME/.local/zsh/cdhistory"
 }
 
 preexec() {
