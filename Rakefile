@@ -163,6 +163,23 @@ task 'util:install' do
   # TODO: download from github release
 end
 
+desc 'when move to new pc'
+task 'migrate:list' do
+  puts <<~LIST
+    # home
+    .ssh                - move all files
+    scripts             - move all files
+    .local/zsh/history  - need?
+    .local/zsh/zoxide   - need?
+
+    .zshrc      - check
+    .config     - confirm modify
+    dotfiles    - confirm modify
+    repos       - confirm modify
+                - check all .envrc, .tool-versions files
+  LIST
+end
+
 # - [x] prepare-local-directory
 # - [x] symlink-config
 # - [x] setup-direnv
