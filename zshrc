@@ -47,6 +47,7 @@ then
   zi snippet OMZ::lib/key-bindings.zsh
   zi snippet OMZ::lib/completion.zsh
   zi snippet OMZ::lib/clipboard.zsh
+  zi snippet OMZ::lib/history.zsh
 
   zi ice wait lucid as'completion'
   zi snippet 'https://github.com/asdf-vm/asdf/blob/master/completions/_asdf'

@@ -56,25 +56,3 @@ alias -g ......='../../../../..'
 alias -- -='cd -'
 alias d='dirs -v | head -10'
 
-#--------------------------------
-# History
-#--------------------------------
-if [ -z "$HISTFILE" ]; then
-    HISTFILE=$HOME/.zsh_history
-fi
-
-#alias history='fc -il 1'
-alias history='fc -l 1'
-
-export HISTSIZE=10000
-export SAVEHIST=10000
-export HISTFILESIZE=10000
-
-setopt append_history
-setopt extended_history
-setopt hist_expire_dups_first
-setopt hist_ignore_dups # ignore duplication command history list
-setopt hist_ignore_space
-setopt hist_verify
-setopt inc_append_history
-setopt share_history # share command history data
