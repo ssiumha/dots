@@ -1,5 +1,13 @@
 module Lib
   class BashChiz < Base
+    desc 'ps', 'process list'
+    def ps
+      puts doc(<<~END)
+        # 프로세스 목록 + 사용중인 환경 변수
+        ps eww
+      END
+    end
+
     desc 'date', 'format date'
     def date
       puts doc(<<~END)
