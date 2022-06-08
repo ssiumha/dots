@@ -8,16 +8,46 @@ module Lib
       END
     end
 
+    desc 'proc', 'proc, lambda, call, method'
+    def proc
+      puts_doc <<~END
+        # proc
+        #   익명 함수의 기본 단위
+        #   block 또한 proc 타입이다
+        #   클로저가 적용되며, return 하면 proc이 실행되는 위치에서 반환된다
+        #     next, break로 반환 처리를 해야한다
+        p = Proc.new { |x| ... } | proc { |x| ... }
+        p.call(3) | p.(3) | p[3]
+
+        # labmda
+        #   Proc을 좀 더 strict하게 만듬 (class가 Proc (lambda) 형태)
+        #   인자 갯수가 정확히 일치하지 않으면 에러 (`->{}` 는 인자 1개)
+        #   내부에서 return으로 반환할 수 있다
+        l = lambda { |x| ... } | ->(x) { ... }
+        l.lambda?
+      END
+    end
+
     desc 'svar', 'specific variable'
     def svar
-      puts doc(<<~END)
-        $0 : 스크립트 실행 시작 파일 이름
-        __FILE__ : 현재 파일 이름
-        my_file_path = File.expand_path(File.dirname(__FILE__))
+      puts_doc <<~END
+        $0
+          스크립트 실행 시작 파일 이름
 
-        ```
-          puts 'main!' if __FILE__ == $0
-        ```
+        __FILE__
+          현재 파일 이름
+            my_file_path = File.expand_path(File.dirname(__FILE__))
+
+          다음 형태로 직접 실행된건지 체크 가능
+            `puts 'main!' if __FILE__ == $0`
+
+        DATA, __END__
+          파일 단위로 적용되는 데이터 지정 변수
+          파일 맨끝에 __END__를 작성하고, 그 밑에 작성된 텍스트를 DATA.read로 읽어올 수 있다
+
+          sinatra에서는 이런 형태로 직접 파일에서 읽어들이고 있다
+            https://github.com/sinatra/sinatra/blob/master/lib/sinatra/base.rb
+            `app, data = io.gsub("\\r\\n", "\\n").split(/^__END__$/, 2)`
       END
     end
 
