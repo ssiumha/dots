@@ -42,8 +42,10 @@ module Lib
             `puts 'main!' if __FILE__ == $0`
 
         DATA, __END__
-          파일 단위로 적용되는 데이터 지정 변수
-          파일 맨끝에 __END__를 작성하고, 그 밑에 작성된 텍스트를 DATA.read로 읽어올 수 있다
+          Object#DATA, 스크립트 파일마다 접근 가능한 파일 객체
+          파일 맨끝에 __END__ 밑에 작성된 텍스트를 DATA.read로 읽어올 수 있다
+
+          __FILE__이 아니라 $0을 참조한다 (require, load로 다른 파일 DATA에 접근할 수 없다)
 
           sinatra에서는 이런 형태로 직접 파일에서 읽어들이고 있다
             https://github.com/sinatra/sinatra/blob/master/lib/sinatra/base.rb
