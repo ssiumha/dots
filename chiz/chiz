@@ -2,8 +2,8 @@
 bash <<-EOF
   cd $(dirname "$(realpath $0)");
   if [ -f ~/.asdf/bin/asdf ]; then
-    ASDF_RUBY_VERSION=system ~/.asdf/bin/asdf exec ruby ./chiz.rb;
+    ASDF_RUBY_VERSION=system ~/.asdf/bin/asdf exec ruby ./chiz.rb $@;
   else
-    ruby ./chiz.rb
+    ruby ./chiz.rb $@
   fi
 EOF
