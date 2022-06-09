@@ -105,6 +105,11 @@ if filereadable(s:vim_plug_install_path)
         Plug 'majutsushi/tagbar'
         Plug 'nathanaelkane/vim-indent-guides'
 
+        if has('nvim-0.7.0')
+          Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
+          Plug 'nvim-treesitter/nvim-treesitter-context'
+        endif
+
         " Edit
         Plug 'tpope/vim-surround'
         Plug 'junegunn/vim-easy-align'
@@ -211,6 +216,34 @@ let g:vrc_curl_opts['--connect-timeout'] = 10
 let g:vrc_curl_opts['--silent'] = ''
 let g:vrc_curl_opts['-L'] = '' "redirect
 let g:vrc_curl_opts['-i'] = '' "include header
+"}}}
+
+"plug: nvim-treesitter {{{
+if has('nvim-0.7.0')
+highlight TreesitterContext guibg=gray ctermbg=8
+
+lua << EOF
+  require'nvim-treesitter.configs'.setup {
+    ensure_installed = { 'ruby' },
+
+    highlight = {
+      enable = true,
+      additional_vim_regex_highlighting = false,
+    },
+  }
+
+  require'treesitter-context'.setup{
+    enable = true,
+    patterns = {
+      default = {
+        'class',
+        'function',
+        'method'
+      }
+    }
+  }
+EOF
+endif
 "}}}
 
 "plug: nvim-lspconfig {{{
