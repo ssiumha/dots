@@ -31,7 +31,7 @@ module Lib
     desc 'svar', 'specific variable'
     def svar
       puts_doc <<~END
-        $0
+        $0, $PROGRAM_NAME
           스크립트 실행 시작 파일 이름
 
         __FILE__
