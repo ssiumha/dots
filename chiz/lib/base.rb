@@ -27,6 +27,14 @@ module Lib
       def puts_doc(text)
         puts doc(text)
       end
+
+      # TODO: markdown syntax
+      def self.md(name, description, text)
+        desc name, description
+        define_method name.to_sym do
+          puts_doc(text)
+        end
+      end
     end
   end
 end
