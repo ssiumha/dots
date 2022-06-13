@@ -30,7 +30,7 @@ local on_attach = function(client, bufnr)
   vim.keymap.set('n', '<space>f', vim.lsp.buf.formatting, bufopts)
 end
 
-local lspcontainers = require'lspcontainers'
+-- local lspcontainers = require'lspcontainers'
 
 -- :help lspconfig-server-configurations
 require('lspconfig').solargraph.setup {
