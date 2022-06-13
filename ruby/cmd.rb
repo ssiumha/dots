@@ -17,3 +17,15 @@ def fzf(input)
     pipe.readlines
   end
 end
+
+def bat(input, language: 'md', title: nil)
+  cmd = ['bat']
+  cmd << ['-l', language.to_s] unless language.empty?
+  cmd << ['--file-name', title.to_s] unless title&.empty?
+  cmd.flatten!
+
+  IO.popen(cmd, 'w') do |pipe|
+    pipe.puts input
+    pipe.close_write
+  end
+end

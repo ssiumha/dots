@@ -28,11 +28,10 @@ module Lib
         puts doc(text)
       end
 
-      # TODO: markdown syntax
-      def self.md(name, description, text)
+      def self.md(name, description, text, lang: 'md')
         desc name, description
         define_method name.to_sym do
-          puts_doc(text)
+          bat(text, language: lang, title: "#{name} :: #{description}")
         end
       end
     end
