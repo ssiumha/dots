@@ -134,5 +134,29 @@ module Lib
         doc.attr('data-title') # Nokogiri::XML::Attr
       END
     end
+
+    md 'inline_bundle', 'single-file script gems', <<~MD, lang: :ruby
+      # Gemfile 없이 단일 스크립트 파일에서 bundle을 통한 라이브러리를 받아 쓸 수 있다
+      # 라이브러리는 스크립트가 실행 될 때 설치된다
+      #   - global gem 환경에 설치되며 `gem list` 로 확인할 수 있다
+
+      require 'bundler/inline' do
+
+      gemfile do
+        source 'https://rubygems.org'
+        gem 'httparty'
+      end
+
+      response = HTTParty.get('...')
+    MD
+
+    md 'set_class', 'simple cheatsheet set class', <<~MD, lang: :ruby
+      # create
+      s = Set[1,2]
+      s = [1, 2].to_set
+
+      # check
+      s.inlude? 3 or s.member? 3 or s === 3
+    MD
   end
 end
