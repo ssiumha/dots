@@ -158,5 +158,22 @@ module Lib
       # check
       s.inlude? 3 or s.member? 3 or s === 3
     MD
+
+    md 'system_call', 'system method', <<~MD, lang: :ruby
+      # 스크립트 텍스트를 system으로 편하게 넘기기
+      system *%w[kubectl exec -it deploy/name -n bard -- bin/bundle exec rails runner] << <<~'CMD'
+        puts Rails.env
+      CMD
+    MD
+
+    md 'awesome_array', 'array features', <<~MD
+      # 모든 조합의 수를 만들어주는 함수
+
+      ```ruby
+      [1,2,3].combination(1).to_a # => [[1], [2], [3]]
+      [1,2,3].combination(2).to_a # => [[1,2], [1,3], [2,3]]
+      [1,2,3].combination(3).to_a # => [[1, 2, 3]]
+      ```
+    MD
   end
 end

@@ -35,6 +35,28 @@ module Lib
       END
     end
 
+    md 'concern', 'getting started concern', <<~MD
+      model, controller에서 사용되는 기능을 관심사 단위로 나눈 것
+        - app/models/concerns/, controllers/concerns/
+        - app/models/some_model/some_concern.rb -> 이런 형태로 작성하여 모델에 한정된 관심사를 격리할 수도 있다
+
+      Kent beck, Lots of little pieces—Good code invariably has small methods and small objects
+        작은 객체들이 서로 메시지를 주고 받으며 복잡한 일을 할 수 있게 하는게 좋다
+
+      ```ruby
+        class Post < AR::Base
+          include Mentions
+          ...
+        end
+
+        ## /app/models/post/mentions.rb
+        module Post::Mentions
+          extends AS::Concern
+          ...
+        end
+      ```
+    MD
+
     desc 'factorybot', 'factorybot subcommand'
     subcommand 'factorybot', Class.new(Base, &proc {
       desc 'ignore uniq', 'how to duplicate field factory model'
