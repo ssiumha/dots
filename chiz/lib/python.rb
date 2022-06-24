@@ -31,6 +31,10 @@ module Lib
         poetry install
         poetry run <package-cmd>
         poetry shell
+
+        poetry add "pendulum>=2.0.5"
+        poetry add pendulum@^2.0.5
+        poetry add pendulum@latest
       END
     end
   end

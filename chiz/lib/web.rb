@@ -1,11 +1,12 @@
 module Lib
   class WebChiz < Base
-    desc 'weather', 'get weather'
-    def wheater
-      puts <<~END
-        curl wttr.in/Seoul
-      END
-    end
+    md 'weather', 'get weather', <<~MD
+      curl wttr.in/Seoul
+    MD
+
+    md 'cloud_ping', 'aws cloud latency grid', <<~MD
+      https://www.cloudping.co/grid
+    MD
   end
 end
 

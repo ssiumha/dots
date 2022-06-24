@@ -29,7 +29,7 @@ module Lib
       end
 
       def self.md(name, description, text, lang: 'md')
-        desc name, description
+        desc name.to_s, description
         define_method name.to_sym do
           bat(text, language: lang, title: "#{name} :: #{description}")
         end

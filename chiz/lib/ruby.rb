@@ -175,5 +175,16 @@ module Lib
       [1,2,3].combination(3).to_a # => [[1, 2, 3]]
       ```
     MD
+
+    md 'source_location', 'where is class, method definition file', <<~MD, lang: :ruby
+      # Method#source_location
+      User.method(:import).source_location
+
+      # Object#const_source_location
+      Object.const_source_location 'User'
+
+      # loaded features grep
+      $LOADED_FEATURES.grep /user/
+    MD
   end
 end
