@@ -28,33 +28,32 @@ export XDG_STATE_HOME="$HOME/.local/state"
 export XDG_CACHE_HOME="$HOME/.cache"
 
 #--------------------------------
-# ZI
+# Zinit
 #--------------------------------
-zi_home="${HOME}/.local/zsh/zi"
+zinit_home="${HOME}/.local/zsh/zinit"
 
-declare -A ZI
-ZI[HOME_DIR]="${zi_home}"
-ZI[BIN_DIR]="${zi_home}/bin"
-ZI[ZMODULES_DIR]="${zi_home}/zmodules"
-ZI[ZCOMPDUMP_PATH]="${HOME}/.local/zcompdump"
+declare -A ZINIT
+ZINIT[HOME_DIR]="${zinit_home}"
+ZINIT[BIN_DIR]="${zinit_home}/bin"
+ZINIT[ZMODULES_DIR]="${zinit_home}/zmodules"
+ZINIT[ZCOMPDUMP_PATH]="${HOME}/.local/zcompdump"
 
-if [[ -s "${zi_home}/bin/zi.zsh" ]]
+if [[ -s "${zinit_home}/bin/zinit.zsh" ]]
 then
-  source "${zi_home}/bin/zi.zsh"
-  autoload -Uz _zi
-  (( ${+_comps} )) && _comps[zi]=_zi
+  source "${zinit_home}/bin/zinit.zsh"
+  autoload -Uz _zinit
+  (( ${+_comps} )) && _comps[zinit]=_zinit
 
-  zi snippet OMZ::lib/key-bindings.zsh
-  zi snippet OMZ::lib/completion.zsh
-  zi snippet OMZ::lib/clipboard.zsh
-  zi snippet OMZ::lib/history.zsh
+  zinit snippet OMZ::lib/key-bindings.zsh
+  zinit snippet OMZ::lib/completion.zsh
+  zinit snippet OMZ::lib/clipboard.zsh
+  zinit snippet OMZ::lib/history.zsh
 
-  zi ice wait lucid as'completion'
-  zi snippet 'https://github.com/asdf-vm/asdf/blob/master/completions/_asdf'
+  zinit ice wait lucid as'completion'
+  zinit snippet 'https://github.com/asdf-vm/asdf/blob/master/completions/_asdf'
 
-  # @see https://z.digitalclouds.dev/docs/gallery/collection/
-  zi light zsh-users/zsh-autosuggestions
-  zi light zsh-users/zsh-syntax-highlighting #zi light z-shell/F-Sy-H
+  zinit light zsh-users/zsh-autosuggestions
+  zinit light zsh-users/zsh-syntax-highlighting #zinit light z-shell/F-Sy-H
 
   __install_local_bin() {
     local name=$1
@@ -66,42 +65,42 @@ then
   }
 
   ### fzf
-  zi wait lucid light-mode for \
+  zinit wait lucid light-mode for \
     from'gh-r' nocompile atclone'__install_local_bin fzf fzf' \
     junegunn/fzf
 
-  zi ice wait lucid has'fzf'
-  zi snippet 'https://github.com/junegunn/fzf/blob/master/shell/completion.zsh'
+  zinit ice wait lucid has'fzf'
+  zinit snippet 'https://github.com/junegunn/fzf/blob/master/shell/completion.zsh'
 
   ### nvim
-  zi ice wait lucid from'gh-r' nocompile \
+  zinit ice wait lucid from'gh-r' nocompile \
     bpick"$([[ "$OSTYPE" == darwin* ]] && echo "*macos*" || echo "*linux*tar*")" \
     mv'nvim-* -> nvim' atclone'__install_local_bin nvim nvim/bin/nvim' \
     ver'stable'
-  zi light neovim/neovim
+  zinit light neovim/neovim
 
   ### ripgrep
-  zi ice wait lucid from'gh-r' nocompile \
+  zinit ice wait lucid from'gh-r' nocompile \
     mv'ripgrep-* -> ripgrep' atclone'__install_local_bin rg ripgrep/rg'
-  zi light BurntSushi/ripgrep
+  zinit light BurntSushi/ripgrep
 
   ## exa
-  zi ice wait lucid from'gh-r' nocompile atclone'__install_local_bin exa bin/exa'
-  zi light ogham/exa
+  zinit ice wait lucid from'gh-r' nocompile atclone'__install_local_bin exa bin/exa'
+  zinit light ogham/exa
 
   ## delta
-  zi ice wait lucid from'gh-r' nocompile \
+  zinit ice wait lucid from'gh-r' nocompile \
     mv'delta-* -> delta' atclone'__install_local_bin delta delta/delta'
-  zi light dandavison/delta
+  zinit light dandavison/delta
 
   ## zoxide
-  zi ice wait lucid from'gh-r' nocompile atclone'__install_local_bin zoxide zoxide'
-  zi light ajeetdsouza/zoxide
+  zinit ice wait lucid from'gh-r' nocompile atclone'__install_local_bin zoxide zoxide'
+  zinit light ajeetdsouza/zoxide
 
   unset -f __install_local_bin
 else
   command -v git &>/dev/null \
-    && git clone https://github.com/z-shell/zi.git "${zi_home}/bin"
+    && git clone --depth=5 https://github.com/zdharma-continuum/zinit "${zinit_home}/bin"
 fi
 
 #--------------------------------
