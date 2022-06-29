@@ -15,6 +15,26 @@ module Lib
       render file: "\#{Rails.root}/public/404.html", layout: false
     MD
 
+    md :render_overview, 'render overview', <<~MD
+      rails 7 기준
+
+      https://guides.rubyonrails.org/action_view_overview.html
+
+      template으로 erb, builder, jbuilder를 사용 가능
+
+      ActionView::Renderer#render가 주요 진입 지점
+
+        LookupContext -> PathSet -> Resolver -> FileSystemResolver 순으로 처리되며 경로를 탐색한다
+
+
+      인자에 따라서 각기 다른 renderer를 호출한다
+
+        ActionView::Renderer::CollectionRenderer -> partial:, collection: 인자 사용시
+        ActionView::Renderer::ObjectRenderer -> partial:, object: 인자 사용시
+        ActionView::Renderer::PartialRenderer -> partial: 사용시,
+        ActionView::Renderer::TemplateRenderer -> 그 외 모든 경우
+    MD
+
     md :model, '', <<~MD
       ActiveRecord::Store
         - https://api.rubyonrails.org/classes/ActiveRecord/Store.html
@@ -80,6 +100,19 @@ module Lib
     md :caching, '', <<~MD
       russian doll caching
         https://blog.appsignal.com/2018/04/03/russian-doll-caching-in-rails.html
+    MD
+
+    md :db_migrate, '', <<~MD, lang: :sh
+      # DB의 schema_migrations 테이블에서 버전이 관리된다
+      #   select * from schema_migrations
+
+      # 특정 버전 하나만 rollback 시키기
+      rails db:migrate:down VERSION=20220624083352
+    MD
+
+    md :regex, 'regex, gsub, string', <<~MD, lang: :ruby
+      # escape special characters
+      str.gsub /[[:punct:]]/, '_'
     MD
 
     desc 'factorybot', 'factorybot subcommand'
