@@ -112,17 +112,16 @@ alias -g gS='$( \
 # preview-page-up, preview-page-down : <S-up>, <S-down>
 
 # Custom Completion {{{
-alias to="make -f $HOME/scripts/tower/makefile"
+alias to="rake -f $HOME/scripts/tower/Rakefile"
 _fzf_complete_to() {
-  _fzf_complete -m --preview 'echo {}' --preview-window down:3:wrap --min-height 15 -- "$@" < <(
+  _fzf_complete +m --preview 'echo {}' --preview-window down:3:wrap --min-height 15 -- "$@" < <(
     to help
   )
 }
 
 _fzf_complete_to_post() {
-  awk '{print $1}'
+  awk '{print $1}' | tr -d '\n'
 }
-
 
 _fzf_complete_make() {
   _fzf_complete -m --preview 'echo {}' --preview-window down:3:wrap --min-height 15 -- "$@" < <(
@@ -153,6 +152,7 @@ _fzf_default_completion() {
     [ -n "${tokens[-1]}" ] && lbuf=${lbuf:0:-${#tokens[-1]}}
 
     prefix="$prefix" eval _fzf_complete_${cmd} ${(q)lbuf}
+    zle reset-prompt
     return
   fi
 
