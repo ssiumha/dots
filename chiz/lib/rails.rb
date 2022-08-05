@@ -35,14 +35,114 @@ module Lib
         ActionView::Renderer::TemplateRenderer -> 그 외 모든 경우
     MD
 
-    md :model, '', <<~MD
-      ActiveRecord::Store
+    md :model, 'active record', <<~MD
+      # ActiveRecord::Store
         - https://api.rubyonrails.org/classes/ActiveRecord/Store.html
         - 중요하지 않은 데이터를 JSON serialize 해서 저장하는 기능
 
-      ActiveSupport::CurrentAttributes
+      # ActiveSupport::CurrentAttributes
         - app/models/current.rb에 위치시켜 쓰는 편
         - global한 변수를 정의하고 Model 접근하듯이 Current.user로 사용할 수 있다
+
+      # Context Validate
+        - 특정 context 범위에서만 적용될 validate를 지정할 수 있다
+      ```ruby
+        class Account < ApplicationRecord
+          validates :username, length: { minimum: 6 }, on: :create
+          validates :username, length: { minimum: 3 }, on: :admin
+        end
+
+        Account.new(username: 'mds').valid?(:admin)
+      ```
+
+      # rails 7 추가 쿼리
+      - load_async
+      - sole, find_sole_by
+      - associated(:association)
+        ```ruby
+        # Before:
+        account.users.joins(:contact).where.not(contact_id: nil)
+
+        # After:
+        account.users.where.associated(:contact)
+        ```
+
+      # ActiveStorage + variant
+      class User < ApplicationRecord
+        has_one_attached :avatar do |attachable|
+          attachable.variant :thumb, resize: "100x100"
+        end
+      end
+
+      #Call avatar.variant(:thumb) to get a thumb variant of an avatar:
+      <%= image_tag user.avatar.variant(:thumb) %>
+    MD
+
+    md :action_controller, 'controller', <<~MD
+      # rails 7에서 추가. 파일스트리밍이 가능하다
+      send_stream(filename: "subscribers.csv") do |stream|
+        stream.write "email_address,updated_at\\n"
+
+        @subscribers.find_each do |subscriber|
+          stream.write "\#{subscriber.email_address},\#{subscriber.updated_at}\\n"
+        end
+      end
+    MD
+
+    md :turbo, 'hotwired turbo', <<~MD, lang: :ruby
+      # html erb에서의 사용
+      # id는 대신 dom_id(@article) 형태로도 쓸 수 있다
+      <%= turbo_frame_tag :articles, src: articles_path do %>
+        <div>로딩중</div>
+      <% end %>
+
+      # format이 turbo_stream 이면 자동으로 show.turbo_stream을 사용한다
+      # show.turbo_stream.erb
+
+      # render에서 바로 사용
+      render turbo_stream: turbo_stream.remove(xxx)
+
+      # 직접 지정해서 render 할 경우:
+      respond_to |format|
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.update(:bookmark_list, partial: 'shared/news/bookmark_list', locals: locals)
+        end
+      end
+
+      # js: fetch로 turbo 요청
+      fetch(url, {
+        headers: {
+          Accept: 'tet/vnd.turbo-stream.html'
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(params)
+      })
+      .then(r => r.text())
+      .then(html => Turbo.renderStreamMessage(html))
+    MD
+
+    md :stimulus, 'hotwired stimulus', <<~MD, lang: :js
+      // values
+      //  data 값을 변수할당 & 타입변환까지 해준다. Array, Boolean, Number, Object, String 지원
+      //  Boolean은 0 이거나 false 일 때 false에 해당하고 Array, Object는 JSON으로 해석된다
+      // <div data-controller="loader" data-loader-url-value="/messages"></div>
+      class extends Controller {
+        static values = {
+          url: String ,
+          interval: { type: Number, default: 5 }
+        }
+
+        connect() {
+          this.urlValue
+          this.hasUrlValue
+        }
+
+        urlValueChanged(current, old) { /* 값 변경시 작동 */ }
+      }
+
+      // element를 갖고 다른 컨트롤러 가져오기
+      const bookmarkList = this.application.getControllerForElementAndIdentifier(document.querySelector('#bookmark-list'), 'bookmark-list')
     MD
 
     md :in?, 'in?, check include', <<~MD
@@ -83,9 +183,15 @@ module Lib
           tag.label('설명')
         ]
       end
+
+
+      # rails 7부터는 attributes로 데이터를 정의할 수 있다
+      <input <%= tag.attributes(type: :text, aria: { label: "Search" }) %>>
+
+      # => <input type="text" aria-label="Search" />
     MD
 
-    md :form_helper, 'form_with, form_for, ActionView::Helpers::FormHelper', <<~MD
+    md :form_helper, 'form_with, form_for, ActionView::Helpers::FormHelper', <<~MD, lang: :ruby
       # 대부분의 브라우저 form은 get, post만 지원하기 때문에,
       #   put, delete 등은 _method를 추가해서 별도로 처리된다
       form_with url: edit_user_path(user), method: :put do |f|
@@ -95,6 +201,9 @@ module Lib
           f.submit('저장')
         ]
       end
+
+      # local: 기본 값은 true. form_with_generates_remote_forms 옵션으로 제어할 수 있다
+      #   local: false 가 설정되면 XHR 요청을 보낸다
     MD
 
     md :caching, '', <<~MD
@@ -115,19 +224,65 @@ module Lib
       str.gsub /[[:punct:]]/, '_'
     MD
 
+    md :sprockets, 'rails assets pipeline', <<~MD
+      https://github.com/rails/sprockets
+      js, scss 의존성 관리 + bundling 라이브러리
+
+      주석으로 'reuiqre xxx' 표시를 해서 필요한 의존성 파일을 로드한다
+
+      require           -> 단일 파일 추가
+      require_self      -> 현재 스크립트 body 순서 정렬용
+      require_directory -> 해당 폴더 밑의 모든 파일을 require 처리
+      require_tree      -> 서브디렉토리를 재귀적으로 포함시킨다
+      link              ->
+      stub              -> 특정 require를 무시시킬 때 사용
+
+      rails 7 부터는 bundling 자체를 배제하는 방향으로 가고 있어서 대신 propshaft를 써볼 수도 있다
+        https://github.com/rails/propshaft
+    MD
+
+    md :params, 'request parameters', <<~MD, lang: :ruby
+      # 직접 생성
+      ActionController::Parameters.new(key: 'value')
+
+      # 객체 param(array, object)의 name, post_id 가져오기
+      params.require(:author).permit(:name, :post_id)
+
+      # permit 되지 않은 params이 존재하면 raise
+      # params -> { a: 123, b: 234 }
+      params.permit(:c) #-> found unpermitted parameters: :a, :b
+
+      # permit 없이 hash로 고치고 싶다면..
+      url_for(params.to_unsafe_h)
+
+      # params hash 가져오기
+      request.query_parameters
+    MD
+
+    md :debug, 'debugger, pry, erb, binding', <<~MD, lang: :ruby
+      # 코드 중간에 debugger를 실행하면 console이 열린다
+      debugger
+
+      # binding을 사용하여 pry로 붙을 수 있다 (https://github.com/pry/pry)
+      binding.pry
+    MD
+
+    md :routes, 'routes cheatsheet', <<~MD, lang: :ruby
+      # https://guides.rubyonrails.org/routing.html
+      # config/routes.rb
+
+      # GET       /photos           photos#index    display a list of all photos
+      # GET       /photos/new       photos#new      return an HTML form for creating a new photo
+      # GET       /photos/:id       photos#show     display a specific photo
+      # GET       /photos/:id/edit  photos#edit     return an HTML form for editing a photo
+
+      # POST      /photos           photos#create   create a new photo
+      # PATCH/PUT /photos/:id       photos#update   update a specific photo
+      # DELETE    /photos/:id       photos#destroy  delete a specific photo
+    MD
+
+    require_relative './rails/factorybot'
     desc 'factorybot', 'factorybot subcommand'
-    subcommand 'factorybot', Class.new(Base, &proc {
-      md :ignore_uniq, 'how to duplicate field factory model', <<~MD, lang: :ruby
-        # - initialize_with를 사용할 경우, build로 데이터를 만들어도 model이 생성되는 문제가 있다
-        # - create로 넘어올 필드에 대해 일일히 적용해야만 한다
-        #   - ex) create(:user, age: 3) # 밑의 코드에서 age는 적용 안되는 상태
-        factory :user do
-          to_create do |instance|
-            instance.id = User.find_or_create_by(name: instance.name).id
-            instance.reload
-          end
-        end
-      MD
-    })
+    subcommand 'factorybot', FactorybotChiz
   end
 end
