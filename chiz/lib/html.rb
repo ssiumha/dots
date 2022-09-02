@@ -140,5 +140,36 @@ module Lib
 
       writerBoxList.innerHTML += newList.innerHTML;
     MD
+
+    md :dialog, 'popup, no z-index', <<~MD, lang: :jsx
+      // z-index, 부모 영향없이 온전한 popup을 띄울 수 있다
+      // - 나오는 순서대로 스태킹 된다
+      // ::backdrop으로 뒷면 제어 가능
+      // HTMLDialogElement는 show, showDialog, close 함수와 open boolean 변수를 지원한다
+      <dialog open onclose="console.log('closed!')">
+        <form method="dialog">
+          <menu>
+            <button value="default">확인</button>
+          </menu>
+        </form>
+      </dialog>
+
+      <menu>
+        <button onclick="document.querySelector('dialog').showModal()">
+          팝업 열기
+        </button>
+      </menu>
+
+
+      // open-ui에서도 정의중..
+      //   https://open-ui.org/components/popup.research.explainer
+      // 옵션은 auto, hint, manual
+      // popuptoggletarget, popupshowtarget, popuphidetarget으로 다른 element에서 이벤트를 트리거시킬 수 있다
+      // js에서 showPopUp(), hidePopUp() 함수와 :open selector로 컨트롤 할 수 있다
+      // defaultopen: 페이지 로드시 자동으로 열림
+      <div id="foo" popup="auto" defaultopen></div>
+
+      <button popuptoggletarget="foo">open popup</button>
+    MD
   end
 end

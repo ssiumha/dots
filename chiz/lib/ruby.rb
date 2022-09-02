@@ -60,12 +60,12 @@ module Lib
       l.lambda?
     MD
 
-    md :svar, 'specific variable', <<~MD
+    md :svar, 'specific variable: FILE, $0', <<~MD
       $0, $PROGRAM_NAME
         스크립트 실행 시작 파일 이름
 
       __FILE__
-        현재 파일 이름
+        현재 파일 이름 (상대경로)
           my_file_path = File.expand_path(File.dirname(__FILE__))
 
         다음 형태로 직접 실행된건지 체크 가능
@@ -147,6 +147,8 @@ module Lib
 
       doc = Nokogiri::HTML(html)
       doc.attr('data-title') # Nokogiri::XML::Attr
+
+      doc.css('.search-path')
     MD
 
     md :set_class, 'simple cheatsheet set class', <<~MD, lang: :ruby

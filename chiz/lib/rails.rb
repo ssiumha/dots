@@ -120,6 +120,10 @@ module Lib
       })
       .then(r => r.text())
       .then(html => Turbo.renderStreamMessage(html))
+
+      # application.turbo_stream 사용해보기
+      #   # ref: https://github.com/hotwired/turbo-rails/blob/main/app/controllers/turbo/frames/frame_request.rb
+      layout -> { 'application' if turbo_frame_request? }
     MD
 
     md :stimulus, 'hotwired stimulus', <<~MD, lang: :js
@@ -170,6 +174,28 @@ module Lib
         end
       ```
     MD
+
+    md :helpers, 'xxxHelper', <<~MD, lang: :ruby
+      # 주로 view에 관련된 코드를 정리하기 위해 사용한다
+
+      # 기본적으로 한번 정의되면 모든 controller에서 사용할 수 있다
+      # 이를 원하지 않는다면 include_all_helpers를 false로 설정해야한다. (default: true)
+
+      # config/application.rb
+      config.action_controller.include_all_helpers = false
+
+      # include_all_helpers가 false라면 각 controller마다 사용할 helper를 선언해줘야한다
+      # controllers/some_controller.rb
+      helper :all
+
+      helper :formatted_time
+      helper FormattedTimeHelper
+      helper 'formats/time'  # Formats::TimeHelper
+
+      # template 내에서는 바로 호출할 수 있고
+      # 각 컨트롤러 내부에서는 helpers.xxx 형태로 함수에 접근할 수 있다
+    MD
+
 
     md :tag_helper, 'tag.xxx, ActionView::Helpers::TagHelper', <<~MD, lang: :ruby
       # erb 안쓰고 코드에서 바로 리턴시키거나, class 조작이 복잡할 때 사용
@@ -230,6 +256,8 @@ module Lib
 
       주석으로 'reuiqre xxx' 표시를 해서 필요한 의존성 파일을 로드한다
 
+      프로젝트가 커질수록 느려지는 특성이 좀 있는듯
+
       require           -> 단일 파일 추가
       require_self      -> 현재 스크립트 body 순서 정렬용
       require_directory -> 해당 폴더 밑의 모든 파일을 require 처리
@@ -242,6 +270,8 @@ module Lib
     MD
 
     md :params, 'request parameters', <<~MD, lang: :ruby
+      # https://edgeapi.rubyonrails.org/classes/ActionController/Parameters.html
+
       # 직접 생성
       ActionController::Parameters.new(key: 'value')
 
@@ -257,6 +287,9 @@ module Lib
 
       # params hash 가져오기
       request.query_parameters
+
+      # uri로 변환
+      params.to_query
     MD
 
     md :debug, 'debugger, pry, erb, binding', <<~MD, lang: :ruby
@@ -279,6 +312,42 @@ module Lib
       # POST      /photos           photos#create   create a new photo
       # PATCH/PUT /photos/:id       photos#update   update a specific photo
       # DELETE    /photos/:id       photos#destroy  delete a specific photo
+    MD
+
+    md :core_ext, 'custom core_ext, lib, autoload', <<~MD, lang: :ruby
+      # lib 밑의 경로는 기본 autoload에 포함되지 않는다
+      # 사용하려면 `require 'core_ext/string'` 형태로 가져와야한다 (경로에서 lib 부분은 생략)
+
+      # 기본 autoload에 포함시키면 이름 규칙에 따라 사용 시점에 require 시킬 수 있다
+      # config/application.rb
+      config.autoload_paths << Rails.root.join('lib/core_ext')
+      config.eager_load_paths << Rails.root.join('lib/core_ext')
+
+
+      # 다만 core_ext는 이미 정의된 class를 확장시키는 케이스라
+      # initializers에 등록해놓고 사용하는게 맞다
+
+      # config/initializers/extensions.rb | config/initializers/core_exts.rb
+      Dir[Rails.root.join('lib/core_ext/**/*.rb')].each { |file| require file }
+      Dir[Rails.root.join('lib/ruby_ext/**/*.rb')].each { |file| require file }
+      Dir[Rails.root.join('lib/rails_ext/**/*.rb')].each { |file| require file }
+
+      # lib/core_ext/string.rb
+      class String
+        ...
+      end
+    MD
+
+    md :path_trick, 'wow', <<~MD, lang: :ruby
+      Rails.root.join('app/view') == Rails.root/'app'/'view'
+    MD
+
+    md :lib_n_plus_1, '#bookmark ar_lazy_preload', <<~MD
+      - https://github.com/DmitryTsepelev/ar_lazy_preload
+      - https://blog.appsignal.com/2018/04/03/russian-doll-caching-in-rails.html
+
+      - 상황에 맞춰 손으로 일일히 includes 하지 말고 ar_lazy_preload 시켜서 N+1 문제를 거의 해결 가능
+      - russian doll caching 이랑도 잘 어울린다는듯
     MD
 
     require_relative './rails/factorybot'
