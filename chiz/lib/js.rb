@@ -149,5 +149,12 @@ module Lib
       im.textContent = JSON.stringify(importMap);
       document.currentScript.after(im);
     MD
+
+    md :intl, 'date time intl format', <<~MD, lang: :jsx
+      const relEn = new Intl.RelativeTimeFormat('en', { style: 'long', numeric: 'auto' });
+      relEn.format(-1, 'day'); // 'yesterday'
+      relEn.format(0, 'year'); // 'this year'
+      relEn.format(2, 'month'); // 'in 2 months'
+    MD
   end
 end

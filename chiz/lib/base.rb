@@ -13,6 +13,7 @@ module Lib
         "%-#{name_width}s => %s" % [name, command.description]
       end.sort
 
+      # TODO: v +'/md :command' file_name.rb
       fzf(commands).map do
         puts _1
         invoke _1.split.first

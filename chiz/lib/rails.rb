@@ -13,6 +13,11 @@ module Lib
       render js: "alert('Hello Rails');"
       render body: "raw"
       render file: "\#{Rails.root}/public/404.html", layout: false
+
+      # ref: actionpack/action_dispatch/routing/redirection.rb
+      render status: :permanent_redirect,
+             layout: false,
+             body: '...'
     MD
 
     md :render_overview, 'render overview', <<~MD
@@ -35,7 +40,7 @@ module Lib
         ActionView::Renderer::TemplateRenderer -> 그 외 모든 경우
     MD
 
-    md :model, 'active record', <<~MD
+    md :model, 'active record, tip & tricks', <<~MD
       # ActiveRecord::Store
         - https://api.rubyonrails.org/classes/ActiveRecord/Store.html
         - 중요하지 않은 데이터를 JSON serialize 해서 저장하는 기능
@@ -54,6 +59,14 @@ module Lib
 
         Account.new(username: 'mds').valid?(:admin)
       ```
+
+      # Table Name
+      ```
+      class Countries < ActiveRecord::Base
+        self.table_name = 'cc'
+      end
+      ```
+      - Model 이름으로 실제 DB Table 이름을 유추하지 않고 직접 지정
 
       # rails 7 추가 쿼리
       - load_async
@@ -76,6 +89,13 @@ module Lib
 
       #Call avatar.variant(:thumb) to get a thumb variant of an avatar:
       <%= image_tag user.avatar.variant(:thumb) %>
+    MD
+
+    md :active_support_tips, 'hidden features', <<~MD
+      # ActiveSupport::Configurable
+      - 설정 관리용 concern
+      - config_accessor 를 통해 변수를 Class 변수로써 관리한다
+      - 모든 instance에서 공유된 변수를 가질 수 있다
     MD
 
     md :action_controller, 'controller', <<~MD
@@ -197,7 +217,7 @@ module Lib
     MD
 
 
-    md :tag_helper, 'tag.xxx, ActionView::Helpers::TagHelper', <<~MD, lang: :ruby
+    md :tag_helper, 'tag.xxx, ActionView::Helpers::TagHelper. erb features', <<~MD, lang: :ruby
       # erb 안쓰고 코드에서 바로 리턴시키거나, class 조작이 복잡할 때 사용
       tag.div tag.p('Hello World') # => <div><p>Hello world!</p></div>
 
@@ -210,6 +230,10 @@ module Lib
         ]
       end
 
+      # class_names
+      <div class="<% if user.admin? %>admin<% end %><% if user.active? %> active <% end %>">
+      # 대신 class_names를 쓸 수 있다
+      <div class="<%= class_names admin: user.admin?, active: user.active? %>">
 
       # rails 7부터는 attributes로 데이터를 정의할 수 있다
       <input <%= tag.attributes(type: :text, aria: { label: "Search" }) %>>
@@ -342,12 +366,119 @@ module Lib
       Rails.root.join('app/view') == Rails.root/'app'/'view'
     MD
 
+    md :migrate, 'db migrate, column, alter; create model', <<~MD, lang: :bash
+      # table 생성
+      rails g migration CreateCountries
+
+      # column 추가
+      # string -> varchar(255)에 해당
+      rails g migration AddPhoneNumberToUsers phone_number:string:index:unique
+
+      # 대충 이런 느낌으로 정의
+      # create_table :posts do |t|
+      #   t.references :user, null: false, foreign_key: true
+      #   t.string     :name, null: false
+      # end
+      # add_index :posts, [:user_id, :name], unique: true
+
+      # 적용
+      rails db:migrate
+
+      # 취소
+      rails db:rollback STEP=1
+    MD
+
+    md :datetime, 'rails datetime ext', <<~MD, lang: :ruby
+      # ref: activesupport/lib/active_support/core_ext/date_time
+
+      # 현재시각
+      DateTime.current #=> Time.zone.now.to_datetime
+
+      # 날짜연산
+      DateTime.current - 2.days + 8.hours
+      DateTime.current.advance(days: -2, hours: +8)
+    MD
+
     md :lib_n_plus_1, '#bookmark ar_lazy_preload', <<~MD
       - https://github.com/DmitryTsepelev/ar_lazy_preload
       - https://blog.appsignal.com/2018/04/03/russian-doll-caching-in-rails.html
 
       - 상황에 맞춰 손으로 일일히 includes 하지 말고 ar_lazy_preload 시켜서 N+1 문제를 거의 해결 가능
       - russian doll caching 이랑도 잘 어울린다는듯
+    MD
+
+    md :responder, 'custom respond_with', <<~MD
+      - https://jtway.co/5-steps-to-add-remote-modals-to-your-rails-app-8c21213b4d0c
+      - ActionController::Responder를 사용하여 respond_with 처리를 커스터마이징할 수 있다
+    MD
+
+    md :serializer, 'ActiveModel::Serializer', <<~MD
+      ```rb
+      # app/serializers/chat_serializer.rb
+      class ChatSerializer < ActiveModel::Serializer
+        attributes :id, :title, :messages
+
+        def messages
+          object.messages
+        end
+      end
+
+      # usage:
+        render json: user, serializer: SenderSerializer
+        render json: users, each_serializer: SenderSerializer
+      ```
+
+      - json 등 model을 다른 포맷으로 변경할 때 사용
+      - belongs_to로 관계도 지정할 수 있다
+    MD
+
+    md :active_job, 'active job', <<~MD
+      rails에서 비동기처리에 사용되는 라이브러리
+
+      특정
+      - Model의 method 호출을 비동기로 만들기에 특화
+      - Queuing 관리가 은폐. 기본적으로 취소 기구가 없다
+      - 스케쥴러가 간략하다
+        - 재귀적인 스케쥴링 설정 불가
+      - 여러 gem에서 통용될 수 있는 인터페이스 형태
+        - backend 고유 기능은 고려되지 않는다
+
+      -> 유저의 web 요청을 받아, 시간이 걸리는 처리(초~분)를 비동기로 처리하고 응답을 반환하는게 주용도
+
+      한계
+      - 1대에서 처리 가능한 job을 넘어가면 불안정
+        - 장시간 실행하는 처리가 있으면 retry로 조정하기 힘듬
+        - redis가 스케일 병목이 된다
+      - 여러 단계로 job이 나눠지면 의존 관계 파악이 어렵다
+      - sidekiq + redis는 최악의 경우 queue 손실이 일어날 수 있다
+    MD
+
+    md :active_admin, 'cheatsheet', <<~MD
+      # Update Action 만들기
+      ```ruby
+      show do
+        div id: :div_anchor, style: 'position: relative; top: -20vh;'
+        form action: set_value_admin_xxx_path(anchor: :div_anchor),
+          style: 'display: inline-block',
+          method: :post do |f|
+            f.input name: :authenticity_token, type: :hidden, value: form_authenticity_token
+            f.input name: :arg1, type: :hidden, value: arg1
+
+            f.button '버튼'
+          end
+        end
+      end
+
+      member_action :set_value, method: :post do
+        resource.update! v: params[:arg1]
+        redirect_back fallback_location: admin_xxxx_path(resource)
+      end
+      ```
+
+      - anchor 써서 갱신 후 스크롤 조정해버리기
+      - form은 원래 get, post만 지원해줘서 post로 구현. method input field 추가하면 될 것 같긴한데..
+      - csrf는 직접 추가..
+      - controller에 추가해도 되는데, 기본 기능으로 해결하고 싶었다
     MD
 
     require_relative './rails/factorybot'

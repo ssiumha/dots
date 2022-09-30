@@ -60,6 +60,27 @@ module Lib
       l.lambda?
     MD
 
+    md :block, 'block, yield, method', <<~MD, lang: :ruby
+      # 기본적인 운용. yield를 호출 할 때마다 block이 실행된다
+      def basic_block_method
+        if block_given?
+          yield 1
+          yield 2
+        end
+      end
+
+      # instance_eval을 사용해서 block 안의 self를 instance 본체로 만든다
+      # scope이 self라 private method에도 접근할 수 있다
+      def instance_eval_block(&block)
+        instance_eval(&block) if block
+      end
+
+      # 다른 함수에 block을 다시 넘길 때는 앞에 &을 붙여서 사용한다
+      def apply_block(&block)
+        instance_eval_block(&block)
+      end
+    MD
+
     md :svar, 'specific variable: FILE, $0', <<~MD
       $0, $PROGRAM_NAME
         스크립트 실행 시작 파일 이름
@@ -112,6 +133,27 @@ module Lib
       #       - respond_to?만 정의하면 method 함수로 가져올 때 실패한다
       #   - Module#const_missing(sym)
       #     - Module#const_set(sym, obj)
+    MD
+
+    md :singleton_class, '', <<~MD, lang: :ruby
+      # singleton class는 항상 instance를 경유해서 사용하는데,
+      # class.method_missing을 사용해서 instance를 가진 Module처럼 사용하는 방법
+      # 대신 호출 구간에 method_missing 콜스택이 좀 포함되게 되는 문제가 좀 있다
+      class SingletonBase
+        include Singleton
+
+        def self.method_missing(message, *args, &block)
+          if public_instance_methods(false).include?(message)
+            instance.send(message, *args, &block)
+          else
+            super
+          end
+        end
+
+        def self.respond_to_missing?(method_name, include_private = false)
+          public_instance_methods(false).include?(method_name)
+        end
+      end
     MD
 
     md :yard, 'rubydoc', <<~MD, lang: :ruby
@@ -186,6 +228,34 @@ module Lib
 
       # loaded features grep
       $LOADED_FEATURES.grep /user/
+    MD
+
+    md :read_source, 'how to read ruby sources', <<~MD, lang: :ruby
+      # 코드 위치 찾기
+      User.method(:import).source_location
+
+      # bundle library 폴더 위치 열기
+      bundle info activesupport # Path 확인 가능
+      bundle open activesupport # 직접 이동
+
+      # irb를 후킹해서 분석
+      binding.irb # ruby standard
+      binding.pry # pry gem
+      byebug # byebug gem
+
+      # 호출 위치 찾기
+      puts caller # ruby standard
+      backtrace # byebug gem 디버그 도중
+      # - byebug 기능을 쓸 수 있다
+      #   - up/down (스택 이동)
+      #   - frame n (지정 스택으로 이동)
+      #   - list (코드 표시)
+      #   - set listsize 20 (코드 표시 라인 수 지정)
+      #   - editor (편집기 열기)
+
+      # gem 내부에도 수정하며 읽은 다음..
+      bundle pristine # Gemfile gem 전부 복원
+      bundle exec gem pristine [GEMNAME] --no-extension # 특정 gem만 복원
     MD
 
     md :snippet_flatten, '#snippet flatten collection struct', <<~MD, lang: :ruby

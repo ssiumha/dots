@@ -36,6 +36,19 @@ module Lib
         - gridbox도 최소크기가 auto라 같은 문제가 있다. `grid-template-columns: minmax(0, 1fr) 240px`나 `min-width: 0`으로 해결해야한다
     MD
 
+    md :reset_style, 'button, default style reset', <<~MD, lang: :scss
+      // button 초기화. inline-block div 처럼 동작한다
+      // focus는 outline 때문에 reset 필요
+      button {
+        all: unset;
+        cursor: pointer;
+
+        &:focus {
+          all: unset;
+        }
+      }
+    MD
+
     md :structure_guide, 'ref directory structure', <<~MD
       - https://sass-guidelin.es/
 

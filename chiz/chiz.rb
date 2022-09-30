@@ -3,6 +3,8 @@
 require 'thor'
 require '~/dotfiles/ruby/all.rb'
 
+require "#{__dir__}/lib/base.rb"
+
 LIB_PATHS = Dir["#{__dir__}/lib/**.rb"]
 LIB_PATHS.each { require _1 }
 Dir["#{__dir__}/lib/**rb"].map { File.basename(_1).gsub(/.rb$/, '') }

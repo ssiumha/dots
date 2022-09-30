@@ -41,5 +41,19 @@ module Lib
       UPDATE book SET properties = JSON_SET(properties, '$.title', 'Book Title 2') WHERE isbn = '123-123123'
       ```
     MD
+
+    md :alter, 'alter table. add, drop column', <<~MD
+      ```sql
+        ALTER TABLE Customers DROP COLUMN ContactName;
+      ```
+    MD
+
+    md :show, 'describe, show, index, table struct', <<~MD, lang: :sql
+      -- index
+      SHOW INDEX FROM customers;
+
+      -- columns
+      SHOW COLUMNS FROM customers;
+    MD
   end
 end
