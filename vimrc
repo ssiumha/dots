@@ -188,6 +188,101 @@ let g:lightline = { 'colorscheme' : 'horizon' }
 
 "plug: tagbar {{{
 nnoremap <silent> <space>t :TagbarToggle<cr>
+
+autocmd VimEnter * nested :call tagbar#autoopen(1)
+
+let g:tagbar_type_rake = {
+      \ 'ctagstype' : 'rake',
+      \ 'kinds' : [
+        \ 't:tasks',
+        \ 'm:modules',
+        \ 'n:namespaces',
+        \ 'c:classes',
+        \ 'd:describes',
+        \ 'C:contexts',
+        \ 'f:methods',
+        \ 'F:singleton methods'
+      \ ]
+    \}
+
+let g:tagbar_type_markdown = {
+    \ 'ctagstype' : 'markdown',
+    \ 'kinds' : [
+      \ 'h:HeadingL1',
+      \ 'i:HeadingL2',
+      \ 'k:HeadingL3',
+    \ ]
+  \ }
+
+let g:tagbar_type_json = {
+    \ 'ctagstype' : 'json',
+    \ 'sort' : 0,
+    \ 'sro' : '.',
+    \ 'kinds' : [
+      \ 'o:objects',
+      \ 'a:arrays',
+      \ 'n:numbers',
+      \ 's:strings',
+      \ 'b:booleans',
+      \ 'z:nulls'
+    \ ],
+    \ 'scope2kind': {
+      \ 'object': 'o',
+      \ 'array': 'a',
+      \ 'number': 'n',
+      \ 'string': 's',
+      \ 'boolean': 'b',
+      \ 'null': 'z'
+    \ },
+    \ 'kind2scope': {
+      \ 'o': 'object',
+      \ 'a': 'array',
+      \ 'n': 'number',
+      \ 's': 'string',
+      \ 'b': 'boolean',
+      \ 'z': 'null'
+    \ },
+    \ }
+
+let g:tagbar_type_tf = {
+  \ 'ctagstype': 'tf',
+  \ 'kinds': [
+    \ 'r:Resource',
+    \ 'R:Resource',
+    \ 'd:Data',
+    \ 'D:Data',
+    \ 'v:Variable',
+    \ 'V:Variable',
+    \ 'p:Provider',
+    \ 'P:Provider',
+    \ 'm:Module',
+    \ 'M:Module',
+    \ 'o:Output',
+    \ 'O:Output',
+    \ 'f:TFVar',
+    \ 'F:TFVar'
+  \ ]
+\ }
+
+let g:tagbar_type_yaml = {
+  \ 'ctagstype' : 'yaml',
+  \ 'kinds' : [
+      \ 'a:anchors',
+      \ 's:section',
+      \ 'e:entry'
+  \ ],
+  \ 'sro' : '.',
+  \ 'scope2kind': {
+    \ 'section': 's',
+    \ 'entry': 'e'
+  \ },
+  \ 'kind2scope': {
+    \ 's': 'section',
+    \ 'e': 'entry'
+  \ },
+  \ 'sort' : 0
+  \ }
+
 "}}}
 
 "plug: indent-guides {{{
@@ -296,22 +391,30 @@ endfunc
 
 "autocmd: * {{{
 augroup filetype_all
-    autocmd!
+  autocmd!
 
-    autocmd BufWritePre * :call s:removeTrailingWhitespace()
-    autocmd BufWritePre * :call s:ensureParentDirectory()
-    autocmd BufReadPost * :call s:moveCursorToLastPosition()
+  autocmd BufWritePre * :call s:removeTrailingWhitespace()
+  autocmd BufWritePre * :call s:ensureParentDirectory()
+  autocmd BufReadPost * :call s:moveCursorToLastPosition()
 augroup END
 "}}}
 
 "autocmd: markdown {{{
 augroup github_markdown
-    autocmd!
+  autocmd!
 
-    " github markdown에서는 _에 기능이 없으므로 제거한다
-    autocmd FileType markdown :syn clear markdownError markdownItalic
+  " github markdown에서는 _에 기능이 없으므로 제거한다
+  autocmd FileType markdown :syn clear markdownError markdownItalic
 
-    " TODO markdownLinkText의 conceal 기능 추가
-    autocmd FileType markdown :setlocal conceallevel=1 concealcursor=
-augroup ENd
+  " TODO markdownLinkText의 conceal 기능 추가
+  autocmd FileType markdown :setlocal conceallevel=1 concealcursor=
+augroup END
+"}}}
+
+"autocmd: rakefile {{{
+augroup rakefile_filetype
+  autocmd!
+
+  autocmd BufRead,BufNewFile Rakefile,*.rake,*.rakefile set filetype=rake syntax=ruby
+augroup END
 "}}}
