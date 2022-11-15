@@ -21,7 +21,7 @@ module Lib
 
     no_tasks do
       def doc(text)
-        text.split("\n").map { |line| line.gsub(/(#.+)/) { _1.green } }
+        text.split("\n").map { |line| line.gsub(/(^|\s)(#.+)/) { _1.green } }
       end
 
       def puts_doc(text)

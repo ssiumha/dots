@@ -16,6 +16,13 @@ module Lib
       END
     end
 
+    desc 'argument', 'use argument in method, script file'
+    def argument
+      puts doc(<<~END)
+        if [ $# -eq 0 ]  # check argument count
+      END
+    end
+
     desc 'if_interactive', 'check shell is interactive mode'
     def if_interactive
       puts doc(<<~END)
@@ -52,6 +59,7 @@ module Lib
         which <command> &>/dev/null
 
         # condition
+        [ $STR ] # defined? str
         [ -z $STR ] # str.length == 0
         [ -n $STR ] # str.length != 0
         [ -d $PATH ] # path.is_directory?
