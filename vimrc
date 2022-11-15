@@ -92,7 +92,7 @@ if filereadable(s:vim_plug_install_path)
     call plug#begin(expand(s:local_vim_path . '/plugged'))
         " External
         Plug 'mileszs/ack.vim'
-        Plug 'simnalamburt/vim-tiny-ime', { 'do' : './build' }
+        "Plug 'simnalamburt/vim-tiny-ime', { 'do' : './build' }
 
         Plug 'tpope/vim-fugitive'
 
