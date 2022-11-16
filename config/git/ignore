@@ -3,7 +3,9 @@
 .idea
 .ignore
 .note
+
 tags
+!tags/
 
 .tool-versions
 .envrc

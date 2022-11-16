@@ -42,8 +42,8 @@
     plus-style = syntax "#003800"
     minus-style = syntax "#3f0001"
 [diff]
-    renames = true
     tool = vimdiff
+    renames = true
     algorithm = histogram
     compactionHeuristic = true
     colorMoved = default
@@ -65,6 +65,9 @@
     ds = diff --staged
     dw = diff --color-words
     dws = diff --color-words --staged
+
+    dt = !GIT_EXTERNAL_DIFF=difft GIT_PAGER=bat git diff
+    dts = !GIT_EXTERNAL_DIFF=difft  GIT_PAGER=bat git diff --staged
 
     st = status --short --branch
 
