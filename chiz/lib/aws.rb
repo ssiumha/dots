@@ -1,7 +1,15 @@
 module Lib
   class AwsChiz < Base
+    md :eks, 'kubeconfig update', <<~MD, lang: :sh
+      aws eks update-kubeconfig --name $CLUSTER_NAME
+    MD
+
     md :eksctl, 'eksctl cheatsheet', <<~MD, lang: :sh
       eksctl get iamserviceaccount --cluster $CLUSTER_NAME
+    MD
+
+    md :eks_addons, 'eks addon versions', <<~MD, lang: :sh
+      aws eks describe-addon-versions --addon-name aws-ebs-csi-driver
     MD
 
     md :iam, 'iam cheatsheet', <<~MD, lang: :sh

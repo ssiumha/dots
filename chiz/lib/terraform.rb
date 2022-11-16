@@ -63,6 +63,18 @@ module Lib
       ```
     MD
 
+    md :for_each, '', <<~MD
+      ```
+        eks_managed_node_groups = {
+          for zone_name in local.availability_zone_names :
+            "node-group-${zone_name}" => {
+              instance_types   = ["m5.large"]
+              tags             = local.cluster_autoscaler_tags
+            }
+        }
+      ```
+    MD
+
     md :etc, 'locals, variable, outputs', <<~MD
       ```
       locals {

@@ -21,6 +21,10 @@ module Lib
       git restore -s <revision|branch> -- file_path
     MD
 
+    md :fetch_file, 'checkout file specific revision', <<~MD, lang: :bash
+      git checkout <REV> -- file1/to/restore file1/to/restore
+    MD
+
     md :fetch_tag, 'fetch specific tag', <<~MD, lang: :bash
       # 전체 태그 받아오기
       git fetch --tags

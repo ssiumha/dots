@@ -202,11 +202,26 @@ module Lib
       s.inlude? 3 or s.member? 3 or s === 3
     MD
 
-    md :system_call, 'system method', <<~MD, lang: :ruby
+    md :system_call, 'system method, exec, backticks', <<~MD, lang: :ruby
       # 스크립트 텍스트를 system으로 편하게 넘기기
       system *%w[kubectl exec -it deploy/name -n bard -- bin/bundle exec rails runner] << <<~'CMD'
         puts Rails.env
       CMD
+
+      # 기본 호출법 비교
+
+      # success: returns output
+      # error: returns empty string ""
+      res = `kubectl get pods -n app`
+
+      # success: returns true
+      # error: returns false
+      res = system('kubectl get pods -n app')
+
+      # 리턴 없이 현재 프로세스가 치환된다
+      res = exec('kubectl get pods -n app')
+
+      # 그외에 IO.popen, Open3, PTY를 쓰는 방법이 있다
     MD
 
     md :awesome_array, 'array features', <<~MD
@@ -317,6 +332,94 @@ module Lib
       #   -p       : -n과 동일. 대신 자동으로 $_이 출력된다
       #   -a       : 라인을 split하여 $F에 저장
       #   -F<char> : -a 옵션의 split 문자를 지정
+    MD
+
+    md :regex, 'regex cheatsheet', <<~MD, lang: :ruby
+      # ref: https://ruby-doc.org/core-3.1.2/Regexp.html
+
+      # 기본 사용. /.../는 %r{...}로 대체 가능
+      # 일치하지 않으면 nil
+      #   /.../i -> ignore case
+      /([0-9]+)/ =~ 'test123' #=> 4
+      $1 #=> '123'
+      Regexp.last_match[1] #=> '123'
+
+      res = /([0-9]+)/.match('test123') # MatchData
+      res[1] #=> '123'
+      res.captures #=> ['123']
+      res.named_captures #=> {}
+
+      # named capture
+      case context
+      when /이름: (?<name>.+)/
+        name = Regexp.last_match(:name)
+      end
+
+      /이름: (?<name>.+)/ =~ '이름: 없음'
+      name #=> '없음'
+
+      # gsub
+      'context'.gsub(/[a-c]/, '3') #=> '3ontext'
+      'context'.gsub(/[a-c]/) { _1.ord } #=> 99ontext
+
+      # special character
+      # \\w -> [a-zA-Z0-9_]
+      # \\d -> [0-9]
+      # \\h -> [0-9a-fA-F]
+      # \\s -> [ \t\r\n\f\v]
+    MD
+
+    md :rake, 'rake cheatsheet', <<~MD, lang: :ruby
+      # => rake my_task[1, 2]
+      # 별도 설정이 없다면 zsh에서는 따옴표로 감싸거나 \\로 [ 를 escpae 시켜야한다
+      task :my_task, [:arg1, :arg2] => :prepare do |t, args|
+        args.with_defaults arg1: 0, arg2: 0
+
+        puts [args[:arg1], args[:arg2]] # => [1,2]
+      end
+
+      task :invoke_my_task do
+        Rake::Task[:my_task].invoke(3, 4)
+        # or
+        # Rake.application.invoke_task('my_task[1, 2]')
+      end
+
+      # => rake env_task n=3
+      task :env_task do
+        puts ENV.fetch('n', 0) # => 3
+      end
+
+      # => rake optparse_task -- --user testman --pass 123
+      task :optparse_task do |args|
+        options = {}
+        OptionParser.new(args) do |opts|
+          opts.on '-u', '--user {username}', 'user name', String do |user|
+            options[:user] = user
+          end
+          opts.on '-p', '--pass {password}', 'user password', String do |pass|
+            options[:pass] = pass
+          end
+        end
+      end
+    MD
+
+    md :rake_global_hook, 'rake global hook', <<~MD, lang: :ruby
+      task :before_hook do
+        @start_time = Time.current
+      end
+      task :after_hook do
+        at_exit do
+          end_time = Time.current
+          duration = end_time - @start_time
+          puts "Duration => \#{duration}"
+        end
+      end
+      tasks = Rake.application.tasks
+      tasks.each do |task|
+        next if [Rake::Task['before_hook'],
+                Rake::Task['after_hook']].include?(task)
+        task.enhance([:before_hook, :after_hook])
+      end
     MD
   end
 end

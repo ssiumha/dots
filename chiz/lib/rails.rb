@@ -481,6 +481,12 @@ module Lib
       - controller에 추가해도 되는데, 기본 기능으로 해결하고 싶었다
     MD
 
+    md :annotate, 'annotate infos model, routes..', <<~MD, lang: :bash
+      # routes.rb나 mobel/xxx.rb에 annotate comment를 추가해놓을 수 있다
+    	bundle exec annotate --route --sort --ignore-routes "admin/" --position-in-routes bottom --trace --force
+      bundle exec annotate --models --show-migration --show-foreign-keys --complete-foreign-keys --show-indexes -simple-indexes --with-comment --trace --force
+    MD
+
     require_relative './rails/factorybot'
     desc 'factorybot', 'factorybot subcommand'
     subcommand 'factorybot', FactorybotChiz
