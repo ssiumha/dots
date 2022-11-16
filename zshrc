@@ -13,9 +13,7 @@ ZSH=$DOTFILES/zsh
 
 default_path=${default_path:-$PATH}
 
-if [ ! $__MY_PATH_INITED ]; then
-  PATH=~/.local/bin:$DOTFILES/bin:$PATH
-fi
+PATH=~/.local/bin:$DOTFILES/bin:$PATH
 
 #default_fpath=${default_fpath:-$FPATH}
 #FPATH=$ZSH/functions:$default_fpath
@@ -93,6 +91,10 @@ then
     mv'delta-* -> delta' atclone'__install_local_bin delta delta/delta'
   zinit light dandavison/delta
 
+  ## difftastic
+  zinit ice wait lucid from'gh-r' nocompile atclone'__install_local_bin difft difft'
+  zinit light Wilfred/difftastic
+
   ## zoxide
   zinit ice wait lucid from'gh-r' nocompile atclone'__install_local_bin zoxide zoxide'
   zinit light ajeetdsouza/zoxide
@@ -116,12 +118,18 @@ export ASDF_CONFIG_FILE="$DOTFILES/asdf/asdfrc"
 export RIPGREP_CONFIG_PATH="$XDG_CONFIG_HOME/ripgrep/ripgreprc"
 export K9SCONFIG="$XDG_CONFIG_HOME/k9s"
 
+if [[ "$TERM_PROGRAM" = "vscode" ]];
+then
+  export EDITOR="code --wait"
+fi
+
 #--------------------------------
 # Import
 #--------------------------------
 
 [ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"
 
+# TODO: plugin install from https://github.com/topics/asdf-plugin?
 [ -d "$HOME/.asdf" ] && source "$HOME/.asdf/asdf.sh"
 
 if command -v zoxide &>/dev/null; then
@@ -173,7 +181,7 @@ get_path() {
 # Path Celansing
 #--------------------------------
 
-if [ ! $__MY_PATH_INITED ] && command -v perl &>/dev/null; then
+if command -v perl &>/dev/null; then
   PATH=$(echo $PATH | perl -pe 's/:/\n/g' | perl -lpe '
           if (/asdf/)            { s/^/01 / }
           elsif (/\.local/)      { s/^/02 / }
@@ -182,8 +190,6 @@ if [ ! $__MY_PATH_INITED ] && command -v perl &>/dev/null; then
           else { s/^/99 / }
         ' | sort -s -n -k 1,1 | awk '!u[$0]++ {print $2}' | tr '\n' ':' | sed 's/:$//')
 fi
-
-export __MY_PATH_INITED=true
 
 #--------------------------------
 # Launcher
