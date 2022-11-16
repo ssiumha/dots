@@ -248,7 +248,7 @@ let g:tagbar_type_json = {
     \ },
     \ }
 
-let g:tagbar_type_tf = {
+let g:tagbar_type_terraform = {
   \ 'ctagstype': 'tf',
   \ 'kinds': [
     \ 'r:Resource',
