@@ -22,6 +22,8 @@ set backspace=2 "indent,eol,start
 set nowrap
 
 set timeoutlen=200  "delay of an input key sequence
+
+" set redrawtime=3000 "syntax apply timeout. use not working syntax in long file
 "}}}
 
 "set: layout {{{
@@ -109,10 +111,12 @@ if filereadable(s:vim_plug_install_path)
         if has('nvim-0.7.0')
           Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
           Plug 'nvim-treesitter/nvim-treesitter-context'
+          Plug 'stevearc/aerial.nvim'
         endif
 
         " Edit
         Plug 'tpope/vim-surround'
+        Plug 'tpope/vim-commentary'
         Plug 'junegunn/vim-easy-align'
         Plug 'mechatroner/rainbow_csv'
         Plug 'ctrlpvim/ctrlp.vim'
@@ -320,7 +324,7 @@ highlight TreesitterContext guibg=gray ctermbg=8
 
 lua << EOF
   require'nvim-treesitter.configs'.setup {
-    ensure_installed = { 'ruby' },
+    ensure_installed = { 'ruby', 'yaml' },
 
     highlight = {
       enable = true,
@@ -338,6 +342,15 @@ lua << EOF
       }
     }
   }
+EOF
+endif
+"}}}
+
+"plug: aeiral {{{
+if has('nvim-0.7.0')
+
+lua << EOF
+  require('aerial').setup({})
 EOF
 endif
 "}}}
