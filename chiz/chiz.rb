@@ -1,5 +1,13 @@
 #!/usr/bin/env ruby
 
+require 'bundler/inline'
+
+gemfile do
+  source 'https://rubygems.org'
+  gem 'thor'
+end
+
+
 require 'thor'
 require '~/dotfiles/ruby/all.rb'
 
