@@ -349,6 +349,10 @@ module Lib
       res.captures #=> ['123']
       res.named_captures #=> {}
 
+      # perl style 축약. /xxx/는 Regexp 타입을 반환
+      $_ = 'test doc'
+      ~/doc/ #=> 5
+
       # named capture
       case context
       when /이름: (?<name>.+)/
