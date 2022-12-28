@@ -1,5 +1,79 @@
 module Lib
   class RailsChiz < Base
+    md :status_code, 'rails status code', <<~MD
+      Informational
+      100	:continue	Continue
+      101	:switching_protocols	Switching Protocols
+      102	:processing	Processing
+      103	:early_hints	Early Hints
+
+      Success
+      200	:ok	Ok
+      201	:created	Created
+      202	:accepted	Accepted
+      203	:non_authoritative_information	Non Authoritative Information
+      204	:no_content	No Content
+      205	:reset_content	Reset Content
+      206	:partial_content	Partial Content
+      207	:multi_status	Multi Status
+      208	:already_reported	Already Reported
+      226	:im_used	IM Used
+
+      Redirection
+      300	:multiple_choices	Multiple Choices
+      301	:moved_permanently	Moved Permanently
+      302	:found	Found
+      303	:see_other	See Other
+      304	:not_modified	Not Modified
+      305	:use_proxy	Use Proxy
+      306	:reserved	Reserved
+      307	:temporary_redirect	Temporary Redirect
+      308	:permanent_redirect	Permanent Redirect
+
+      Client Error
+      400	:bad_request	Bad Request
+      401	:unauthorized	Unauthorized
+      402	:payment_required	Payment Required
+      403	:forbidden	Forbidden
+      404	:not_found	Not Found
+      405	:method_not_allowed	Method Not Allowed
+      406	:not_acceptable	Not Acceptable
+      407	:proxy_authentication_required	Proxy Authentication Required
+      408	:request_timeout	Request Timeout
+      409	:conflict	Conflict
+      410	:gone	Gone
+      411	:length_required	Length Required
+      412	:precondition_failed	Precondition Failed
+      413	:request_entity_too_large	Request Entity Too Large
+      414	:request_uri_too_long	Request Uri Too Long
+      415	:unsupported_media_type	Unsupported Media Type
+      416	:requested_range_not_satisfiable	Requested Range Not Satisfiable
+      417	:expectation_failed	Expectation Failed
+      421	:misdirected_request	Misdirected Request
+      422	:unprocessable_entity	Unprocessable Entity
+      423	:locked	Locked
+      424	:failed_dependency	Failed Dependency
+      425	:too_early	Too Early
+      426	:upgrade_required	Upgrade Required
+      428	:precondition_required	Precondition Required
+      429	:too_many_requests	Too Many Requests
+      431	:request_header_fields_too_large	Request Header Fields Too Large
+      451	:unavailable_for_legal_reasons	Unavailable for Legal Reasons
+
+      Server Error
+      500	:internal_server_error	Internal Server Error
+      501	:not_implemented	Not Implemented
+      502	:bad_gateway	Bad Gateway
+      503	:service_unavailable	Service Unavailable
+      504	:gateway_timeout	Gateway Timeout
+      505	:http_version_not_supported	Http Version Not Supported
+      506	:variant_also_negotiates	Variant Also Negotiates
+      507	:insufficient_storage	Insufficient Storage
+      508	:loop_detected	Loop Detected
+      509	:bandwidth_limit_exceeded	Bandwidth Limit Exceeded
+      510	:not_extended	Not Extended
+      511	:network_authentication_required	Network Authentication Required
+    MD
     md :render, 'render snippets', <<~MD
       render 'products/show'
       render template: 'products/show'
@@ -89,6 +163,48 @@ module Lib
 
       #Call avatar.variant(:thumb) to get a thumb variant of an avatar:
       <%= image_tag user.avatar.variant(:thumb) %>
+
+      # polymorphic
+
+      ```ruby
+      class Picture < ApplicationRecord
+        belongs_to :imageable, polymorphic :true
+      end
+
+      class Employee < ApplicationRecord
+        has_many :pictures, as: :imageable
+      end
+
+      class Product < ApplicationRecord
+        has_many :pictures, as: :imageable
+      end
+      ```
+
+      - https://guides.rubyonrails.org/association_basics.html#polymorphic-associations
+      - Picture에 imageable_id, imageable_type 2개의 참조용 필드를 사용하여 여러 타입의 모델을 참조하는 다형성 관계를 맺을 수 있다
+
+
+      # saved_change_to
+      ```
+        after_save_commit :notify_to_slack, if: :saved_change_to_address?
+      ```
+      - https://api.rubyonrails.org/classes/ActiveRecord/AttributeMethods/Dirty.html
+      - attribute가 변경되었는지 여부를 판단할 수 있다
+    MD
+
+    md :model_enum, 'active record enum', <<~MD, lang: :ruby
+      class DeployModel < ApplicationRecord
+        enum deploy_status: %i[init in_progress error done], _prefix: :deploy
+      end
+
+      # prefix를 붙임으로 아래와 같이 쓸 수 있다
+      deploy_model.deploy_init!
+      deploy_model.deploy_init?
+    MD
+
+    md :model_validate, 'invalid rescue active model exception', <<~MD, lang: :ruby
+      begin SomeTable.first.update! name: 'invalid';
+      rescue ActiveRecord::RecordInvalid => i; puts i.record.errors.each{|e|puts e.message}; end
     MD
 
     md :active_support_tips, 'hidden features', <<~MD
@@ -97,6 +213,7 @@ module Lib
       - config_accessor 를 통해 변수를 Class 변수로써 관리한다
       - 모든 instance에서 공유된 변수를 가질 수 있다
     MD
+
 
     md :action_controller, 'controller', <<~MD
       # rails 7에서 추가. 파일스트리밍이 가능하다
@@ -479,6 +596,15 @@ module Lib
       - form은 원래 get, post만 지원해줘서 post로 구현. method input field 추가하면 될 것 같긴한데..
       - csrf는 직접 추가..
       - controller에 추가해도 되는데, 기본 기능으로 해결하고 싶었다
+    MD
+
+    md :sidekiq_flush_all, 'flush all redis queue', <<~MD, lang: :ruby
+      Sidekiq.redis(&:flushdb)
+    MD
+
+    md :awesome_libs, 'library, util, list', <<~MD, lang: :ruby
+      # model id를 hashid로 표시
+      gem 'hashid-rails'
     MD
 
     md :annotate, 'annotate infos model, routes..', <<~MD, lang: :bash

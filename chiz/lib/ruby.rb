@@ -1,5 +1,16 @@
 module Lib
   class RubyChiz < Base
+    md :object_yaml, 'save and load object using yaml', <<~MD, lang: :ruby
+      yaml_str = User.last.to_yaml
+
+      # user = YAML.load_file '...'
+      user = YAML.load_stream StringIO.new(yaml_str)
+
+      user.reload
+      user.id
+      # ...
+    MD
+
     md :gem, 'ruby library package manager', <<~MD
       ruby를 설치하면 기본으로 포함되어있다.
       보통 system ruby library를 관리할 때 사용하고, 프로젝트 별 라이브러리는 bundle로 관리하면 된다.
@@ -14,6 +25,9 @@ module Lib
     md :bundle, 'cheatsheet bundler', <<~MD, lang: :bash
       # 업데이트를 보수적으로: 버전업 최소화, 불필요한 업데이트 배제
       bundle update --conservative <package>
+
+      # 중간 버전 업데이트. 그 외에 --major, --patch 가 있다
+      bundle update --minor ruby-kafka
     MD
 
     md :init_bundle, 'initialize bundle project', <<~MD
@@ -357,6 +371,7 @@ module Lib
       case context
       when /이름: (?<name>.+)/
         name = Regexp.last_match(:name)
+        name = $~[:name] # shorthand
       end
 
       /이름: (?<name>.+)/ =~ '이름: 없음'
@@ -424,6 +439,11 @@ module Lib
                 Rake::Task['after_hook']].include?(task)
         task.enhance([:before_hook, :after_hook])
       end
+    MD
+
+    md :resolve_ip, 'address host reolve ip', <<~MD, lang: :ruby
+      require 'resolv'
+      Resolv.getaddresses(hostname)
     MD
   end
 end

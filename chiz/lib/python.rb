@@ -35,6 +35,16 @@ module Lib
         poetry add "pendulum>=2.0.5"
         poetry add pendulum@^2.0.5
         poetry add pendulum@latest
+
+        # scripts
+        # - main.py의 run -> main:run
+        # - cli/main.py의 run -> cli.main:run
+        cat <EOF >> pyproject.toml
+          [tool.poetry.scripts]
+          my-script = "my_module:main"
+        EOF
+
+        poetry run my-script
       END
     end
   end

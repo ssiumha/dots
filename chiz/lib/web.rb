@@ -1,5 +1,12 @@
 module Lib
   class WebChiz < Base
+    md :chrome_unsafe, 'https, unsafe, hidden, ERR_CERT_INVALID', <<~MD
+      https://yuki.world/skip-chrome-cert-invalid-error/
+
+      chrome에서 인증서가 잘못된 사이트에 접근할 때
+      `thisisunsafe` 타이핑하고 엔터를 치면 사이트로 넘어갈 수 있다
+    MD
+
     md :cors, 'cross origin resource sharing', <<~MD
       Origin
 

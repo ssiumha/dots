@@ -1,5 +1,9 @@
 module Lib
   class KubeChiz < Base
+    md :reference, 'document', <<~MD
+      - https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#envvar-v1-core
+    MD
+
     md :telepresence, 'connect, install', <<~MD, lang: :bash
       # 현재 클러스터에 ambassador/traffic-manager를 추가
       telepresence helm install
