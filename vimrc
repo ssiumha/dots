@@ -106,6 +106,7 @@ if filereadable(s:vim_plug_install_path)
         " UI
         Plug 'itchyny/lightline.vim'
         Plug 'majutsushi/tagbar'
+        Plug 'ludovicchabant/vim-gutentags'
         Plug 'nathanaelkane/vim-indent-guides'
 
         if has('nvim-0.7.0')
@@ -187,10 +188,27 @@ nnoremap <space>p <esc>:Files<cr>
 "}}}
 
 "plug: lightline {{{
-let g:lightline = { 'colorscheme' : 'horizon' }
+let g:lightline = {
+      \ 'component_function': {
+      \   'filename': 'LightlineFilename',
+      \ }
+      \ }
+
+function! LightlineFilename()
+  let root = fnamemodify(get(b:, 'git_dir'), ':h')
+  let path = expand('%:p')
+  if path[:len(root)-1] ==# root
+    return path[len(root)+1:]
+  endif
+  return expand('%')
+endfunction
 "}}}
 
 "plug: tagbar {{{
+let g:tagbar_left = 1
+let g:tagbar_width = min([40, winwidth(0) / 5])
+let g:tagbar_compact = 1
+
 nnoremap <silent> <space>t :TagbarToggle<cr>
 
 autocmd VimEnter * nested :call tagbar#autoopen(1)
