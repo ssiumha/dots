@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+# TODO: trap, rescue
+
 require 'bundler/inline'
 
 gemfile do
@@ -9,7 +11,7 @@ end
 
 
 require 'thor'
-require '~/dotfiles/ruby/all.rb'
+require_relative '../ruby/all.rb'
 
 require "#{__dir__}/lib/base.rb"
 

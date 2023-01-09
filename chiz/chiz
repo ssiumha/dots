@@ -2,11 +2,7 @@
 bash <<-EOF
   cd $(dirname "$(realpath $0)");
 
-  if [ -f /usr/local/opt/ruby/bin/ruby ]; then
-    /usr/local/opt/ruby/bin/ruby ./chiz.rb $@;
-  elif [ -f /usr/bin/ruby ]; then
-    /usr/bin/ruby ./chiz.rb $@;
-  elif [ -f ~/.asdf/bin/asdf ]; then
+  if [ -f ~/.asdf/bin/asdf ]; then
     ASDF_RUBY_VERSION=system ~/.asdf/bin/asdf exec ruby ./chiz.rb $@;
   else
     ruby ./chiz.rb $@
