@@ -57,6 +57,8 @@ module Lib
       ruby -i'.bak' -pe '$_.gsub! /namespace/, %(name); puts $_' file.txt
       perl -i -pe 's/namespace/name/;' file.txt
 
+      grep -r 'namespace: xxx' | perl -pe 's/: .+$//' | xargs perl -i -pe 's/namespace: xxx/name/'
+
       # e: ExMode / s: Silent / n: No Swap. memory only / N: nocompatible
       vim -Nens +'g/namespace/norm nciwname' +wq file.txt
       vim -Nens +'bufdo g/namespace/norm nciwname' +wqa file.txt file2.txt

@@ -190,6 +190,16 @@ module Lib
       ```
       - https://api.rubyonrails.org/classes/ActiveRecord/AttributeMethods/Dirty.html
       - attribute가 변경되었는지 여부를 판단할 수 있다
+
+      # normalize
+      rails 7.1부터 추가된 기능
+
+      ```
+        normalizes :email, with: -> email { email.strip.downcase }
+
+        # user.email
+        # user.email_before_type_cast
+      ```
     MD
 
     md :model_enum, 'active record enum', <<~MD, lang: :ruby

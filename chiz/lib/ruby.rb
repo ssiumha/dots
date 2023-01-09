@@ -1,5 +1,29 @@
 module Lib
   class RubyChiz < Base
+    md :ruby_build, 'build issues', <<~MD
+    # openssl 버전 확인
+
+    ```bash
+    ruby -r openssl -e 'puts OpenSSL::OPENSSL_VERSION'
+    ```
+
+    # 빌드시 옵션 확인
+
+    ```bash
+    ruby -r rbconfig -e 'puts RbConfig::CONFIG["configure_args"]'
+
+    > '--prefix=/Users/hassium/.asdf/installs/ruby/3.1.2'
+      '--with-readline-dir=/usr/local/opt/readline'
+      '--disable-install-doc'
+      '--disable-shared'
+      '--with-openssl-dir=/Users/hassium/.asdf/installs/ruby/3.1.2/openssl'
+      'CC=clang'
+      'LDFLAGS=-L/Users/hassium/.asdf/installs/ruby/3.1.2/lib -L/usr/local/opt/ruby/lib'
+      'CPPFLAGS=-I/Users/hassium/.asdf/installs/ruby/3.1.2/include -I/usr/local/opt/ruby/include'
+    ```
+
+    MD
+
     md :object_yaml, 'save and load object using yaml', <<~MD, lang: :ruby
       yaml_str = User.last.to_yaml
 
