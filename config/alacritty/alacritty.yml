@@ -2,7 +2,8 @@
 #
 # install: `mkdir -p ~/.config/alacritty && echo -e "import:\n  - ~/dotfiles/alacritty.yml" > ~/.config/alacritty/alacritty.yml`
 
-background_opacity: 1.0
+window:
+  opacity: 1.0
 
 selection:
   save_to_clipboard: true
