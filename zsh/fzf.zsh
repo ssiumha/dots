@@ -59,7 +59,7 @@ bindkey '^F' fzf-favorite
 
 # TODO LBUFFER control
 # fzf-make() {
-#   BUFFER="$(make -f ~/scripts/tower/Makefile help | fzf --query "$LBUFFER")"
+#   BUFFER="$(make -f ~/spells/tower/Makefile help | fzf --query "$LBUFFER")"
 #   CURSOR=$#BUFFER
 #   zle reset-prompt
 # }
@@ -112,7 +112,7 @@ alias -g gS='$( \
 # preview-page-up, preview-page-down : <S-up>, <S-down>
 
 # Custom Completion {{{
-alias to="rake -f $HOME/scripts/tower/Rakefile"
+alias to="ASDF_RUBY_VERSION=system rake -f $HOME/spells/tower/Rakefile"
 _fzf_complete_to() {
   _fzf_complete +m --preview 'echo {}' --preview-window down:3:wrap --min-height 15 -- "$@" < <(
     to help

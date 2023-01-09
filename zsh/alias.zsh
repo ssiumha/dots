@@ -9,9 +9,10 @@ alias rg="rg --no-ignore"
 if command -v exa &>/dev/null; then
   alias l="exa -s type"
   alias la="exa -s type -a"
-  alias ll="exa -s type -l --git"
-  alias lla="exa -s type -la --git"
-  alias lt="exa -s type --tree -l --git"
+  alias ll="exa -s type -l"
+  alias llg="exa -s type -l --git"
+  alias lla="exa -s type -la"
+  alias lt="exa -s type --tree -l"
 else
   alias l="ls -lh"
   alias la="ls -Ah"
