@@ -87,6 +87,92 @@ namespace :bootstrap do
     sh %{ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" }
   end
 
+  task :install_gh_bin do
+    install_github_release 'neovim/neovim', 'v0.8.2'
+    install_github_release 'junegunn/fzf', '0.35.1'
+    install_github_release 'BurntSushi/ripgrep', '13.0.0'
+    install_github_release 'ogham/exa', 'v0.10.1'
+    install_github_release 'dandavison/delta', '0.15.1'
+    install_github_release 'Wilfred/difftastic', '0.41.0'
+    install_github_release 'ajeetdsouza/zoxide', 'v0.9.0', bin_alias: 'z'
+  end
+
+  # https://github.com/neovim/neovim/tags
+  # https://github.com/neovim/neovim/releases/latest
+  # https://github.com/neovim/neovim/releases/tag/stable
+  # https://github.com/neovim/neovim/releases/expanded_assets/v0.8.2
+  def install_github_release(repo_path, tag, bin_alias: nil)
+    require 'net/http'
+    require 'uri'
+    require 'fileutils'
+
+    cache_dir = "#{Dir.home}/.cache/dotfiles/gh/downloads/#{repo_path.gsub('/', '__')}"
+
+    sh %{ mkdir -p #{cache_dir} }
+
+    # Download Github Release
+    res = Net::HTTP.get_response URI("https://github.com/#{repo_path}/releases/expanded_assets/#{tag}")
+    download_paths = res.body.split("\n").grep(/href/).grep_v(/sha256sum|deb|msi/).map { /href="(?<href>.+?)"/ =~ _1; href }
+    download_path = pick_download_path(download_paths)
+
+    binding.irb and raise "not found download_path: #{repo_path}" if download_path.nil?
+
+    download_filename = download_path.split('/').last
+    filename = "#{tag}_#{download_filename}"
+
+    if File.exist?("#{cache_dir}/#{filename}")
+      puts 'skip. file already exist'
+    else
+      sh %{ curl -L -o "#{cache_dir}/#{filename}" "https://github.com/#{download_path}" }
+    end
+
+    # Unpack Release
+    Dir.chdir(cache_dir) do
+      sh %{ rm -rf #{tag}; mkdir #{tag}; }
+
+      case download_filename
+      when /tar\.gz/ then sh %{ tar -xf #{filename} -C ./#{tag} }
+      when /.zip/    then sh %{ unzip #{filename} -d ./#{tag} }
+      else
+      end
+    end
+
+    # Install Release
+    bins = Dir.glob("#{cache_dir}/#{tag}/**/*").select { |path| File.stat(path).mode.to_s(8).match('100755') }
+    bins = bins.grep /bin/ if bins.count > 1
+
+    bins.each do |binpath|
+      binname = bin_alias || File.basename(binpath)
+      FileUtils.rm "#{Dir.home}/.local/test_bin/#{binname}", force: true
+      FileUtils.ln_s(binpath, "#{Dir.home}/.local/test_bin/#{binname}")
+    end
+  end
+
+  # TODO linux case
+  def pick_download_path(download_paths)
+    download_paths = case `uname -s`.chop
+                     when /darwin/i
+                       download_paths.grep(/darwin|apple|mac/)
+                     else
+                       download_paths.grep(/linux/)
+                     end
+
+    return download_paths.first if download_paths.count == 1
+
+    download_paths = case `uname -m`.chop
+                     when /x86_64/
+                       download_paths.grep(/amd64|x86_64/)
+                     when /arm64/
+                       download_paths.grep(/arm64/)
+                     else
+                     end
+
+    download_paths.first
+  end
+
+  # TODO: https://stackoverflow.com/questions/856891/unzip-zip-tar-tag-gz-files-with-ruby
+  # Gem::Package::TarReader
+
   # TODO: Brewfile 사용해보기
   # task :install_brew do
   #   bat ctags-univirtial git docker mycli mosh tmux overmind q ripgrep ruby-build rust elixir sqlite
@@ -135,6 +221,12 @@ namespace :bootstrap do
   # task :install_devbox do
   # TODO devbox
   #  - https://www.jetpack.io/devbox/docs/ide_configuration/direnv/
+  # TODO
+  #  - tmux, neovim, git ruby
+  #   nix-env -iA nixpkgs.tmux
+  #   nix-env -f ~/.foo.nix -i '.*'
+  #   nix-env -q
+  #   nix-env -qaP ruby  -> 버전목록
   # end
 end
 
