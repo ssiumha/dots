@@ -21,8 +21,6 @@ OS_TYPE = case `uname -s`.chop.to_s
           else :unknown
           end
 
-OS_ARCH = `uname -m`.chop # x86_64|aarch64|i686|arm
-
 
 task :default do
   sh 'rake -sP'
@@ -48,18 +46,19 @@ namespace :bootstrap do
   task :symlink_config do
     puts '== RUN SYMLINK .config =='
 
-    Dir.glob('./config/*').each do |config_path|
+    Dir.glob('config/*').each do |config_path|
       name = File.basename config_path
-      target_path = File.join(CONFIG_DIR, name)
+      src_path = File.join(DOTFILES_DIR, config_path)
+      dest_path = File.join(CONFIG_DIR, name)
 
       pname = name.ljust(10)
 
-      if File.symlink? target_path
+      if File.symlink? dest_path
         puts "#{pname} : already linked"
-      elsif Dir.exist? target_path
+      elsif Dir.exist? dest_path
         puts "#{pname} : link failed. already exist file"
       else
-        FileUtils.ln_s config_path, target_path
+        FileUtils.ln_s src_path, dest_path
         puts "#{pname} : now linked"
       end
     end
@@ -85,6 +84,11 @@ namespace :bootstrap do
     'brew already installed' unless `command -v brew`.chomp.empty?
 
     sh %{ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" }
+
+    sh %{ brew bundle }
+
+    # gureumkim; open '/Library/Input Methods/Gureum.app'
+    # elixir q git mycli mosh tmux overmind dbvear
   end
 
   task :install_gh_bin do
@@ -94,7 +98,13 @@ namespace :bootstrap do
     install_github_release 'ogham/exa', 'v0.10.1'
     install_github_release 'dandavison/delta', '0.15.1'
     install_github_release 'Wilfred/difftastic', '0.41.0'
-    install_github_release 'ajeetdsouza/zoxide', 'v0.9.0', bin_alias: 'z'
+    install_github_release 'ajeetdsouza/zoxide', 'v0.9.0'
+    install_github_release 'denoland/deno', 'v1.29.2'
+    install_github_release 'sharkdp/fd', 'v8.6.0'
+    install_github_release 'sharkdp/bat', 'v0.22.1'
+    install_github_release 'bootandy/dust', 'v0.8.3'
+
+    # TODO jq, yq?
   end
 
   # https://github.com/neovim/neovim/tags
@@ -143,8 +153,8 @@ namespace :bootstrap do
 
     bins.each do |binpath|
       binname = bin_alias || File.basename(binpath)
-      FileUtils.rm "#{Dir.home}/.local/test_bin/#{binname}", force: true
-      FileUtils.ln_s(binpath, "#{Dir.home}/.local/test_bin/#{binname}")
+      FileUtils.rm "#{Dir.home}/.local/bin/#{binname}", force: true
+      FileUtils.ln_s(binpath, "#{Dir.home}/.local/bin/#{binname}")
     end
   end
 
@@ -170,32 +180,21 @@ namespace :bootstrap do
     download_paths.first
   end
 
-  # TODO: https://stackoverflow.com/questions/856891/unzip-zip-tar-tag-gz-files-with-ruby
-  # Gem::Package::TarReader
-
-  # TODO: Brewfile 사용해보기
-  # task :install_brew do
-  #   bat ctags-univirtial git docker mycli mosh tmux overmind q ripgrep ruby-build rust elixir sqlite
-  #   casks - alacritty docker gureumkim ngrok openvpn-connect raycast dbvear
-  #   util-install-brew -> docker, alacritty, gureumkim, alfred, mycli, dbeaver
-
-  #   brew cask install gureumkim \
-  #       && open '/Library/Input Methods/Gureum.app'
-
-  # install gnucmds? -> rust uutils인가 찾아보기
-  #   findutils, coreutils, gnu-sed, gawk, grep, gnu-tar, iproute2mac
-  #     xargs, date, sed, awk, egrep, tail, echo, tar
-  #
-  # # Rust carg-bins 써서 일부 유틸 관리하기?
-  #   install rust gnuutils
-  #   install cargo-bins
-  # end
-
   # task :install_tmux do
   #   install tmux dependencies OR zellij
   ##   sudo apt install autotools-dev automake pkg-config libevent-dev ncurses-dev byacc
   # end
-
+  #
+  # TODO: tmux, git은 brew 쓰는걸로. ruby도 brew로?
+  #
+  # TODO: zshrc 쪽 PATH 제대로 조정해놓기..
+  #   .asdf ; .local/bin ; dotfiles/bin ; brew/bin ; /usr/bin 순으로..
+  # TODO asdf plugin 사용 목록
+  #    - lang: python, perl, poetry, ruby, nodejs
+  #    - infra: terraform, awscli, kubectl, eksctl, helm, k9s
+  #    - ide: pre-commit, direnv
+  #    - utils: yq, jq
+  #
   # task :install_asdf do
   #   unless File.exist?(DOT_ASDF)
   #     system "git clone https://github.com/asdf-vm/asdf.git #{DOT_ASDF}"
@@ -203,30 +202,12 @@ namespace :bootstrap do
   #       system 'git checkout $(git describe --abbrev=0 --tags)'
   #     end
   #   end
-  #   TODO: language 계통은 devbox로 이행을 생각하고 있고,
-  #         프로젝트 상관없이 써야하는 ide, utils는 cargo-bin 고려중. asdf 안써도 되는건가..?
-  #   asdf add plugin
-  #      lang - python, perl, poetry, ruby, nodejs
-  #      infra - terraform, awscli, kubectl, eksctl, helm, k9s
-  #      ide - neovim, tmux, pre-commit, delta
-  #      utils - yq, jq, ripgrep, exa, fd, dust, bat
-  #      zoxide??
-  #      asdf plugin add #{plugin_name}
-  #      asdf install #{plugin_name}
+  #
+  #   asdf plugin add #{plugin_name}
+  #   asdf install #{plugin_name}
   #
   #	  asdf direnv setup --shell zsh --version latest
   #   TODO dotfiles/asdf 랑 dockerfile 정리 필요
-  # end
-
-  # task :install_devbox do
-  # TODO devbox
-  #  - https://www.jetpack.io/devbox/docs/ide_configuration/direnv/
-  # TODO
-  #  - tmux, neovim, git ruby
-  #   nix-env -iA nixpkgs.tmux
-  #   nix-env -f ~/.foo.nix -i '.*'
-  #   nix-env -q
-  #   nix-env -qaP ruby  -> 버전목록
   # end
 end
 
