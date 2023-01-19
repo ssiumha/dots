@@ -11,6 +11,11 @@
 --glob=!**/node_modules/*
 --glob=!**/tmp/*
 --glob=!**/vendor/*
+--glob=!**/tags
+
+--glob=!**/.devbox/*
+--glob=!**/.git/*
+--glob=!**/.svn/*
 
 --glob=!**/log/*.log
 --glob=!**/terraform.tfstate.backup

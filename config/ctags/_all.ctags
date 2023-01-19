@@ -1,3 +1,4 @@
 --exclude=*.min.js
 --exclude=.git
+--exclude=.terraform
 --exclude=node_modules
