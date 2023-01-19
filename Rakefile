@@ -26,6 +26,10 @@ task :default do
   sh 'rake -sP'
 end
 
+task :console do
+  binding.irb
+end
+
 desc '모든 환경을 무조건 최신화'
 task :bootstrap => %i(bootstrap:prepare_dir
                       bootstrap:symlink_config
@@ -39,8 +43,9 @@ namespace :bootstrap do
     puts '== RUN PREAPRE DIR =='
 
     sh %{ mkdir -p #{HOME}/.config }
-    sh %{ mkdir -p #{HOME}/.local/{repo,bin,vim,sh,share} }
-    sh %{ mkdir -p #{HOME}/.local/vim/tmp/{undo,backup,swap} }
+
+    %w[repo bin vim sh share].each { |name| sh %{ mkdir -p #{HOME}/.local/#{name} } }
+    %w[undo backup swap].each { |name| sh %{ mkdir -p #{HOME}/.local/vim/tmp/#{name} } }
   end
 
   task :symlink_config do
@@ -91,6 +96,7 @@ namespace :bootstrap do
     # elixir q git mycli mosh tmux overmind dbvear
   end
 
+  desc 'github 기반 bin 파일 설치'
   task :install_gh_bin do
     install_github_release 'neovim/neovim', 'v0.8.2'
     install_github_release 'junegunn/fzf', '0.35.1'
