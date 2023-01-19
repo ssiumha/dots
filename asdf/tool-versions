@@ -6,8 +6,12 @@ ruby system
 bundler system
 #bundler 2.2.11
 perl 5.32.1
-nodejs 16.13.1
+nodejs 19.2.0 16.13.1
 poetry 1.1.13
+elixir 1.14.2
+
+rust 1.66.0
+pnpm 7.24.2
 
 ################
 # infra
@@ -28,7 +32,8 @@ cmctl 1.9.1
 direnv 2.31.0
 #fzf 0.28.0 # managed zi
 #vim system
-#tmux
+#tmux 3.3a
+git 2.39.0
 
 ################
 # tool
