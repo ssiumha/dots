@@ -115,6 +115,8 @@ export MOSH_ESCAPE_KEY='~'
 #export VOLTPATH="$DOTFILES/local/vim/volt" # deprecated
 export ASDF_CONFIG_FILE="$DOTFILES/asdf/asdfrc"
 
+export DENO_INSTALL_ROOT="$XDG_CACHE_HOME/deno"
+
 export RIPGREP_CONFIG_PATH="$XDG_CONFIG_HOME/ripgrep/ripgreprc"
 export K9SCONFIG="$XDG_CONFIG_HOME/k9s"
 
