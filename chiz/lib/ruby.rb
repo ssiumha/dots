@@ -64,6 +64,18 @@ module Lib
       bundle config set --local jobs 4
       bundle config set --local retry 3
       bundle config set --local clean true
+
+      ```
+      # .bundle/config
+      ---
+      BUNDLE_BIN: "vendor/bundle/bin"
+      BUNDLE_PATH: "vendor/bundle"
+      BUNDLE_CACHE_PATH: "vendor/bundle/cache"
+      BUNDLE_JOBS: "4"
+      BUNDLE_RETRY: "3"
+      BUNDLE_CLEAN: "true"
+      BUNDLE_FORCE_RUBY_PLATFORM: "true"
+      ```
     MD
 
     md :inline_bundle, 'single-file script gems', <<~MD, lang: :ruby

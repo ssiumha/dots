@@ -146,6 +146,7 @@ module Lib
       // - 나오는 순서대로 스태킹 된다
       // ::backdrop으로 뒷면 제어 가능
       // HTMLDialogElement는 show, showDialog, close 함수와 open boolean 변수를 지원한다
+      //  - showDialog는 온전히 modal popup 처럼 동작하게 된다
       <dialog open onclose="console.log('closed!')">
         <form method="dialog">
           <menu>
@@ -160,6 +161,10 @@ module Lib
         </button>
       </menu>
 
+      // 모달 뜨면 스크롤 막기
+      html:has(dialog[open]) {
+        overflow: hidden;
+      }
 
       // open-ui에서도 정의중..
       //   https://open-ui.org/components/popup.research.explainer

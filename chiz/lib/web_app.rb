@@ -1,9 +1,11 @@
 module Lib
   class WebAppChiz < Base
-    md 'weather', 'get weather', 'curl wttr.in/Seoul'
-    md 'cloud_ping', 'aws cloud latency grid', 'https://www.cloudping.co/grid'
+    md :weather, 'get weather', 'curl wttr.in/Seoul'
+    md :cloud_ping, 'aws cloud latency grid', 'https://www.cloudping.co/grid'
 
-    md 'railsnew', 'create rails new app helper', 'railsnew.app'
+    md :railsnew, 'create rails new app helper', 'railsnew.app'
+
+    md :excalidraw, 'draw board', 'https://excalidraw.com'
   end
 end
 
