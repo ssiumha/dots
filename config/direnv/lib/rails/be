@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-bin/bundle exec $@
+bundle exec $@
