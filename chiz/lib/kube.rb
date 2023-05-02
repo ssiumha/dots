@@ -4,6 +4,12 @@ module Lib
       - https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#envvar-v1-core
     MD
 
+    md :mysql_client, 'attach pod', <<~MD
+      kubectl run -it --rm mysql-client --image=mysql:5.7 --restart=Never -- /bin/bash
+
+      mysql -h xxxx.cluster.ap-northeast-2.rds.amazonaws.com -u root -p
+    MD
+
     md :telepresence, 'connect, install', <<~MD, lang: :bash
       # 현재 클러스터에 ambassador/traffic-manager를 추가
       telepresence helm install

@@ -1,5 +1,13 @@
 module Lib
   class RubyChiz < Base
+    md :erb, 'oneline', <<~MD, lang: :bash
+      # simple oneline erb converter
+      echo 'asdf <%= 1 + 4 + a %>' | ruby -rerb -e 'puts ERB.new(STDIN.read).result_with_hash(a: 3)'
+
+      # use binding
+      ruby -rerb -e '@a = 3; ERB.new(STDIN.read).result(binding)'
+    MD
+
     md :ruby_build, 'build issues', <<~MD
     # openssl 버전 확인
 
@@ -33,6 +41,10 @@ module Lib
       user.reload
       user.id
       # ...
+    MD
+
+    md :gem_all_uninstall, 'remove all', <<~MD, lang: :bash
+      gem uninstall -aIx
     MD
 
     md :gem, 'ruby library package manager', <<~MD

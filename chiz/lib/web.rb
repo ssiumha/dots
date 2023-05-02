@@ -30,6 +30,23 @@ module Lib
       ```
     MD
 
+    md :redirect, 'permanent vs temporary', <<~MD
+      permanent -> 301
+        - 컨텐츠를 새 도메인으로 영구적으로 마이그레이션
+        - http -> https
+        - no www -> www
+        - URL이 완전히 변경되었다는 표시
+
+      temporary -> 302
+        - AB Test
+        - 언어, 위치 기반 리다이렉션
+        - js 레벨의 리다이렉션
+
+      검색엔진에 영향을 끼친다
+        301 permanent일 경우, 수정하게 되면 검색결과도 목표 주소만 사용하도록 갱신되지만
+        302는 검색결과에 영향을 끼치지 않는다
+    MD
+
     md :uri, 'url vs uri', <<~MD
       URI: uniform resource identifier
         특정 리소스를 식별하기 위한 고유한 문자열

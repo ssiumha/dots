@@ -623,6 +623,11 @@ module Lib
       bundle exec annotate --models --show-migration --show-foreign-keys --complete-foreign-keys --show-indexes -simple-indexes --with-comment --trace --force
     MD
 
+    md :link, 'active, link_to', <<~MD, lang: :ruby
+      # link_to 와 거의 비슷하지만, 링크 대상 페이지의 URL이 일치하면 자동으로 활성화된다
+      <%= active_link_to content_tag(:p, '유저 정보'), "/account", class: "nav-link" %>
+    MD
+
     require_relative './rails/factorybot'
     desc 'factorybot', 'factorybot subcommand'
     subcommand 'factorybot', FactorybotChiz

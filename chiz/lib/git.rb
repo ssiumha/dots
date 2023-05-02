@@ -5,6 +5,11 @@ module Lib
       git log --patch -S <text>
     MD
 
+    md :patch, 'git revision apply', <<~MD, lang: :bash
+      # 같은 diff를 파일 경로만 바꿔서 적용하기
+      git show 131cbb2 --patch -- . ':!**/Gemfile.lock' | perl -pe 's;src/app;src/tmp/app;g' | git apply -
+    MD
+
     md :chmod, 'update git chmod', <<~MD, lang: :bash
       # https://git-scm.com/docs/git-update-index#Documentation/git-update-index.txt---chmod-x
       git update-index --chmod=+x /path/to/file
@@ -35,6 +40,15 @@ module Lib
 
       # checkout
       git switch -d tags/1.0.0
+    MD
+
+    md :archive, 'get specific revision', <<~MD, lang: :bash
+      for rev in 1 3 5
+      do
+        mkdir -p archive/$rev
+        git archive --output=archive/$rev/files.tar $rev src/app
+        tar xf archive/$rev/files.tar -C archive/$rev
+      done
     MD
   end
 end

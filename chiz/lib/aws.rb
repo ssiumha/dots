@@ -1,5 +1,30 @@
 module Lib
   class AwsChiz < Base
+    md :pricing, 'ec2, s3, monthly pricing', <<~MD
+      - ref: https://calculator.aws/
+      - 보통 30일을 730.hours 으로 계산
+      - 2302 기준
+
+      73 USD    | EKS cluster
+      5 USD     | t2.nano (1CPU, .5MEM)
+      10 USD    | t2.micro (1CPU, 1MEM)
+      81 USD    | m5.large (2CPU, 8MEM)
+
+      0.03 USD  | S3 1GB
+      25 USD    | S3 1TB
+      5  USD    | EBS 4GB
+      5.5 USD   | EBS 8GB
+      6.5 USD   | EBS 16GB
+      10  USD   | EBS gp2 32GB
+      46  USD   | EBS gp2 256GB
+      88  USD   | EBS gp2 512GB
+      100 USD   | ECR 1TB
+
+      450 USD   | RDS MySQL db.r4.large (30GB)
+      379 USD   | RDS MySQL db.m5.large (30GB)
+      186 USD   | RDS MySQL db.t2.medium (30GB)
+    MD
+
     md :eks, 'kubeconfig update', <<~MD, lang: :sh
       aws eks update-kubeconfig --name $CLUSTER_NAME
     MD
