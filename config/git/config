@@ -97,9 +97,9 @@
     br = branch
     fzf-br-rm = !git branch | fzf -m | cut -c2- | xargs -I% git branch -D %
 
-    sync-up = !git checkout master && \
-        git fetch up master && git merge --ff-only up/master && git push origin master && \
-        git checkout - && git rebase master
+    up-branch = !echo $(git remote | grep up || git remote | grep origin)
+    main-branch = !git symbolic-ref refs/remotes/origin/HEAD | cut -d'/' -f4
+    sync-up = !$HOME/.config/git/alias/sync-up
 
     p = pull
     pp = pull --prune --ff-only
