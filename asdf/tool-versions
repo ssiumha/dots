@@ -22,6 +22,7 @@ kubectl 1.22.15 1.23.13 1.24.7 1.25.3 1.21.4 1.16.15
 telepresence 2.8.5 2.4.0
 eksctl 0.63.0
 helm 3.2.4
+helmfile 0.150.0
 k9s 0.25.18 0.26.7
 cmctl 1.9.1
 
