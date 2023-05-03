@@ -1,0 +1,93 @@
+k9s:
+  refreshRate: 2
+  maxConnRetry: 5
+  enableMouse: false
+  headless: false
+  logoless: false
+  crumbsless: false
+  readOnly: false
+  noIcons: false
+  logger:
+    tail: 100
+    buffer: 5000
+    sinceSeconds: 60
+    fullScreenLogs: false
+    textWrap: false
+    showTime: false
+  currentContext: arn:aws:eks:ap-northeast-2:943926792533:cluster/fsl-prod
+  currentCluster: arn:aws:eks:ap-northeast-2:943926792533:cluster/fsl-prod
+  clusters:
+    arn:aws:eks:ap-northeast-2:943926792533:cluster/fsl-dev:
+      namespace:
+        active: all
+        favorites:
+        - neusral-30-beta2
+        - neusral-30-beta1
+        - ambassador
+        - kube-system
+        - helm
+        - all
+        - default
+      view:
+        active: pod
+      featureGates:
+        nodeShell: false
+      shellPod:
+        image: busybox:1.31
+        command: []
+        args: []
+        namespace: default
+        limits:
+          cpu: 100m
+          memory: 100Mi
+      portForwardAddress: localhost
+    arn:aws:eks:ap-northeast-2:943926792533:cluster/fsl-prod:
+      namespace:
+        active: all
+        favorites:
+        - neusral-20-staging1
+        - neusral-10-production
+        - helm
+        - all
+        - default
+      view:
+        active: pod
+      featureGates:
+        nodeShell: false
+      shellPod:
+        image: busybox:1.31
+        command: []
+        args: []
+        namespace: default
+        limits:
+          cpu: 100m
+          memory: 100Mi
+      portForwardAddress: localhost
+    arn:aws:eks:ap-northeast-2:943926792533:cluster/proxy-squid:
+      namespace:
+        active: all
+        favorites:
+        - helm
+        - all
+        - default
+      view:
+        active: secret
+      featureGates:
+        nodeShell: false
+      shellPod:
+        image: busybox:1.31
+        command: []
+        args: []
+        namespace: default
+        limits:
+          cpu: 100m
+          memory: 100Mi
+      portForwardAddress: localhost
+  thresholds:
+    cpu:
+      critical: 90
+      warn: 70
+    memory:
+      critical: 90
+      warn: 70
+  screenDumpDir: /var/folders/7y/4mk66_h13hx6njgm1kj_2s_w0000gn/T/k9s-screens-hassium
