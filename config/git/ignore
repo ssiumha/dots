@@ -1,0 +1,30 @@
+# ref: https://github.com/github/gitignore
+.DS_Store
+
+################
+# TOOLS
+################
+
+## apps
+.idea
+.ignore
+.note
+
+## asdf, env
+.tool-versions
+.envrc
+.direnv/
+
+## vim
+tags
+!tags/
+
+################
+# LANGUAGES
+################
+
+## python
+*.pyc
+
+## terraform
+.terraform

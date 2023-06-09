@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# %x09 : tab
+# 20-99-99 00:00 branch_name hash author subject
+
+# TODO
+#   git branch -v --sort -committerdate
+#   for-each-ref
+git branch | cut -c2- | xargs -I{} \
+  git log --color=always --oneline  \
+    --format="%C(green)%ad%x09%C(reset)%S%x09%C(auto)%h%x09%C(blue)%an%x09%C(reset)%s" \
+    -n1 {} \
+| column -t -s $'\t' | sort \
+| fzf +s --tac --ansi | awk '{print $3}' | xargs -I% git checkout %

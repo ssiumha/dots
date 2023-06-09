@@ -1,0 +1,18 @@
+--smart-case
+--color=always
+
+# usecase: `rg -tweb xxx`
+--type-add=web:*.{html,css,js}*
+
+# disable gitignore
+--no-ignore-vcs
+--no-ignore-dot
+
+# globs
+-g=!.terraform
+-g=!node_modules
+
+-g=!.git
+-g=!.svn
+-g=!.devbox
+-g=!log

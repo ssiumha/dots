@@ -1,0 +1,31 @@
+# vim: filetype=gitconfig ts=2
+
+[core]
+  editor = vim
+  pager = delta
+  autocrlf = no
+[log]
+  date = format:%y-%m-%d %H:%M
+[alias]
+  d = diff
+  ds = diff --staged
+
+  gr = log --graph --oneline --format=logfmt
+  gra = !$HOME/.config/git/alias/gra
+
+  st = status --short --branch
+
+  s = switch
+  sw = switch
+  swf = !$HOME/.config/git/alias/swf
+
+  br = branch
+
+  pr = pull --autostash --ff-only
+  puo = push origin HEAD
+
+  cv = commit -v
+
+  up-branch = !echo $(git remote | grep up || git remote | grep origin)
+  main-branch = !git symbolic-ref refs/remotes/origin/HEAD | cut -d'/' -f4
+  sync-up = !$HOME/.config/git/alias/sync-up
