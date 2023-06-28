@@ -1,0 +1,17 @@
+k9s:
+  views:
+    v1/nodes:
+      columns:
+        - NAME
+        - STATUS
+#        - ROLE
+        - VERSION
+        - PODS
+        - CPU
+        - MEM
+        - %CPU
+        - %MEM
+        - CPU/A
+        - CPU/A
+        - AGE
+        - TEST = .metadata.labels.topology\.kubernetes\.io/zone

@@ -70,7 +70,16 @@ alias cp="cp -i"
 
 alias g="git"
 
-# alias -g ...="../.." # TODO fzf
+alias -g ...=rise_cd
+rise_cd() {
+  local selected_dir=$(perl -e "
+        chomp(\$dir = qx(pwd));
+        chomp(\$dir = qx(dirname \$dir)) for (1..2);
+        print qq(\$dir\n) and chomp(\$dir = qx(dirname \$dir)) while \$dir ne qq(/)" |
+      fzf +s --preview="ls {}" --tac -0);
+
+  [ -n "$selected_dir" ] && cd "$selected_dir";
+}
 
 if command -v nvim &>/dev/null; then
   alias v="nvim"
@@ -125,7 +134,7 @@ precmd() {
   # TODO : %~ coloring. symbolic:cyan(6), current:bold?
   # %F-fg, %K-bg, %S-reverse
 
-  reset_color="\e[49m\e[39m"
+  local reset_color="\e[49m\e[39m"
 
   txt="\n"
   txt+="%K{0} %~ ${reset_color}"
@@ -219,9 +228,6 @@ export FZF_COMPLETION_TRIGGER=""
 
 bindkey '^F' fzf-completion
 
-# ignore chitoku-k/fzf-zsh-completions
-_fzf_complete_colorize() { cat; return; }
-
 #### command complete
 
 # _fzf_compgen_path() {
@@ -247,8 +253,8 @@ _fzf_select_history_widget() {
   CURSOR=$#BUFFER             # cursor move to line end
   zle reset-prompt
 }
-zle -N fzf_select_history_widget
-bindkey '^R' fzf_select_history_widget
+zle -N _fzf_select_history_widget
+bindkey '^R' _fzf_select_history_widget
 
 #### favcmd
 _fzf_default_completion() {

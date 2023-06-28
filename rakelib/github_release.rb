@@ -16,6 +16,8 @@ class GithubRelease
 
   def install
     download; unpack; symlink;
+  rescue => e
+    puts e
   end
 
   private
@@ -28,7 +30,7 @@ class GithubRelease
   def download_url_path
     @download_url_path ||= begin
                              res = Net::HTTP.get_response URI("https://github.com/#{@path}/releases/expanded_assets/#{@tag}")
-                             download_paths = res.body.split("\n").grep(/href/).grep_v(/sha256sum|deb|msi/).map { /href="(?<href>.+?)"/ =~ _1; href }
+                             download_paths = res.body.split("\n").grep(/href/).grep_v(/sha256sum|deb|msi/).map { |url| /href="(?<href>.+?)"/ =~ url; href }
 
                              download_paths = case `uname -s`.chop
                                               when /darwin/i then download_paths.grep(/darwin|apple|mac/)
@@ -38,7 +40,7 @@ class GithubRelease
                              if download_paths.count > 1
                                download_paths = case `uname -m`.chop
                                                 when /x86_64/ then download_paths.grep(/amd64|x86_64/)
-                                                when /arm64/ then download_paths.grep(/arm64/)
+                                                when /arm64/ then download_paths.grep(/arm64|aarch64/)
                                                 else
                                                 end
                              end
@@ -57,7 +59,10 @@ class GithubRelease
   def download
     %x{ mkdir -p #{cache_dir} }
 
-    binding.irb and raise "not found download_url_path: #{@path}" if download_url_path.nil?
+    if download_url_path.nil?
+      binding.irb
+      raise "not found download_url_path: #{@path}"
+    end
 
     if File.exist?("#{cache_dir}/#{download_filename}")
       puts 'skip. file already exist'

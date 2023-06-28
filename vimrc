@@ -97,6 +97,7 @@ Plug 'powerman/vim-plugin-AnsiEsc'
 Plug 'tpope/vim-commentary'
 
 " Lang
+Plug 'tpope/vim-rails'
 Plug 'hashivim/vim-terraform'
 
 if has('nvim-0.7.0')
