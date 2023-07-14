@@ -28,3 +28,6 @@ tags
 
 ## terraform
 .terraform
+
+## ruby
+vendor/bundle/

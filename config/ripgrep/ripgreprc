@@ -11,6 +11,7 @@
 # globs
 -g=!.terraform
 -g=!node_modules
+-g=!vendor
 
 -g=!.git
 -g=!.svn
