@@ -259,7 +259,7 @@ bindkey '^R' _fzf_select_history_widget
 #### favcmd
 _fzf_default_completion() {
   BUFFER="$(
-    cat ~/spells/favcmd |
+    cat ~/dotfiles/favcmd |
       perl -ne 'print if !/^(#|$)/' |
       perl -pe 's/(## .+)/\e[0;32m\1\e[0m/' |
       fzf --preview='echo {} | perl -pe "s/^(.+)(## .+)/\\2\n\\1/"' \

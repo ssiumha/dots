@@ -1,0 +1,82 @@
+# favcmd
+v ~/dotfiles/favcmd
+
+# bookmark
+open -a 'Google Chrome.app' https://lzone.de/cheat-sheet  ## cheatsheet Redis, MySQL, ElasticSearch...
+open -a 'Google Chrome.app' https://docs.github.com/en/actions/creating-actions/creating-a-composite-action # github workflow composite action
+
+# bash
+2>&1 | tee -a ~/tmp/tee/stdout-$(date +"%y%m%d_%H%M").log
+netstat -vanp tcp | grep LISTEN  ## check open ports
+
+# ruby
+bundle exec rails
+bundle exec sidekiq
+bundle config set --local path app_config .bundle  ## 사용할 .bundle 경로 지정
+bundle config set --local path vendor/bundle
+bundle config set --local cache_path vendor/bundle/cache
+gem bump -v pre
+
+# python
+python3 -m http.server 8080
+
+# docker
+curl host.docker.internal  ## request host in docker image
+docker run --rm -p 4444:4444 seleniarm/standalone-chromium  ## multi arch selenium
+
+# terraform
+terraform plan -out plan.out | tee plan.std.out
+terraform apply plan.out   ## or TF_LOG=DEBUG or TF_LOG=TRACE
+
+# aws
+aws eks update-kubeconfig --name ${CLUSTER_NAME} --profile ${PROFILE}
+aws configure --profile ${PROFILE}
+aws sts get-caller-identity --profile ${PROFILE}
+aws ecr get-login-password --region ${AWS_REGION} | docker login --password-stdin --username AWS ${ECR_REGISTRY}
+curl -H "X-aws-ec2-metadata-token: $(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")" -v "http://169.254.169.254/latest/meta-data/placement/availability-zone-id"  ## IMDSv2 get aws instance az, metadata: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-data-retrieval.html
+curl http://checkip.amazonaws.com/  ## get current ip
+
+# kubectl
+kubectl get nodes -o custom-columns='custom-columns=NAME:.metadata.name,STATUS:.status.conditions[-1:].type,ZONE:.metadata.labels.topology\.kubernetes\.io/zone,NODE_GROUP:.metadata.labels.eks\.amazonaws\.com/nodegroup' | v -
+NS=apps envsubst < service.yml | kubectl apply -f -
+kubectl auth can-i "*" "*"  ## 권한 체크
+kubectl get node --sort-by='.metadata.creationTimestamp'
+
+# perl
+perl -MIO::Socket::INET -e '$sock=IO::Socket::INET->new(PeerAddr=>"google.com",PeerPort=>"80",Proto=>"tcp"); print $sock "GET / HTTP/1.0\nHost: google.com\n\n"; print while <$sock>'
+my $s = new IO::Socket::INET(LocalAddr => "0.0.0.0:8080", Listen => 10, Reuse => 1) or die; while(my $c = $s->accept) { my $body = "Hello World!"; print $c "HTTP/1.1 200 OK\nContent-Type: text/plain\n\n$body\n"; close($c); }
+
+# curl
+curl --header "Host: test.example.com" http://aws-domain.elb.amazonaws.com  ## DNS 설정 없이 ingress 테스트할 때 사용
+
+# git
+git log --patch -S ${QUERY}  ## history search
+git fetch --tags  ## fetch all tags
+git fetch origin tag ${TAG} --no-tags ## fetch single tag
+git switch -d tags/${TAG}  ## switch to tag
+git worktree add ../${PATH} ${BRANCH}
+git push --set-upstream origin master
+git status --short | awk '!/##/{print$2}'  ## git status file list
+git merge -Xours ${branch}  ## 충돌 발생시, ours (HEAD, stage#2)를 사용한다
+git checkout --their -- ${Files}  ## git conflit 해결용, theirs (merge target, stage#3) 기준으로 맞춘다. rebase일 경우 작업물로 설정
+git checkout master -- ${Files}  ## git conflit 해결용, master로 맞춰버리기..
+
+# asdf
+asdf plugin add terraform
+asdf plugin add awscli
+asdf plugin add kubectl
+asdf plugin add telepresence
+asdf plugin add eksctl
+asdf plugin add helm
+asdf plugin add helmfile
+asdf plugin add k9s
+asdf plugin add cmctl
+asdf plugin add direnv
+asdf plugin add yq
+asdf plugin add jq
+asdf plugin add pre-commit
+asdf plugin add nova
+
+# redis
+redis-cli -p 26379 info ## sentinel info
+redis-cli -p 26379 sentinel masters ## sentinel masters
