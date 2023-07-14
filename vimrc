@@ -103,6 +103,7 @@ Plug 'hashivim/vim-terraform'
 if has('nvim-0.7.0')
   Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
   Plug 'nvim-treesitter/nvim-treesitter-context'
+  Plug 'nvim-treesitter/nvim-treesitter-textobjects'
 
   highlight TreesitterContext guibg=gray ctermbg=8
 endif
@@ -119,6 +120,43 @@ lua << EOF
   require'nvim-treesitter.configs'.setup {
     ensure_installed = { 'ruby', 'yaml' },
     highlight = { enable = true, additional_vim_regex_highlighting = false },
+
+    textobjects = {
+      select = {
+        enable = true,
+        lookahead = true,
+        keymaps = {
+          ['ib'] = '@block.inner',
+          ['ab'] = '@block.outer',
+          ['if'] = '@function.inner',
+          ['af'] = '@function.outer',
+          ['ip'] = '@parameter.inner',
+          ['ap'] = '@parameter.outer',
+        },
+        selection_modes = {
+          ['@block.outer'] = 'V',
+          ['@block.inner'] = 'V',
+          ['@function.outer'] = 'V',
+          ['@function.inner'] = 'V',
+        },
+      },
+      move = {
+        enable = true,
+        set_jumps = true,
+        goto_next_start = {
+          [']m'] = '@function.outer',
+        },
+        goto_next_end = {
+          [']M'] = '@function.outer',
+        },
+        goto_previous_start = {
+          ['[m'] = '@function.outer',
+        },
+        goto_previous_end = {
+          ['[M'] = '@function.outer',
+        },
+      },
+    },
   }
 
   require'treesitter-context'.setup{
