@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'fileutils'
+
 DOT_DIR = File.dirname(__FILE__)
 DOT_ZSHRC = "#{Dir.home}/.zshrc"
 DOT_VIMRC = "#{Dir.home}/.vimrc"
@@ -108,6 +110,7 @@ end
 
 desc 'symlink configs'
 task 'install:config' do
+  FileUtils.mkdir_p DOT_CONFIG
   Dir.glob('config/*').each do |config_path|
     name = File.basename(config_path)
     src_path = File.join(DOT_DIR, config_path)
