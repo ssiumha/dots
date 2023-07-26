@@ -61,9 +61,9 @@ set timeoutlen=200
 "----------------
 set undofile undoreload=1000
 set backup swapfile
-let &undodir = expand('$HOME/.local/vim/tmp/undo')
-let &backupdir = expand('$HOME/.local/vim/tmp/backup')
-let &directory = expand('$HOME/.local/vim/tmp/swap')
+let &undodir = expand('$HOME/.cache/vim/undo')
+let &backupdir = expand('$HOME/.cache/vim/backup')
+let &directory = expand('$HOME/.cache/vim/swap')
 
 "----------------
 " plug

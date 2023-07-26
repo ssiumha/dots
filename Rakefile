@@ -6,6 +6,7 @@ DOT_DIR = File.dirname(__FILE__)
 DOT_ZSHRC = "#{Dir.home}/.zshrc"
 DOT_VIMRC = "#{Dir.home}/.vimrc"
 DOT_CONFIG = "#{Dir.home}/.config"
+DOT_CACHE = "#{Dir.home}/.cache"
 DOT_ASDF = "#{Dir.home}/.asdf"
 
 BIN_VERSIONS = {
@@ -106,6 +107,10 @@ desc 'install zshrc, vimrc'
 task 'install:base' do
   File.write(DOT_ZSHRC, "source #{DOT_DIR}/zshrc").tap { puts 'created .zshrc' } unless File.exist?(DOT_ZSHRC)
   File.write(DOT_VIMRC, "source #{DOT_DIR}/vimrc").tap { puts 'created .vimrc' } unless File.exist?(DOT_VIMRC)
+
+  FileUtils.mkdir_p File.join(DOT_CACHE, 'vim/undo')
+  FileUtils.mkdir_p File.join(DOT_CACHE, 'vim/swap')
+  FileUtils.mkdir_p File.join(DOT_CACHE, 'vim/backup')
 end
 
 desc 'symlink configs'
