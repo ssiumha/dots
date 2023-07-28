@@ -81,6 +81,7 @@ Plug 'junegunn/fzf.vim'
   let $FZF_DEFAULT_COMMAND="fd -tf --hidden"
   nnoremap <space>p <esc>:Files<cr>
   nnoremap <space>p[ <esc>:History<cr>
+  nnoremap <space>pb <esc>:Buffers<cr>
 
 Plug 'mileszs/ack.vim'
   nnoremap <space>a :Ack!<space>
@@ -95,6 +96,15 @@ Plug 'nanotech/jellybeans.vim'
 " Utils
 Plug 'powerman/vim-plugin-AnsiEsc'
 Plug 'tpope/vim-commentary'
+
+if has('python3') " ref: checkhealth provider
+  Plug 'SirVer/UltiSnips'
+    let g:UltiSnipesExpandTrigger="<tab>"
+    let g:UltiSnipsJumpForwardTrigger="<tab>"
+    let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
+    let g:UltiSnipsEditSplit="vertical"
+    let g:UltiSnipsSnippetDirectories=['snips'] " config/nvim/snips
+endif
 
 " Lang
 Plug 'tpope/vim-rails'

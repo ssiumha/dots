@@ -1,0 +1,23 @@
+snippet frozen "string literal"
+# frozen_string_literal: true
+endsnippet
+
+snippet task "rake task"
+task ${1::task_name} do
+end
+endsnippet
+
+snippet call_rails_task "rake using from rails"
+require 'rake'
+${1:AppName}::Application.load_tasks
+
+Rake::Task[${2:task_name}].invoke
+endsnippet
+
+snippet popen3 "call popen with env"
+env_vars = { 'VAR1' => 'value1' }
+command = ['echo', '$VAR1']
+Open3.popen3(env_vars, *command) do |stdin, stdout, stderr, with_thr|
+	puts stdout.read
+end
+endsnippet
