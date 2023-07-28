@@ -1,5 +1,6 @@
 # favcmd
 v ~/dotfiles/favcmd
+v ~/dotfiles/config/nvim/snips
 
 # bookmark
 open -a 'Google Chrome.app' https://lzone.de/cheat-sheet  ## cheatsheet Redis, MySQL, ElasticSearch...
@@ -8,6 +9,8 @@ open -a 'Google Chrome.app' https://docs.github.com/en/actions/creating-actions/
 # bash
 2>&1 | tee -a ~/tmp/tee/stdout-$(date +"%y%m%d_%H%M").log
 netstat -vanp tcp | grep LISTEN  ## check open ports
+lsof -i -P | grep LISTEN  ## check open ports
+ssh-keygen -f ~/.ssh/id_ed25519 -y  ## public key
 
 # ruby
 bundle exec rails
