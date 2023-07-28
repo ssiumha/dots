@@ -70,16 +70,8 @@ alias cp="cp -i"
 
 alias g="git"
 
-alias -g ...=rise_cd
-rise_cd() {
-  local selected_dir=$(perl -e "
-        chomp(\$dir = qx(pwd));
-        chomp(\$dir = qx(dirname \$dir)) for (1..2);
-        print qq(\$dir\n) and chomp(\$dir = qx(dirname \$dir)) while \$dir ne qq(/)" |
-      fzf +s --preview="ls {}" --tac -0);
-
-  [ -n "$selected_dir" ] && cd "$selected_dir";
-}
+alias -g ...=../..
+alias -g ....=../../..
 
 if command -v nvim &>/dev/null; then
   alias v="nvim"
@@ -230,7 +222,7 @@ bindkey '^F' fzf-completion
 
 #### command complete
 
-# _fzf_compgen_path() {
+# _fzf_dir_completion
 #   fd .
 # }
 
@@ -273,6 +265,99 @@ _fzf_default_completion() {
 }
 zle -N _fzf_default_completion
 export fzf_default_completion=_fzf_default_completion
+
+#### command complete
+_fzf_command_complete_g() {
+  _fzf_complete -m --preview 'echo {}' --preview-window down:3:wrap --min-height 15 -- "$@" < <(
+    command git status --short
+  )
+}
+
+_fzf_command_complete_g_post() {
+  awk '{ print $2 }'
+}
+
+_fzf_command_complete_rise_dir() {
+  _fzf_complete -m --preview 'ls {}' --preview-window down:3:wrap --min-height 15 -- "$@" < <(
+    perl -e "
+        chomp(\$dir = qx(pwd));
+        chomp(\$dir = qx(dirname \$dir)) for (1..2);
+        print qq(\$dir\n) and chomp(\$dir = qx(dirname \$dir)) while \$dir ne qq(/)"
+  )
+}
+
+_fzf_my_completion_hook() {
+  local prefix lbuf
+  prefix=$1
+  lbuf=$2
+
+  if [[ "$prefix" == .. ]]; then
+      prefix="" eval _fzf_command_complete_rise_dir ${(q)lbuf}
+  elif [[ "$prefix" == :* ]]; then
+    # TODO: typing -> :g -> c-f 동작이 불편, : 말고 다른 단어가 필요. gst+c-f?
+    #    - :l + c-f => current ls
+    if eval "type _fzf_command_complete_${prefix#*:} > /dev/null"; then
+      prefix="" eval _fzf_command_complete_${prefix#*:} ${(q)lbuf}
+    else
+      return 1
+    fi
+  else
+    return 1 # default fail
+  fi
+}
+
+#### overwrite completion
+# https://github.com/junegunn/fzf/blob/master/shell/completion.zsh#L264
+fzf-completion() {
+  local tokens cmd prefix trigger tail matches lbuf d_cmds
+  setopt localoptions noshwordsplit noksh_arrays noposixbuiltins
+
+  # http://zsh.sourceforge.net/FAQ/zshfaq03.html
+  # http://zsh.sourceforge.net/Doc/Release/Expansion.html#Parameter-Expansion-Flags
+  tokens=(${(z)LBUFFER})
+  if [ ${#tokens} -lt 1 ]; then
+    zle ${fzf_default_completion:-expand-or-complete}
+    return
+  fi
+
+  cmd=$(__fzf_extract_command "$LBUFFER")
+
+  # Explicitly allow for empty trigger.
+  trigger=${FZF_COMPLETION_TRIGGER-'**'}
+  [ -z "$trigger" -a ${LBUFFER[-1]} = ' ' ] && tokens+=("")
+
+  # When the trigger starts with ';', it becomes a separate token
+  if [[ ${LBUFFER} = *"${tokens[-2]-}${tokens[-1]}" ]]; then
+    tokens[-2]="${tokens[-2]-}${tokens[-1]}"
+    tokens=(${tokens[0,-2]})
+  fi
+
+  lbuf=$LBUFFER
+  tail=${LBUFFER:$(( ${#LBUFFER} - ${#trigger} ))}
+
+  # Trigger sequence given
+  # if [ ${#tokens} -gt 1 -a "$tail" = "$trigger" ]; then
+  if [[ ${#tokens} -gt 1 && ( "$tail" == "$trigger" || "$tail" == :* ) ]]; then
+    d_cmds=(${=FZF_COMPLETION_DIR_COMMANDS:-cd pushd rmdir})
+
+    [ -z "$trigger"      ] && prefix=${tokens[-1]} || prefix=${tokens[-1]:0:-${#trigger}}
+    [ -n "${tokens[-1]}" ] && lbuf=${lbuf:0:-${#tokens[-1]}}
+
+    if _fzf_my_completion_hook "$prefix" "$lbuf"; then
+      zle reset-prompt
+    elif eval "type _fzf_complete_${cmd} > /dev/null"; then
+      prefix="$prefix" eval _fzf_complete_${cmd} ${(q)lbuf}
+      zle reset-prompt
+    elif [ ${d_cmds[(i)$cmd]} -le ${#d_cmds} ]; then
+      _fzf_dir_completion "$prefix" "$lbuf"
+    else
+      _fzf_path_completion "$prefix" "$lbuf"
+    fi
+  # Fall back to default completion
+  else
+    zle ${fzf_default_completion:-expand-or-complete}
+  fi
+}
 
 ################################
 
