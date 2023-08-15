@@ -169,8 +169,11 @@ ZINIT[ZCOMPDUMP_PATH]="${HOME}/.local/zcompdump"
 if [[ -s "${zinit_home}/bin/zinit.zsh" ]]
 then
   source "${zinit_home}/bin/zinit.zsh"
-  autoload -Uz _zinit
-  (( ${+_comps} )) && _comps[zinit]=_zinit
+
+  if [[ "$_ZSH_INIT_MINIMAL" != true ]]; then
+    autoload -Uz _zinit
+    (( ${+_comps} )) && _comps[zinit]=_zinit
+  fi
 
   # https://github.com/ohmyzsh/ohmyzsh/blob/master/lib
   zinit snippet OMZ::lib/clipboard.zsh
@@ -196,7 +199,9 @@ fi
 # completion
 ################################
 
-autoload -Uz compinit; compinit
+if [[ "$_ZSH_INIT_MINIMAL" != true ]]; then
+  autoload -Uz compinit; compinit
+fi
 
 bindkey '^I' expand-or-complete
 
