@@ -1,17 +1,34 @@
 k9s:
   views:
-    v1/nodes:
+    v1/pods:
       columns:
+        - NAMESPACE
         - NAME
+        - READY
+        - RESTARTS
         - STATUS
-#        - ROLE
-        - VERSION
-        - PODS
+        - AGE
         - CPU
         - MEM
-        - %CPU
-        - %MEM
-        - CPU/A
-        - CPU/A
-        - AGE
-        - TEST = .metadata.labels.topology\.kubernetes\.io/zone
+        - "%CPU/R"
+        - "%CPU/L"
+        - "%MEM/R"
+        - "%MEM/L"
+        - IP
+        - NODE
+        # QOS PF LABELS
+#     v1/nodes:
+#       columns:
+#         - NAME
+#         - STATUS
+# #        - ROLE
+#         - VERSION
+#         - PODS
+#         - CPU
+#         - MEM
+#         - "%CPU"
+#         - "%MEM"
+#         - CPU/A
+#         - CPU/A
+#         - AGE
+#         # - '.metadata.labels.topology\.kubernetes\.io/zone'
