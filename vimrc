@@ -65,6 +65,10 @@ let &undodir = expand('$HOME/.cache/vim/undo')
 let &backupdir = expand('$HOME/.cache/vim/backup')
 let &directory = expand('$HOME/.cache/vim/swap')
 
+" TODO: UpdateRemotePlugin
+
+" let g:ruby_host_prog = '$(ASDF_RUBY_VERSION=system gem environment gemdir)/bin/neovim-ruby-host'
+
 "----------------
 " plug
 "----------------
@@ -78,7 +82,7 @@ call plug#begin(expand('$HOME/.local/vim/plugged'))
 
 Plug 'junegunn/fzf'
 Plug 'junegunn/fzf.vim'
-  let $FZF_DEFAULT_COMMAND="fd -tf --hidden"
+  let $FZF_DEFAULT_COMMAND="fd -tf --no-ignore-vcs"
   nnoremap <space>p <esc>:Files<cr>
   nnoremap <space>p[ <esc>:History<cr>
   nnoremap <space>pb <esc>:Buffers<cr>
