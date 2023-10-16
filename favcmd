@@ -11,21 +11,37 @@ open -a 'Google Chrome.app' https://docs.github.com/en/actions/creating-actions/
 netstat -vanp tcp | grep LISTEN  ## check open ports
 lsof -i -P | grep LISTEN  ## check open ports
 ssh-keygen -f ~/.ssh/id_ed25519 -y  ## public key
+date +"%Y-%m-%dT%H:%M:%S%z"  ## iso-8610 in BSD
 
 # ruby
 bundle exec rails
 bundle exec sidekiq
+bundle exec ruby -Itest ${TEST}
 bundle config set --local path app_config .bundle  ## 사용할 .bundle 경로 지정
 bundle config set --local path vendor/bundle
 bundle config set --local cache_path vendor/bundle/cache
+bundle config set --local force_ruby_platform true
+bundle config set --local jobs 4
+bundle config set --local retry 3
+bundle config set --local clean true
+bundle config build.pg --with-pg-config=$(brew --prefix libpq)/bin/pg_config
+bundle config build.iconv --with-iconv-dir=$(brew --prefix libiconv)
+bundle config build.nokogiri --with-iconv-dir=$(brew --prefix libiconv)
 gem bump -v pre
+
+echo '{"a":{"b":[1,2,3]}}' | ruby -rjson -e 'puts JSON[STDIN.read, symbolize_names: true]'
+echo 'XML' | ruby -rnokogiri -e 'puts Nokogiri::XML(STDIN.read)'
+ruby -r openssl -e 'puts OpenSSL::OPENSSL_VERSION'
 
 # python
 python3 -m http.server 8080
 
 # docker
 curl host.docker.internal  ## request host in docker image
+curl -XGET -s -o /dev/null -w "%{http_code}" "http://example.com"  ## check http status code
 docker run --rm -p 4444:4444 seleniarm/standalone-chromium  ## multi arch selenium
+docker system df  ## check docker volume size
+du -ks /var/lib/docker/containers/* | sort -n | tail  ## check docker containers size by 1KB
 
 # terraform
 terraform plan -out plan.out | tee plan.std.out
@@ -33,24 +49,41 @@ terraform apply plan.out   ## or TF_LOG=DEBUG or TF_LOG=TRACE
 
 # aws
 aws eks update-kubeconfig --name ${CLUSTER_NAME} --profile ${PROFILE}
-aws configure --profile ${PROFILE}
+aws configure --profile ${PROFILE} ## region=ap-northeast-2, format=text|table|json|yaml
+aws s3 ls
 aws sts get-caller-identity --profile ${PROFILE}
+aws sts get-caller-identity --query Account --output text  ## get aws account id
 aws ecr get-login-password --region ${AWS_REGION} | docker login --password-stdin --username AWS ${ECR_REGISTRY}
+aws ecr get-login-password | docker login --password-stdin --username AWS ${AWS_ID}.dkr.ecr.ap-northeast-2.amazonaws.com
 curl -H "X-aws-ec2-metadata-token: $(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")" -v "http://169.254.169.254/latest/meta-data/placement/availability-zone-id"  ## IMDSv2 get aws instance az, metadata: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-data-retrieval.html
 curl http://checkip.amazonaws.com/  ## get current ip
+aws eks describe-addon-versions --kubernetes-version 1.23 --addon-name coredns --output yaml | grep 'addonVersion:' | head  ## kube-proxy, vpc-cni, coredns, aws-ebs-csi-driver
 
 # kubectl
-kubectl get nodes -o custom-columns='custom-columns=NAME:.metadata.name,STATUS:.status.conditions[-1:].type,ZONE:.metadata.labels.topology\.kubernetes\.io/zone,NODE_GROUP:.metadata.labels.eks\.amazonaws\.com/nodegroup' | v -
+kubectl get pod -A -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,IMAGE:.spec.containers[].image'
+kubectl get node --sort-by='.metadata.creationTimestamp'
+kubectl get nodes -o custom-columns='NAME:.metadata.name,STATUS:.status.conditions[-1:].type,ZONE:.metadata.labels.topology\.kubernetes\.io/zone,NODE_GROUP:.metadata.labels.eks\.amazonaws\.com/nodegroup' | v -
 NS=apps envsubst < service.yml | kubectl apply -f -
 kubectl auth can-i "*" "*"  ## 권한 체크
-kubectl get node --sort-by='.metadata.creationTimestamp'
+docker run -it --rm -v "$HOME/.kube:/.kube" bitnami/kubectl version
+export EKS_ENDPOINT=
+export EKS_TOKEN=
+docker run --rm -e EKS_SERVER=$(aws eks describe-cluster --name $EKS_CLUSTER | jq -r '.cluster.endpoint') -e EKS_TOKEN=$(aws --region ap-northeast-2 eks get-token --cluster-name $EKS_CLUSTER | jq -r '.status.token') bitnami/kubectl --server $EKS_SERVER --token $EKS_TOKEN --insecure-skip-tls-verify version
+
+
+# helm
+helm show values --version ${VER} -n ${NS} ${CHART}
+helm get values ${RELEASE_NAME}  ## helm으로 반영된 values.yaml 파일 가져오기
+helm ls -a -n ${NS}  ## 특정 네임스페이스의 헬름 차트 인스턴스 목록 띄우기. -A 로 전체 목록
 
 # perl
 perl -MIO::Socket::INET -e '$sock=IO::Socket::INET->new(PeerAddr=>"google.com",PeerPort=>"80",Proto=>"tcp"); print $sock "GET / HTTP/1.0\nHost: google.com\n\n"; print while <$sock>'
 my $s = new IO::Socket::INET(LocalAddr => "0.0.0.0:8080", Listen => 10, Reuse => 1) or die; while(my $c = $s->accept) { my $body = "Hello World!"; print $c "HTTP/1.1 200 OK\nContent-Type: text/plain\n\n$body\n"; close($c); }
+STEP=01 perl -pe '$a=qq{STEP$ENV{STEP}}; /$a:rm/ and $_=qq{}; /$a\s+/ and s/^(\s+)# (.+)\s+## $a[^#\n]+/\1\2/' *.tf
 
 # curl
 curl --header "Host: test.example.com" http://aws-domain.elb.amazonaws.com  ## DNS 설정 없이 ingress 테스트할 때 사용
+curl --proxy "http://proxy.example.com" "http://example.com"  ## proxy 테스트
 
 # git
 git log --patch -S ${QUERY}  ## history search
@@ -61,8 +94,16 @@ git worktree add ../${PATH} ${BRANCH}
 git push --set-upstream origin master
 git status --short | awk '!/##/{print$2}'  ## git status file list
 git merge -Xours ${branch}  ## 충돌 발생시, ours (HEAD, stage#2)를 사용한다
-git checkout --their -- ${Files}  ## git conflit 해결용, theirs (merge target, stage#3) 기준으로 맞춘다. rebase일 경우 작업물로 설정
-git checkout master -- ${Files}  ## git conflit 해결용, master로 맞춰버리기..
+git checkout --their -- :g  ## git conflit 해결용, theirs (merge target, stage#3) 기준으로 맞춘다. rebase일 경우 작업물로 설정
+git checkout master -- :g  ## git conflit 해결용, master로 맞춰버리기..
+git show --name-only
+git update-index --chmod=+x $PATH  ## git chmod
+
+# gh
+gh api repos/${OWNER}/${REPO}/pulls/5355  ## list pr info json
+gh api repos/${OWNER}/${REPO}/pulls/5355/files  ## list pr files json
+gh api repos/${OWNER}/${REPO}/pulls/5355/commits  ## list pr commit json
+gh api repos/${{ github.repository }}/pulls/5355 -q '.title'  ## in github action. with `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}`
 
 # asdf
 asdf plugin add terraform
@@ -79,7 +120,11 @@ asdf plugin add yq
 asdf plugin add jq
 asdf plugin add pre-commit
 asdf plugin add nova
+asdf plugin add $(curl 'https://github.com/asdf-vm/asdf-plugins/tree/master/plugins' | jq -r '.payload.tree.items[].name' | fzf)
 
 # redis
 redis-cli -p 26379 info ## sentinel info
 redis-cli -p 26379 sentinel masters ## sentinel masters
+
+# open
+open -na RubyMine.app --args .
