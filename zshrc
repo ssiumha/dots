@@ -259,8 +259,9 @@ _fzf_default_completion() {
     cat ~/dotfiles/favcmd |
       perl -ne 'print if !/^(#|$)/' |
       perl -pe 's/(## .+)/\e[0;32m\1\e[0m/' |
-      fzf --preview='echo {} | perl -pe "s/^(.+)(## .+)/\\2\n\\1/"' \
-          --preview-window=wrap \
+      fzf --preview='echo {} | perl -pe "s/^(.+)(\s+## .+)/\\2\n\\1/"' \
+          --preview-window=down:3:wrap \
+          --min-height 15 \
           --scheme=history \
           --query "$LBUFFER" |
       perl -pe 's/## .+?$//'
@@ -271,15 +272,31 @@ _fzf_default_completion() {
 zle -N _fzf_default_completion
 export fzf_default_completion=_fzf_default_completion
 
+#### favcmd pipe
+_fzf_pipe_complete_post() { perl -pe 's/## .+?$//' }
+_fzf_pipe_complete() {
+  _fzf_complete -m --scheme=history --preview 'echo {} | perl -pe "s/^(.+)(\s+## .+)/\\2\n\\1/"' --preview-window down:3:wrap --min-height 15 -- "$@" < <(
+    cat ~/dotfiles/favcmd |
+      perl -ne 'print if !/^(#|$)/ && /^\|/' |
+      perl -pe 's/(## .+)/\e[0;32m\1\e[0m/'
+  )
+}
+
 #### command complete
+_fzf_command_complete_g_post() { awk '{ print $2 }' }
 _fzf_command_complete_g() {
   _fzf_complete -m --preview 'echo {}' --preview-window down:3:wrap --min-height 15 -- "$@" < <(
     command git status --short
   )
 }
 
-_fzf_command_complete_g_post() {
-  awk '{ print $2 }'
+_fzf_command_complete_gb_post() { perl -pe 's/^\*//' | awk '{print $2}' }
+_fzf_command_complete_gb() {
+  _fzf_complete -m --preview 'echo {}' --tac --preview-window down:3:wrap --min-height 15 -- "$@" < <(
+    git for-each-ref --sort=committerdate refs/heads/ --color=always \
+      --format="%(HEAD) %(color:green)%(committerdate:short)%(color:reset) %09 %(color:yellow)%(refname:short)%(color:reset) %09 %(authorname) %09 %(contents:subject)" \
+      | column -t -s $'\t'
+  )
 }
 
 _fzf_command_complete_rise_dir() {
@@ -296,8 +313,10 @@ _fzf_my_completion_hook() {
   prefix=$1
   lbuf=$2
 
-  if [[ "$prefix" == .. ]]; then
-      prefix="" eval _fzf_command_complete_rise_dir ${(q)lbuf}
+  if [[ "$prefix" == "|" ]]; then
+    prefix="" eval _fzf_pipe_complete ${(q)lbuf}
+  elif [[ "$prefix" == .. ]]; then
+    prefix="" eval _fzf_command_complete_rise_dir ${(q)lbuf}
   elif [[ "$prefix" == :* ]]; then
     # TODO: typing -> :g -> c-f 동작이 불편, : 말고 다른 단어가 필요. gst+c-f?
     #    - :l + c-f => current ls
