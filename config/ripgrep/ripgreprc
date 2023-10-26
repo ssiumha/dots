@@ -5,15 +5,16 @@
 --type-add=web:*.{html,css,js}*
 
 # disable gitignore
+--hidden
 --no-ignore-vcs
 --no-ignore-dot
 
 # globs
--g=!.terraform
--g=!node_modules
--g=!vendor
+-g=!.terraform/
+-g=!node_modules/
+-g=!vendor/
 
--g=!.git
--g=!.svn
--g=!.devbox
--g=!log
+-g=!.git/
+-g=!.svn/
+-g=!.devbox/
+-g=!log/
