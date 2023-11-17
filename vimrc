@@ -177,7 +177,7 @@ call plug#end()
 "----------------
 colorscheme jellybeans
 
-if has('nvim-0.7.0')
+if has('nvim-0.7.0') && has('lua')
 lua << EOF
   require'nvim-treesitter.configs'.setup {
     ensure_installed = { 'ruby', 'yaml' },
