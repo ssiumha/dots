@@ -1,12 +1,14 @@
 # favcmd
 v ~/dotfiles/favcmd
 v ~/dotfiles/config/nvim/snips
+v ~/dotfiles/config/nvim/words
 
 # bookmark
 open -a 'Google Chrome.app' https://lzone.de/cheat-sheet  ## cheatsheet Redis, MySQL, ElasticSearch...
 open -a 'Google Chrome.app' https://docs.github.com/en/actions/creating-actions/creating-a-composite-action ## github workflow composite action
 open -a 'Google Chrome.app' https://www.shellcheck.net  ## shell script checker
 open -a 'Google Chrome.app' 'https://github.com/search?q=topic%3Acustom-elements+org%3Agithub&type=repositories' ## github의 web component
+open -a 'Google Chrome.app' 'railsg.xyz' ## rails command generator
 
 # bash
 echo '\033[31mRed!\033[0m'  ## color 30~ KRGY BMCW; 1:bold 5:blink 7:invt
@@ -17,6 +19,21 @@ ssh-keygen -f ~/.ssh/id_ed25519 -y  ## public key
 date +"%Y-%m-%dT%H:%M:%S%z"  ## iso-8610 in BSD
 
 openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out cert.crt -keyout cert.key
+
+for i in {1..100}; do echo $i; done
+tmux send-keys -t $(tmux split-window -d -P -F "#{pane_id}" 'ssh temp0') 'ls' Enter
+for i in {0..6}; do tmux send-keys -t $(tmux split-window -d -P -F "#{pane_id}" "ssh temp$i") 'ls' Enter; tmux select-layout tiled; done
+
+rg --color=never -l ${SEARCH} | xargs perl -i -pe 's/${SEARCH}/xxx/g'  ## find all replace
+rg --color=never -l ${SEARCH} | while read -r line; do echo $line; done;  ## loop search files
+| cut -c-$COLUMNS
+
+systemctl --type=service --state=active
+systemctl --type=service --state=running
+jounalctl -u $UNIT -n 100 -f
+
+sudo apt install -y libssl-dev libbz2-dev libreadline-dev libffi-dev liblzma-dev libsqlite3-dev  ## python build dependency in ubuntu
+
 
 # ruby
 bundle exec rails
@@ -41,6 +58,9 @@ ruby -r openssl -e 'puts OpenSSL::OPENSSL_VERSION'
 | ruby -e 'puts [STDIN.read].pack("H*")'  ## hex to string 2. (Hex, Char, Short, Long, ascii etc..)
 | ruby -e 'puts Time.at(STDIN.read.gsub(/[^\d]/, "").to_i)'  ## epoch, unix time
 
+echo "\nActiveRecord::Base.establish_connection(adapter: 'postgresql', host: 'localhost', port: 5432, username: 'postgres', password: 'postgres', database: 'dev');\nclass User < ApplicationRecord; self.table_name = 'users' end;\nUser.all\n"; bundle exec rails c  ## attach specific database
+find test -name '*.rb' -type f -mtime -30m -exec ls -t {} + | head -n 1 1>&2 | xargs bundle exec rails test  ## test recently modified file
+
 # python
 python3 -m http.server 8080
 
@@ -50,6 +70,8 @@ curl -XGET -s -o /dev/null -w "%{http_code}" "http://example.com"  ## check http
 docker run --rm -p 4444:4444 seleniarm/standalone-chromium  ## multi arch selenium
 docker system df  ## check docker volume size
 du -ks /var/lib/docker/containers/* | sort -n | tail  ## check docker containers size by 1KB
+docker compose config | yq '.services[]|key'
+docker compose ps -q ${SERVICE} | xargs docker inspect --format='{{.LogPath}}' | tail -n1 | xargs tail -f  ## docker logs from file
 
 # terraform
 terraform plan -out plan.out | tee plan.std.out
@@ -66,6 +88,9 @@ aws ecr get-login-password | docker login --password-stdin --username AWS ${AWS_
 curl -H "X-aws-ec2-metadata-token: $(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")" -v "http://169.254.169.254/latest/meta-data/placement/availability-zone-id"  ## IMDSv2 get aws instance az, metadata: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-data-retrieval.html
 curl http://checkip.amazonaws.com/  ## get current ip
 aws eks describe-addon-versions --kubernetes-version 1.23 --addon-name coredns --output yaml | grep 'addonVersion:' | head  ## kube-proxy, vpc-cni, coredns, aws-ebs-csi-driver
+aws ec2 describe-instances --query 'Reservations[*].Instances[*].[Tags[?Key==`Name`].Value|[0],InstanceId,InstanceType,PrivateIpAddress,PublicIpAddress,State.Name]' --output text
+aws ec2 describe-instance-types --query 'InstanceTypes[*].[InstanceType, MemoryInfo.SizeInMiB, VCpuInfo.DefaultVCpus]' --output text | grep -e '^m' | sort -k3 -n
+
 
 # kubectl
 kubectl get pod -A -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,IMAGE:.spec.containers[].image'
@@ -93,7 +118,7 @@ STEP=01 perl -pe '$a=qq{STEP$ENV{STEP}}; /$a:rm/ and $_=qq{}; /$a\s+/ and s/^(\s
 curl --header "Host: test.example.com" http://aws-domain.elb.amazonaws.com  ## DNS 설정 없이 ingress 테스트할 때 사용
 curl --proxy "http://proxy.example.com" "http://example.com"  ## proxy 테스트
 curl qrcode.show -d 'test'
-| curl qrcode.show -d -
+| curl qrcode.show -d @-
 curl -sS -H "Content-Type: application/json" -d '{ "id": 1, "jsonrpc": "2.0", "method": "rpc_methods", "params": [] }' localhost:9933 | jq ## request JSON-RPC
 
 # git
@@ -109,15 +134,21 @@ git checkout --their -- :g  ## git conflit 해결용, theirs (merge target, stag
 git checkout master -- :g  ## git conflit 해결용, master로 맞춰버리기..
 git show --name-only
 git update-index --chmod=+x $PATH  ## git chmod
+git config --global --get user.name
+git config --global --get user.email
+git config --global --add user.name ${NAME}
+git config --global --list
 
 # gh
 gh api repos/${OWNER}/${REPO}/pulls/5355  ## list pr info json
 gh api repos/${OWNER}/${REPO}/pulls/5355/files  ## list pr files json
 gh api repos/${OWNER}/${REPO}/pulls/5355/commits  ## list pr commit json
 gh api repos/${{ github.repository }}/pulls/5355 -q '.title'  ## in github action. with `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}`
-gh auth token  ## get github access tokens
+gh auth token | clipcopy  ## get github access tokens
 gh ssh-key add $KEY_FILE -t $TITLE
 gh ssh-key list
+
+gh pr -R $(git remote get-url up | perl -ne 'print /:(.+).git/') list  ## PR list current up remote
 
 # asdf
 asdf plugin add terraform
@@ -135,6 +166,8 @@ asdf plugin add jq
 asdf plugin add pre-commit
 asdf plugin add nova
 asdf plugin add $(curl 'https://github.com/asdf-vm/asdf-plugins/tree/master/plugins' | jq -r '.payload.tree.items[].name' | fzf)
+asdf plugin update --all
+asdf update
 
 # redis
 redis-cli -p 26379 info ## sentinel info
@@ -142,9 +175,13 @@ redis-cli -p 26379 sentinel masters ## sentinel masters
 
 # postgres psql
 PGPASSWORD='postgres' psql -h localhost -U postgres -c '\l'  ## show databases
+PGPASSWORD='postgres' psql -h localhost -U postgres -c 'select * from pg_database;'  ## show databases
 PGPASSWORD='postgres' psql -h localhost -U postgres -d $DB -c '\dt'  ## show tables
+PGPASSWORD='postgres' psql -h localhost -U postgres -d $DB -c 'select * from pg_catalog.pg_tables'  ## show tables
 PGPASSWORD='postgres' psql -h localhost -U postgres -d $DB -c '\d table_name'  ## show table columns
 PGPASSWORD='postgres' psql -h localhost -U postgres -d $DB -c 'select * from table_name limit 10'  ## select
+PGPASSWORD='postgres' psql -h localhost -U postgres -d $DB -c 'insert into "table_name" ("col1", "col2", ...) '" values ('val1', 'val2', ...)"  ## insert
+PGPASSWORD='postgres' psql -h localhost -U postgres -d $DB <<SQL  ## multiline
 
 # open
 open -na RubyMine.app --args .
