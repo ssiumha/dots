@@ -38,6 +38,9 @@ export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_STATE_HOME="$HOME/.local/state"
 export XDG_CACHE_HOME="$HOME/.cache"
 
+export HISTSIZE=500000
+export SAVEHIST=500000
+
 export ZSH_CACHE_DIR="$XDG_CACHE_HOME/zsh/.zcompcache"
 
 export ASDF_CONFIG_FILE="$XDG_CONFIG_HOME/asdf/asdfrc"
@@ -81,7 +84,12 @@ else
   export EDITOR="vim"
 fi
 
-if command -v exa &>/dev/null; then
+if command -v lsd &>/dev/null; then
+  alias l="lsd -lh"
+  alias la="lsd -Ah"
+  alias ll="lsd -lh"
+  alias lla="lsd -lAh"
+elif command -v exa &>/dev/null; then
   alias l="exa -s type"
   alias la="exa -s type -a"
   alias ll="exa -s type -l"
