@@ -10,17 +10,19 @@ DOT_CACHE = "#{Dir.home}/.cache"
 DOT_ASDF = "#{Dir.home}/.asdf"
 
 BIN_VERSIONS = {
-  'neovim/neovim'      => 'v0.9.1',
-  'junegunn/fzf'       => '0.35.1',
+  'neovim/neovim'      => 'v0.9.4',
+  'junegunn/fzf'       => '0.43.0',
   'BurntSushi/ripgrep' => '13.0.0',
-  'ogham/exa'          => 'v0.10.1',
+  # 'ogham/exa'          => 'v0.10.1',
+  # 'eza-community/eza'  => 'v0.15.2',
+  'lsd-rs/lsd'         => 'v1.0.0',
   'dandavison/delta'   => '0.16.5',
   'Wilfred/difftastic' => '0.41.0',
   'ajeetdsouza/zoxide' => 'v0.9.1',
-  'denoland/deno'      => 'v1.29.2',
-  'sharkdp/fd'         => 'v8.7.0',
-  'sharkdp/bat'        => 'v0.22.1',
-  'bootandy/dust'      => 'v0.8.3',
+  'denoland/deno'      => 'v1.38.0',
+  'sharkdp/fd'         => 'v8.7.1',
+  'sharkdp/bat'        => 'v0.24.0',
+  'bootandy/dust'      => 'v0.8.6',
 }
 
 # defaults write -g ApplePressAndHoldEnabled -bool false
