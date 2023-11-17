@@ -290,6 +290,16 @@ _fzf_pipe_complete() {
   )
 }
 
+#### favcmd sub
+_fzf_sub_complete_post() { perl -pe 's/## .+?$//' }
+_fzf_sub_complete() {
+  _fzf_complete -m --scheme=history --preview 'echo {} | perl -pe "s/^(.+)(\s+## .+)/\\2\n\\1/"' --preview-window down:3:wrap --min-height 15 -- "$@" < <(
+    cat ~/dotfiles/favcmd |
+      perl -ne 'print if !/^(#|$)/ && /^\$\(/' |
+      perl -pe 's/(## .+)/\e[0;32m\1\e[0m/'
+  )
+}
+
 #### command complete
 _fzf_command_complete_g_post() { awk '{ print $2 }' }
 _fzf_command_complete_g() {
@@ -323,6 +333,8 @@ _fzf_my_completion_hook() {
 
   if [[ "$prefix" == "|" ]]; then
     prefix="" eval _fzf_pipe_complete ${(q)lbuf}
+  elif [[ "$prefix" == "\$(" ]]; then
+    prefix="" eval _fzf_sub_complete ${(q)lbuf}
   elif [[ "$prefix" == .. ]]; then
     prefix="" eval _fzf_command_complete_rise_dir ${(q)lbuf}
   elif [[ "$prefix" == :* ]]; then
