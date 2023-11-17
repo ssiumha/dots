@@ -1,0 +1,14 @@
+snippet empty "empty"
+endsnippet
+
+snippet multi_replace "multiple"
+begin ${0:default}
+end ${0}
+endsnippet
+
+snippet multi_args "multiple"
+begin ${0:default}
+	puts "${1}"
+	puts ${2:"test"}
+end ${0}
+endsnippet

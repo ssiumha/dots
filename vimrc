@@ -91,12 +91,49 @@ endif
 
 call plug#begin(expand('$HOME/.local/vim/plugged'))
 
-Plug 'junegunn/fzf'
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
   let $FZF_DEFAULT_COMMAND="fd -tf --no-ignore-vcs"
   nnoremap <space>p <esc>:Files<cr>
   nnoremap <space>p[ <esc>:History<cr>
   nnoremap <space>pb <esc>:Buffers<cr>
+  nnoremap <space>pc <esc>:Commands<cr>
+  nnoremap <space>pj <esc>:Jumps<cr>
+  nnoremap <space>pl <esc>:Lines<cr>
+  nnoremap <space>pL <esc>:BLines<cr>
+  nnoremap <space>pm <esc>:Marks<cr>
+  nnoremap <space>ps <esc>:Snippets<cr>
+  nnoremap <space>pr <esc>:Rg<space>
+
+  nmap <leader><tab> <plug>(fzf-maps-n)
+
+  imap <c-x><c-k> <plug>(fzf-complete-word)
+  imap <c-x><c-f> <plug>(fzf-complete-path)
+  imap <c-x><c-l> <plug>(fzf-complete-line)
+
+Plug 'voldikss/vim-floaterm'
+  command! -nargs=* -complete=customlist,floaterm#cmdline#complete -bang -range MySnip  call s:mysnip()
+  nnoremap <space>f <esc>:MySnip<cr>
+
+  func! s:mysnip() abort
+    try
+      let [shell, shellslash, shellcmdflag, shellxquote] = floaterm#util#use_sh_or_cmd()
+
+      let s:mysnip_tempfile = tempname()
+      let newcmd = [&shell, &shellcmdflag, '$HOME/dotfiles/bin/snip.sh ' . &filetype . ' > ' . s:mysnip_tempfile]
+      let jobopts = { 'on_exit': funcref('s:mysnip_on_exit') }
+      let config = {}
+      let bufnr = floaterm#terminal#open(-1, newcmd, jobopts, config)
+    finally
+      let [&shell, &shellslash, &shellcmdflag, &shellxquote] = [shell, shellslash, shellcmdflag, shellxquote]
+    endtry
+  endfunc
+
+  func! s:mysnip_on_exit(job, data, event, opener) abort
+    if filereadable(s:mysnip_tempfile)
+      execute '-1read ' . s:mysnip_tempfile
+    endif
+  endfunc
 
 Plug 'mileszs/ack.vim'
   nnoremap <space>a :Ack!<space>

@@ -1,0 +1,27 @@
+snippet source_location "get directory path"
+script_dir=$(dirname $(realpath "$0"))
+endsnippet
+
+snippet iter_textline "loop lines"
+cat $file | while IFS=$'\n' read -r line; do
+	echo $line
+done
+endsnippet
+
+snippet args "xxx.sh arg1"
+arg1=$1
+endsnippet
+
+snippet template_cli "basic with help"
+#!/bin/bash
+
+show_help() {
+  echo "Usage: $0 <argument>"
+  echo "Description: Describe your argument here."
+}
+
+if [ -z "$1" ]; then
+  show_help
+  exit 1
+fi
+endsnippet

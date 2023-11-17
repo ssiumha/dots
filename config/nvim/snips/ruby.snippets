@@ -1,3 +1,9 @@
+snippet string_capture "regexp, capture"
+case RUBY_VERSION[/\d+\.\d+/, 0]
+when '3.2'
+end
+endsnippet
+
 snippet frozen "string literal"
 # frozen_string_literal: true
 endsnippet
@@ -18,6 +24,40 @@ snippet popen3 "call popen with env"
 env_vars = { 'VAR1' => 'value1' }
 command = ['echo', '$VAR1']
 Open3.popen3(env_vars, *command) do |stdin, stdout, stderr, with_thr|
-	puts stdout.read
+  puts stdout.read
+end
+endsnippet
+
+snippet instance_patch "extend monkey patch method"
+class << ${1:@instance}
+  def ${2:method_name}
+  end
+end
+endsnippet
+
+snippet color_hex_to_hsl "code template"
+class String
+  def to_hsl
+    # self -> #ffaaee
+    r, g, b = self.downcase
+                  .match(/#?(\h\h)(\h\h)(\h\h)/)
+                  .captures
+                  .map { |s| (s.hex / 255.0).round(2) }
+
+    cmin, cmax = [r,g,b].minmax
+    delta = cmax - cmin
+
+    h = if delta.zero? then 0
+        elsif cmax == r then ((g - b) / delta) % 6
+        elsif cmax == g then (b - r) / delta + 2
+        else (r - g) / delta + 4
+        end
+    h = (h * 60).round % 360
+
+    l = ((cmax + cmin) / 2.0).round(2) * 100
+    s = delta.zero? ? 0 : (delta / (1 - (cmax + cmin - 1).abs)).round(2) * 100
+
+    [h.to_i, s.to_i, l.to_i]
+  end
 end
 endsnippet
