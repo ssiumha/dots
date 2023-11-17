@@ -1,0 +1,26 @@
+# docker-compose
+container_name
+depends_on
+env_file
+environment
+healthcheck
+networks
+ports
+profiles
+services
+volumes
+
+# kube
+containers
+failureThreshold
+imagePullPolicy
+livenessProbe
+matchExpressions
+matchLabels
+podAntiAffinity
+requiredDuringSchedulingIgnoredDuringExecution
+revisionHistoryLimit
+terminationGracePeriodSeconds
+topologyKey
+topologySpreadConstraints
+whenUnsatisfiable

@@ -70,6 +70,17 @@ let &directory = expand('$HOME/.cache/vim/swap')
 " let g:ruby_host_prog = '$(ASDF_RUBY_VERSION=system gem environment gemdir)/bin/neovim-ruby-host'
 
 "----------------
+" complete
+"----------------
+set dictionary+=$HOME/dotfiles/config/nvim/words/dict.txt
+set dictionary+=$HOME/.firm/dict.txt
+iab destory destroy
+iab functino function
+iab lien line
+
+autocmd FileType * execute 'setlocal dict+=$HOME/dotfiles/config/nvim/words/'.&filetype.'.txt'
+
+"----------------
 " plug
 "----------------
 let s:vim_plug_install_path = expand('$HOME/.vim/autoload/plug.vim')
