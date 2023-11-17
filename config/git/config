@@ -6,6 +6,9 @@
   autocrlf = no
 [log]
   date = format:%y-%m-%d %H:%M
+[delta]
+  # delta --show-syntax-themes
+  # delta --diff-so-fancy --show-config
 [alias]
   d = diff
   ds = diff --staged
