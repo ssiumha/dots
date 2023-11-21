@@ -273,6 +273,9 @@ augroup filetype_all
   autocmd BufWritePre * :call s:removeTrailingWhitespace()
   autocmd BufWritePre * :call s:ensureParentDirectory()
   autocmd BufReadPost * :call s:moveCursorToLastPosition()
+
+  autocmd StdinReadPost * :AnsiEsc
+  autocmd StdinReadPost * setlocal nowrap buftype=nofile
 augroup END
 
 "----------------
