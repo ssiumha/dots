@@ -1,3 +1,5 @@
+# vim:ft=zsh wrap
+
 # favcmd
 v ~/dotfiles/favcmd
 v ~/dotfiles/config/nvim/snips
@@ -9,6 +11,7 @@ open -a 'Google Chrome.app' https://docs.github.com/en/actions/creating-actions/
 open -a 'Google Chrome.app' https://www.shellcheck.net  ## shell script checker
 open -a 'Google Chrome.app' 'https://github.com/search?q=topic%3Acustom-elements+org%3Agithub&type=repositories' ## github의 web component
 open -a 'Google Chrome.app' 'railsg.xyz' ## rails command generator
+open -a 'Google Chrome.app' 'https://docs.docker.com/compose/compose-file/build/' ## open docker reference
 
 # bash
 echo '\033[31mRed!\033[0m'  ## color 30~ KRGY BMCW; 1:bold 5:blink 7:invt
@@ -34,6 +37,8 @@ jounalctl -u $UNIT -n 100 -f
 
 sudo apt install -y libssl-dev libbz2-dev libreadline-dev libffi-dev liblzma-dev libsqlite3-dev  ## python build dependency in ubuntu
 
+rsync --progress --stats -avr /mnt/from/ /mnt/to/  ## from/xx.txt -> to/xx.txt ;; from 뒤에 / 붙으면 파일만, 없으면 폴더 그 자체가 대상 ;; -a : recursive, link(sym), permission, times, group, owner, Devices ;; --max-size 100m : 크기를 넘는 파일은 전송안함 ;; --bwlimit 10m : 전송속도 제한 ;; --exclude-from - <<EOF : *.zip, *.html 등 stdin, heredoc, file 형태로 제외할 파일 지정 ;; --partial : 파일 전송을 부분적으로 보관
+rsync -Pvr --exclude=node_modules --exclude=vendor /mnt/from /mnt/to  ## from/xx.txt -> to/from/xx.txt
 
 # ruby
 bundle exec rails
@@ -49,6 +54,7 @@ bundle config set --local clean true
 bundle config build.pg --with-pg-config=$(brew --prefix libpq)/bin/pg_config
 bundle config build.iconv --with-iconv-dir=$(brew --prefix libiconv)
 bundle config build.nokogiri --with-iconv-dir=$(brew --prefix libiconv)
+brew install libpq
 gem bump -v pre
 
 ruby -r openssl -e 'puts OpenSSL::OPENSSL_VERSION'
@@ -72,6 +78,17 @@ docker system df  ## check docker volume size
 du -ks /var/lib/docker/containers/* | sort -n | tail  ## check docker containers size by 1KB
 docker compose config | yq '.services[]|key'
 docker compose ps -q ${SERVICE} | xargs docker inspect --format='{{.LogPath}}' | tail -n1 | xargs tail -f  ## docker logs from file
+docker compose up
+docker compose down
+docker compose exec -it
+
+docker buildx create --name remote-container --driver remote tcp://remote-addr:1234
+docker compose build --builder remote-container
+docker buildx build --builder=remote-container --load -t image-name .
+
+DOCKER_HOST="ssh://user@remote" docker images
+docker context create remote --docker "host=ssh://user@remote"
+docker --context remote ps
 
 # terraform
 terraform plan -out plan.out | tee plan.std.out
@@ -114,12 +131,19 @@ perl -MIO::Socket::INET -e '$sock=IO::Socket::INET->new(PeerAddr=>"google.com",P
 my $s = new IO::Socket::INET(LocalAddr => "0.0.0.0:8080", Listen => 10, Reuse => 1) or die; while(my $c = $s->accept) { my $body = "Hello World!"; print $c "HTTP/1.1 200 OK\nContent-Type: text/plain\n\n$body\n"; close($c); }
 STEP=01 perl -pe '$a=qq{STEP$ENV{STEP}}; /$a:rm/ and $_=qq{}; /$a\s+/ and s/^(\s+)# (.+)\s+## $a[^#\n]+/\1\2/' *.tf
 
+| perl -MMath::BigInt -pe 's{(0x[0-9a-fA-F]+)}{Math::BigInt->from_hex($1)}ge'  ## replace hex to int
+
+fd | perl -lne '$a=$_=~s/txt$/csv/r; print "mv $_ $a"'  ## bulk replace file names
+
 # curl
 curl --header "Host: test.example.com" http://aws-domain.elb.amazonaws.com  ## DNS 설정 없이 ingress 테스트할 때 사용
 curl --proxy "http://proxy.example.com" "http://example.com"  ## proxy 테스트
 curl qrcode.show -d 'test'
 | curl qrcode.show -d @-
 curl -sS -H "Content-Type: application/json" -d '{ "id": 1, "jsonrpc": "2.0", "method": "rpc_methods", "params": [] }' localhost:9933 | jq ## request JSON-RPC
+
+curl 'https://country.is/4.4.4.4'  ## check ip country
+curl 'https://ipinfo.io/4.4.4.4'  ## check ip info
 
 # git
 git log --patch -S ${QUERY}  ## history search
@@ -140,6 +164,10 @@ git config --global --add user.name ${NAME}
 git config --global --list
 
 # gh
+open https://github.com/$(git remote get-url up | perl -ne 'print /:(.+).git/') ## open github
+open https://github.com/$(git remote get-url up | perl -ne 'print /:(.+).git/')/pulls ## open github pr
+gh pr -R $(git remote get-url up | perl -ne 'print /:(.+).git/') list  ## PR list current up remote
+
 gh api repos/${OWNER}/${REPO}/pulls/5355  ## list pr info json
 gh api repos/${OWNER}/${REPO}/pulls/5355/files  ## list pr files json
 gh api repos/${OWNER}/${REPO}/pulls/5355/commits  ## list pr commit json
@@ -147,8 +175,6 @@ gh api repos/${{ github.repository }}/pulls/5355 -q '.title'  ## in github actio
 gh auth token | clipcopy  ## get github access tokens
 gh ssh-key add $KEY_FILE -t $TITLE
 gh ssh-key list
-
-gh pr -R $(git remote get-url up | perl -ne 'print /:(.+).git/') list  ## PR list current up remote
 
 # asdf
 asdf plugin add terraform
@@ -185,3 +211,4 @@ PGPASSWORD='postgres' psql -h localhost -U postgres -d $DB <<SQL  ## multiline
 
 # open
 open -na RubyMine.app --args .
+open -na WebStorm.app --args .
