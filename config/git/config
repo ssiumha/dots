@@ -21,6 +21,7 @@
   s = switch
   sw = switch
   swf = !$HOME/.config/git/alias/swf
+  swm = !git switch $(git main-branch)
 
   br = branch
 
