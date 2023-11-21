@@ -1,0 +1,92 @@
+snippet services_template "services"
+version: '3.9'
+
+services:
+  node:
+    image: ubuntu:latest
+    restart: always
+    environment:
+      - NAME=test
+    ports:
+      - 3000:3000
+    volumes:
+      - ./app:/app
+    command:
+      - --option
+    depends_on:
+      - another_node
+endsnippet
+
+snippet environment "services.<service>.environment"
+    environment:
+      - NAME=test
+endsnippet
+
+snippet ports "services.<service>.ports"
+    ports:
+      - 3000:3000/tcp
+endsnippet
+
+snippet volumes "services.<service>.volumes"
+    volumes:
+      - ./app:/app
+endsnippet
+
+snippet privileged "services.<service>.privileged"
+    privileged: true
+endsnippet
+
+snippet deploy_replicas "services.<service>.deploy"
+    deploy:
+      mode: replicated
+      replicas: 2
+endsnippet
+
+snippet networks_alloc_ip "services.<service>.networks. require network subnet"
+    networks:
+      main:
+        ipv4_address: 10.0.100.1
+endsnippet
+
+snippet networks_subnet ".networks"
+networks:
+  main:
+    name: main
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.100.0/16
+endsnippet
+
+snippet build ".services.<service>; context based on dockerfile path. dockerfile is optional"
+    build:
+      context: ./src
+      dockerfile: ../service.Dockerfile
+      platforms:
+        - amd64
+        - arm64
+      args:
+        - VAULT=TEST
+endsnippet
+
+snippet build_inline ".services.<service>"
+    build:
+      context: ./src
+      dockerfile_inline: |
+        FROM baseimage
+        RUN command
+endsnippet
+
+snippet template_remote_buildkit ".services"
+  # https://docs.docker.com/build/drivers/remote/
+  remote-buildkit:
+    image: moby/buildkit:latest
+    ports:
+      - 1234:1234
+    command:
+      - --addr
+      - tcp://0.0.0.0:1234
+    privileged: true
+    restart: no
+endsnippet

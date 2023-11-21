@@ -1,0 +1,3 @@
+snippet mount_cache "cache specific target path"
+RUN --mount=type=cache,id=gem,sharing=locked,target=/gem bundle install
+endsnippet
