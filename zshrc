@@ -267,8 +267,8 @@ _fzf_default_completion() {
     cat ~/dotfiles/favcmd |
       perl -ne 'print if !/^(#|$)/' |
       perl -pe 's/(## .+)/\e[0;32m\1\e[0m/' |
-      fzf --preview='echo {} | perl -pe "s/^(.+)(\s+## .+)/\\2\n\\1/"' \
-          --preview-window=down:3:wrap \
+      fzf --preview='echo {} | perl -pe "s/^(.+)\s*(## .+)/\\2\n\\1/; s/;;/\n##/g;"' \
+          --preview-window='down:~10:wrap' \
           --min-height 15 \
           --scheme=history \
           --query "$LBUFFER" |
