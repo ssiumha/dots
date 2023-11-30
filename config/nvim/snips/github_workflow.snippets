@@ -1,0 +1,14 @@
+snippet jobs_template "basic jobs template"
+jobs:
+  job:
+    name: workflow job
+    runs-on: [self-hosted, ubuntu-22.04]
+    steps:
+      - uses: actions/checkout@v3
+      - name: work
+        env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        working-directory: src/proj
+        run: |
+          echo 123
+endsnippet

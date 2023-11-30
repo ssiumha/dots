@@ -1,0 +1,33 @@
+snippet include "include another config file"
+Include ~/.orbstack/ssh/config
+endsnippet
+
+snippet basic "template"
+Host ${host}
+  User ${user}
+  HostName ${target_hostname}
+  IdentityFile ~/.ssh/id_ed25519
+endsnippet
+
+snippet basic_ec2 "user is ec2-user"
+Host ${host}
+  User ec2-user
+  HostName ${target_hostname}
+  IdentityFile ~/.ssh/id_ed25519
+endsnippet
+
+snippet auto_su "automatically sudo su"
+Host ${host_root}
+  HostName ${target_hostname}
+  User ${user}
+  IdentityFile ~/.ssh/id_ed25519
+  RequestTTY force
+  RemoteCommand sudo su
+endsnippet
+
+snippet github "porxy. can using `git@mygithub:user/repo.git`"
+Host mygithub
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/my_ed25519
+endsnippet

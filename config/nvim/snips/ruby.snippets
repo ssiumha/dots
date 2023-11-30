@@ -61,3 +61,45 @@ class String
   end
 end
 endsnippet
+
+snippet inline_gemfile "install without Gemfile"
+require 'bundler/inline'
+gemfile do
+  source 'https://rubygems.org'
+  gem 'listen', '3.8.0'
+end
+endsnippet
+
+snippet defined_variable "check"
+@foo = [] unless defined?(@foo)
+endsnippet
+
+snippet rows_to_table "2d array to html table format"
+def rows_to_html_table(rows)
+  html = '<table>'
+  rows.each_with_index do |row, i|
+    if i.zero?
+      html += '<thead>'
+    else
+      html += '<tbody>'
+    end
+
+    html += '<tr>'
+    row.each do |col|
+      if i.zero?
+        html += "<th>#{col}</th>"
+      else
+        html += "<td>#{col}</td>"
+      end
+    end
+    html += '</tr>'
+
+    if i.zero?
+      html += '</thead>'
+    else
+      html += '</tbody>'
+    end
+  end
+  html += '</table>'
+end
+endsnippet

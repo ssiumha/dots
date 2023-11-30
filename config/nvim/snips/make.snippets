@@ -6,3 +6,9 @@ snippet base_template "start up makefile"
 help:
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 endsnippet
+
+snippet docker_build "build current path"
+tar -X .dockerignore -czh . \
+  | docker buildx build --force-rm --no-cache --pull \
+    --tag image:tag -
+endsnippet

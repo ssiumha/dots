@@ -1,0 +1,18 @@
+snippet rswag_response_json "example response json. in `response(200, 'successful')`"
+        example 'application/json', :response, JSON.parse(<<~JSON)
+          {
+            "id": 1,
+            "status": "active",
+          }
+        JSON
+endsnippet
+
+snippet rswag_parameter_enum "example enum query"
+      parameter name: :user_type, in: :query, schema: { type: :string, example: 'normal' }, enum: %w[normal admin], required: true, description: "normal: 일반유저<br>admin: 어드민유저"
+endsnippet
+
+snippet sqids_shortten_id "bundle add 'sqids'"
+sqids = Sqids.new(min_length: 10)
+id = sqids.encode([1, 2, 3])
+num = sqids.decode(id)
+endsnippet

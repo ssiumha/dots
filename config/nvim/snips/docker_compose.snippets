@@ -90,3 +90,22 @@ snippet template_remote_buildkit ".services"
     privileged: true
     restart: no
 endsnippet
+
+snippet inline_entrypoint ".services.<service>; no command"
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        sleep infinity
+endsnippet
+
+snippet x_environment_define ".;"
+x-environment:
+  &environment
+  - DATABASE_URL=postgres://localhost:5432
+endsnippet
+
+snippet x_environment_import "services.<service>"
+    environment:
+      *environment
+endsnippet
