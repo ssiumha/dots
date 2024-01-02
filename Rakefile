@@ -78,13 +78,19 @@ Brewfile = <<-EOF
   brew "mysql"
   brew "tidy-html5"
 
-  cask "docker"
+  brew "trippy"
+
+  cask "orbstack"
   # cask "alacritty"
   cask "wezterm"
   cask "openvpn-connect"
   cask "ngrok"
   cask "raycast"
+
+  ## AI
   cask "deepl"
+  cask "cursor"
+  # cask "lm-studio"
 EOF
 
 OS_TYPE = case `uname -s`.chop.to_s
