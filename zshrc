@@ -154,7 +154,12 @@ PS1=$PROMPT
 # Import
 ################################
 
-[ -d "$HOME/.asdf" ] && source "$HOME/.asdf/asdf.sh"
+# TODO: curl https://rtx.jdx.dev/install.sh | sh
+if [ -d "$HOME/.local/share/rtx" ] && command -v rtx &>/dev/null; then
+  eval "$($HOME/.local/share/rtx/bin/rtx activate zsh)"
+elif [ -d "$HOME/.asdf" ]; then
+  source "$HOME/.asdf/asdf.sh"
+fi
 
 if command -v zoxide &>/dev/null; then
   export _ZO_DATA_DIR="$HOME/.local/zsh/zoxide"
@@ -270,6 +275,7 @@ _fzf_default_completion() {
       fzf --preview='echo {} | perl -pe "s/^(.+)\s*(## .+)/\\2\n\\1/; s/;;/\n##/g;"' \
           --preview-window='down:~10:wrap' \
           --min-height 15 \
+          --height ~80% \
           --scheme=history \
           --query "$LBUFFER" |
       perl -pe 's/## .+?$//'

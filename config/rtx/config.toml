@@ -1,0 +1,35 @@
+# env_path
+
+[env]
+
+[tools]
+# lang
+# python = { version="3.12.0", virtualenv=".venv" }
+ruby = ['system', '3.3.0']
+node = '20.10.0'
+bun = '1.0.20'
+java = 'openjdk-21'
+
+# tool
+neovim = 'latest'
+# yq, jq, rg, fd??
+
+# devops
+terraform = '1.1.8'
+tflint = '0.48.0'
+nova = '3.6.4'
+awscli = 'latest'
+github-cli = 'latest'
+kubectl = 'latest'
+helm = 'latest'
+k9s = 'latest'
+telepresence = 'latest'
+pre-commit = 'latest'
+
+[settings]
+experimental = true # with python virtaulenv activation
+
+[plugins]
+
+# [alias.node]
+# my_custom_node = '20'
