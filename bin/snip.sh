@@ -26,7 +26,8 @@ tmpfile=$(mktemp)
 snippet_targets=("all.snippets")
 if [ "$filetype" = "zsh" ]; then snippet_targets+=("sh.snippets");
 elif [[ "$filetype" == "yaml" && "$filepath" == *"docker-compose"* ]]; then snippet_targets+=("docker_compose.snippets");
-else snippet_targets+=("$filetype.snippets" );
+elif [[ "$filetype" == "yaml" && "$filepath" == *".github/workflows/"* ]]; then snippet_targets+=("github_workflow.snippets");
+else snippet_targets+=("$filetype*.snippets" );
 fi
 
 rg --with-filename --color=never '^snippet ' ${snippet_targets[@]} \
