@@ -1,0 +1,21 @@
+version: '3.9'
+
+# services:
+#   livebook:
+#     image: ghcr.io/livebook-dev/livebook
+#     pull_policy: always
+#     restart: always
+#     # user: ${UID}:${GID}
+#     # userns_mode: host
+#     network_mode: host
+#     ports:
+#       - 60000:60000
+#       - 60001:60001
+#     environment:
+#       - LIVEBOOK_PORT=60000
+#       - LIVEBOOK_IFRAME_PORT=60001
+#       - LIVEBOOK_DATA_PATH=/data
+#     env_file:
+#       - ${HOME}/.env.livebook # LIVEBOOK_PASSWORD, LB_SECRET_KEY_...
+#     volumes:
+#       - ${HOME}/.livebook/:/data
