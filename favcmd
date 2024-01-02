@@ -10,25 +10,35 @@ open -a 'Google Chrome.app' https://lzone.de/cheat-sheet  ## cheatsheet Redis, M
 open -a 'Google Chrome.app' https://docs.github.com/en/actions/creating-actions/creating-a-composite-action ## github workflow composite action
 open -a 'Google Chrome.app' https://www.shellcheck.net  ## shell script checker
 open -a 'Google Chrome.app' 'https://github.com/search?q=topic%3Acustom-elements+org%3Agithub&type=repositories' ## github의 web component
-open -a 'Google Chrome.app' 'railsg.xyz' ## rails command generator
+open -a 'Google Chrome.app' 'https://railsg.xyz' ## rails command generator
 open -a 'Google Chrome.app' 'https://docs.docker.com/compose/compose-file/build/' ## open docker reference
+open -a 'Google Chrome.app' 'https://grep.app'  ## search projects in git repo
+open -a 'Google Chrome.app' 'https://http.cat'  ## http status code
+open -a 'Google Chrome.app' 'https://carbon.now.sh/'  ## terminal command line to image, capture, twitter
+
+# macos
+security add-generic-password -a $LOGNAME -T "" -U -s 'test-pass' -w 'PASS'  ## Save password to keychian
+security find-generic-password -a $LOGNAME -s 'test-pass' -w  ## Get password from keychain
+security delete-generic-password -a $LOGNAME -s 'test-pass'  ## Delete password from keychain
+
 
 # bash
 echo '\033[31mRed!\033[0m'  ## color 30~ KRGY BMCW; 1:bold 5:blink 7:invt
 2>&1 | tee -a ~/tmp/tee/stdout-$(date +"%y%m%d_%H%M").log
 netstat -vanp tcp | grep LISTEN  ## check open ports
 lsof -i -P | grep LISTEN  ## check open ports
+ssh-keygen -t ed25519 -C "user@example.com"
 ssh-keygen -f ~/.ssh/id_ed25519 -y  ## public key
 date +"%Y-%m-%dT%H:%M:%S%z"  ## iso-8610 in BSD
 
 openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out cert.crt -keyout cert.key
+openssl rand -hex 16  ## generate random password
 
 for i in {1..100}; do echo $i; done
 tmux send-keys -t $(tmux split-window -d -P -F "#{pane_id}" 'ssh temp0') 'ls' Enter
 for i in {0..6}; do tmux send-keys -t $(tmux split-window -d -P -F "#{pane_id}" "ssh temp$i") 'ls' Enter; tmux select-layout tiled; done
+tmux capture-pane -J -p -S - -t $PANE_ID > /tmp/pane.log  ## tmux save to logs ;; -S - : from start ;; -p : to stdout ;; -J : wrapped lines join ;; -t : target. %123
 
-rg --color=never -l ${SEARCH} | xargs perl -i -pe 's/${SEARCH}/xxx/g'  ## find all replace
-rg --color=never -l ${SEARCH} | while read -r line; do echo $line; done;  ## loop search files
 | cut -c-$COLUMNS
 
 systemctl --type=service --state=active
@@ -40,7 +50,16 @@ sudo apt install -y libssl-dev libbz2-dev libreadline-dev libffi-dev liblzma-dev
 rsync --progress --stats -avr /mnt/from/ /mnt/to/  ## from/xx.txt -> to/xx.txt ;; from 뒤에 / 붙으면 파일만, 없으면 폴더 그 자체가 대상 ;; -a : recursive, link(sym), permission, times, group, owner, Devices ;; --max-size 100m : 크기를 넘는 파일은 전송안함 ;; --bwlimit 10m : 전송속도 제한 ;; --exclude-from - <<EOF : *.zip, *.html 등 stdin, heredoc, file 형태로 제외할 파일 지정 ;; --partial : 파일 전송을 부분적으로 보관
 rsync -Pvr --exclude=node_modules --exclude=vendor /mnt/from /mnt/to  ## from/xx.txt -> to/from/xx.txt
 
+# bash : bulk edit
+rg --color=never -l ${SEARCH} | xargs perl -i -pe 's/${SEARCH}/xxx/g'  ## find all replace
+rg --color=never -l ${SEARCH} | while read -r line; do echo $line; done;  ## loop search files
+vim -Nens +'g/namespace/norm nciwname' +wq file.txt  ## all replace ;; # e: ExMode / s: Silent / n: No Swap. memory only / N: nocompatible
+vim -Nens +'bufdo g/namespace/norm nciwname' +wqa file.txt file2.txt  ## multiple all replace
+ls | vim -e -s +%s/s/k/ +%p -cq! /dev/stdin  ## +wq!, ZZ 로 저장후 종료 ;; + : cmd ;; - : normal
+
+
 # ruby
+ruby -Itest test/**
 bundle exec rails
 bundle exec sidekiq
 bundle exec ruby -Itest ${TEST}
@@ -54,12 +73,13 @@ bundle config set --local clean true
 bundle config build.pg --with-pg-config=$(brew --prefix libpq)/bin/pg_config
 bundle config build.iconv --with-iconv-dir=$(brew --prefix libiconv)
 bundle config build.nokogiri --with-iconv-dir=$(brew --prefix libiconv)
-brew install libpq
+brew install libpq  ## install postgres library
 gem bump -v pre
 
 ruby -r openssl -e 'puts OpenSSL::OPENSSL_VERSION'
 | ruby -rjson -e 'puts JSON[STDIN.read, symbolize_names: true]'  ## input json: '{"a":[...]}'
 | ruby -rnokogiri -e 'puts Nokogiri::XML(STDIN.read)'  ## input XML
+| ruby -e 'puts STDIN.read.to_i(16)'  ## hex to integer
 | ruby -e 'puts STDIN.read.scan(/.{1,2}/).map { _1.to_i(16).chr }.join'  ## hex to string 1
 | ruby -e 'puts [STDIN.read].pack("H*")'  ## hex to string 2. (Hex, Char, Short, Long, ascii etc..)
 | ruby -e 'puts Time.at(STDIN.read.gsub(/[^\d]/, "").to_i)'  ## epoch, unix time
@@ -67,12 +87,32 @@ ruby -r openssl -e 'puts OpenSSL::OPENSSL_VERSION'
 echo "\nActiveRecord::Base.establish_connection(adapter: 'postgresql', host: 'localhost', port: 5432, username: 'postgres', password: 'postgres', database: 'dev');\nclass User < ApplicationRecord; self.table_name = 'users' end;\nUser.all\n"; bundle exec rails c  ## attach specific database
 find test -name '*.rb' -type f -mtime -30m -exec ls -t {} + | head -n 1 1>&2 | xargs bundle exec rails test  ## test recently modified file
 
+bin/rails rswag
+bin/rails g rspec:swagger API::V1::MyController
+bin/rails test -v | tee >(grep -E 'Test#' | perl -lne '/^(.+Test#.+?) = (.+?) s/; print "$2 $1"' | sort -nr)
+bin/rails test -v | tee >(perl -lne 'print "\n====" if /^Failure:/; print if /^Failure:/../^rails test/') >(grep -E 'Test#' | perl -lne '/^(.+Test#.+?) = (.+?) s/; print "$2 $1"' | sort -nr | perl -pe '$.==1 and print "\n# Duration Time\n"')
+bin/rails routes --expand
+bin/rails g scaffold_controller 'm/model' index show
+watch -cn1 bundle exec rspec --force-color spec/**  ## watch test in rspec rails
+
+bundle exec rubocop --show-cops | awk '!/ +- /{a=0}; /Exclude/||/^[A-Z]/{ a=1 }; a' | tac | awk 'a; /^[A-Z]/{a=0}; !a&&/^ /{a=1; print};' | tac  ## get rubocop exclude options
+
+rg --color=never -l '^class \w.+::' app/controllers | xargs -I% vim -Nens +'norm ggGI  ' +'norm ggWd2f:Omodule pxx' +'norm Goend' +wq %  ## rails class replace to module
+
+kill -9 $(cat tmp/pids/server.pid); rm tmp/pids/server.pid
+
 # python
 python3 -m http.server 8080
+pyenv install 3.12.0
+pyenv virtualenv 3.12.0 3.12.0-vname
+
+# nodejs
+yarn jest --watch --config 'test/jest-e2e.json' 'test/XXX.e2e-spec.ts' -t 'it_name'
 
 # docker
 curl host.docker.internal  ## request host in docker image
 curl -XGET -s -o /dev/null -w "%{http_code}" "http://example.com"  ## check http status code
+curl --head "http://example.com"  ## fetch head only
 docker run --rm -p 4444:4444 seleniarm/standalone-chromium  ## multi arch selenium
 docker system df  ## check docker volume size
 du -ks /var/lib/docker/containers/* | sort -n | tail  ## check docker containers size by 1KB
@@ -82,6 +122,7 @@ docker compose up
 docker compose down
 docker compose exec -it
 
+docker buildx build --no-cache -t 'test:test' . && docker run --rm -it 'test:test'
 docker buildx create --name remote-container --driver remote tcp://remote-addr:1234
 docker compose build --builder remote-container
 docker buildx build --builder=remote-container --load -t image-name .
@@ -89,6 +130,12 @@ docker buildx build --builder=remote-container --load -t image-name .
 DOCKER_HOST="ssh://user@remote" docker images
 docker context create remote --docker "host=ssh://user@remote"
 docker --context remote ps
+
+docker run --rm -it -e'POSTGRES_USER=postgres' -e'POSTGRES_PASSWORD=postgres' -e'POSTGRES_DB=example_db' -p '5432:5432' postgres:14.2
+
+docker ps --format json | jq -r '([.Names, .State, .ID, .Image, .Ports] | @tsv)' | column -ts $'\t' | less -S
+
+docker run --rm -it --network bridge mysql mysqlsh root@host.docker.internal:3306 -e 'util.checkForServerUpgrade();'
 
 # terraform
 terraform plan -out plan.out | tee plan.std.out
@@ -119,6 +166,7 @@ docker run -it --rm -v "$HOME/.kube:/.kube" bitnami/kubectl version
 export EKS_ENDPOINT=
 export EKS_TOKEN=
 docker run --rm -e EKS_SERVER=$(aws eks describe-cluster --name $EKS_CLUSTER | jq -r '.cluster.endpoint') -e EKS_TOKEN=$(aws --region ap-northeast-2 eks get-token --cluster-name $EKS_CLUSTER | jq -r '.status.token') bitnami/kubectl --server $EKS_SERVER --token $EKS_TOKEN --insecure-skip-tls-verify version
+kubectl run mysql-console --restart=Never -i --tty --attach --rm --image mysql --command -- bash
 
 
 # helm
@@ -134,6 +182,10 @@ STEP=01 perl -pe '$a=qq{STEP$ENV{STEP}}; /$a:rm/ and $_=qq{}; /$a\s+/ and s/^(\s
 | perl -MMath::BigInt -pe 's{(0x[0-9a-fA-F]+)}{Math::BigInt->from_hex($1)}ge'  ## replace hex to int
 
 fd | perl -lne '$a=$_=~s/txt$/csv/r; print "mv $_ $a"'  ## bulk replace file names
+fd -tf . 'app/views' -x perl -i -pe 's/_admin_path/_path/g' ## bulk replace file texts
+
+perl -MTime::Piece -e 'print localtime->datetime;' ## print datetime iso8601
+perl -MTime::Piece -e 'print localtime->ymd;' ## print datetime ymd
 
 # curl
 curl --header "Host: test.example.com" http://aws-domain.elb.amazonaws.com  ## DNS 설정 없이 ingress 테스트할 때 사용
@@ -162,8 +214,13 @@ git config --global --get user.name
 git config --global --get user.email
 git config --global --add user.name ${NAME}
 git config --global --list
+git submodule update --init
+
+git remote add up git@github.com:$OWNER/$REPO.git
+git rev-parse --show-toplevel  ## git root path
 
 # gh
+gh pr list --web ## open pull request github
 open https://github.com/$(git remote get-url up | perl -ne 'print /:(.+).git/') ## open github
 open https://github.com/$(git remote get-url up | perl -ne 'print /:(.+).git/')/pulls ## open github pr
 gh pr -R $(git remote get-url up | perl -ne 'print /:(.+).git/') list  ## PR list current up remote
@@ -176,7 +233,14 @@ gh auth token | clipcopy  ## get github access tokens
 gh ssh-key add $KEY_FILE -t $TITLE
 gh ssh-key list
 
+gh pr checks -i5 --watch $(gh api /user --jq '.login'):$(g branch --show-current)  ## watch github pr actions
+gh pr checks $(gh api /user --jq '.login'):$(g branch --show-current) | fzf | perl -ne '($r,$j)=m[https.+?github.com/(.+)/runs/.+/job/(\d+)]; $n=($r=~s@/@_@gr); $log="/tmp/github_action_${n}_${j}.log"; `gh api repos/$r/jobs/$j/logs > ${log}`; exec "nvim +AnsiEsc ${log}"'  ## github action job download log
+# old: gh pr checks $(gh api /user --jq '.login'):$(g branch --show-current) | fzf | perl -ne 'm[https.+?github.com/(.+)/runs/.+/job/(\d+)]; print `gh api repos/$1/jobs/$2/logs`' > '/tmp/github_action.log' && v /tmp/github_action.log  ## github action job download log
+
 # asdf
+asdf plugin add $(curl 'https://github.com/asdf-vm/asdf-plugins/tree/master/plugins' | jq -r '.payload.tree.items[].name' | fzf)
+asdf plugin update --all
+asdf update
 asdf plugin add terraform
 asdf plugin add awscli
 asdf plugin add kubectl
@@ -191,9 +255,7 @@ asdf plugin add yq
 asdf plugin add jq
 asdf plugin add pre-commit
 asdf plugin add nova
-asdf plugin add $(curl 'https://github.com/asdf-vm/asdf-plugins/tree/master/plugins' | jq -r '.payload.tree.items[].name' | fzf)
-asdf plugin update --all
-asdf update
+asdf plugin add lazydocker https://github.com/comdotlinux/asdf-lazydocker.git
 
 # redis
 redis-cli -p 26379 info ## sentinel info
@@ -207,7 +269,7 @@ PGPASSWORD='postgres' psql -h localhost -U postgres -d $DB -c 'select * from pg_
 PGPASSWORD='postgres' psql -h localhost -U postgres -d $DB -c '\d table_name'  ## show table columns
 PGPASSWORD='postgres' psql -h localhost -U postgres -d $DB -c 'select * from table_name limit 10'  ## select
 PGPASSWORD='postgres' psql -h localhost -U postgres -d $DB -c 'insert into "table_name" ("col1", "col2", ...) '" values ('val1', 'val2', ...)"  ## insert
-PGPASSWORD='postgres' psql -h localhost -U postgres -d $DB <<SQL  ## multiline
+PGPASSWORD='postgres' psql -h localhost -U postgres -d $DB ## multiline <<SQL
 
 # open
 open -na RubyMine.app --args .
