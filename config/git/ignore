@@ -31,3 +31,6 @@ tags
 
 ## ruby
 vendor/bundle/
+
+## solidity
+cache/
