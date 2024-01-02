@@ -77,6 +77,7 @@ set dictionary+=$HOME/.firm/dict.txt
 iab destory destroy
 iab functino function
 iab lien line
+iab exmaple example
 
 autocmd FileType * execute 'setlocal dict+=$HOME/dotfiles/config/nvim/words/'.&filetype.'.txt'
 
@@ -141,14 +142,36 @@ Plug 'mileszs/ack.vim'
 
 Plug 'tpope/vim-fugitive', { 'on': ['Git'] }
 
+Plug 'vim-test/vim-test'
+
 " UI
 Plug 'itchyny/lightline.vim'
+  let g:lightline = {
+        \ 'component_function': {
+        \   'filename': 'LightlineFilename',
+        \ }
+        \ }
+
+  function! LightlineFilename()
+    let root = fnamemodify(get(b:, 'git_dir'), ':h')
+    let path = expand('%:p')
+    if path[:len(root)-1] ==# root
+      return path[len(root)+1:]
+    endif
+    return expand('%')
+  endfunction
+
+
 Plug 'nanotech/jellybeans.vim'
 
 " Utils
 Plug 'powerman/vim-plugin-AnsiEsc'
 Plug 'tpope/vim-commentary'
 
+" TODO
+" https://github.com/hrsh7th/nvim-cmp
+
+" TODO reference syntax only
 if has('python3') " ref: checkhealth provider
   Plug 'SirVer/UltiSnips'
     let g:UltiSnipesExpandTrigger="<tab>"
@@ -156,6 +179,8 @@ if has('python3') " ref: checkhealth provider
     let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
     let g:UltiSnipsEditSplit="vertical"
     let g:UltiSnipsSnippetDirectories=['snips'] " config/nvim/snips
+
+    autocmd FileType snippets setlocal expandtab
 endif
 
 " Lang
@@ -181,6 +206,7 @@ if has('nvim-0.7.0') && has('lua')
 lua << EOF
   require'nvim-treesitter.configs'.setup {
     ensure_installed = { 'ruby', 'yaml' },
+    auto_install = true,
     highlight = { enable = true, additional_vim_regex_highlighting = false },
 
     textobjects = {
