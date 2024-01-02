@@ -1,8 +1,28 @@
+snippet run_test_when_pull_request "basic action template"
+name: Run Test when PR
+
+on:
+  pull_request:
+    paths:
+      - src/proj/**/*
+
+jobs:
+  test:
+    name: Test proj
+    runs-on: [ubuntu-22.04]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - working-directory: src/proj
+        run: bin/rails test
+endsnippet
+
 snippet jobs_template "basic jobs template"
 jobs:
-  job:
+  job1:
     name: workflow job
     runs-on: [self-hosted, ubuntu-22.04]
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
       - name: work
@@ -11,4 +31,38 @@ jobs:
         working-directory: src/proj
         run: |
           echo 123
+endsnippet
+
+snippet action_node_template  ".github/actions/<action>/action.yaml"
+name: action
+
+outputs:
+  argument-name:
+    description: 'argument'
+
+inputs:
+  AWESOME_KEY:
+    required: true
+    type: string
+
+runs:
+  using: 'node20'
+  main: 'main.js'
+  post: 'post.js'
+endsnippet
+
+snippet step "jobs.job.steps[n]"
+      - working-directory: src/proj
+        env:
+          TEST: TEST
+        run: |
+          echo 123
+endsnippet
+
+snippet step_gh_diff_files "jobs.job.steps[n]"
+      - env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr diff ${PR_NUMBER} --name-only
 endsnippet

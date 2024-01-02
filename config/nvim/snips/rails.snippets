@@ -1,0 +1,9 @@
+snippet config_default_locale "config/application.rb"
+    config.i18n.default_locale = :ko
+endsnippet
+
+snippet fixtures_devise "test/fixtures/admins.yml"
+default:
+  email: test@example.com
+  encrypted_password: <%= Admin.new.send :password_digest, 'password' %>
+endsnippet
