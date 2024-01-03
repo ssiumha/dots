@@ -154,9 +154,9 @@ PS1=$PROMPT
 # Import
 ################################
 
-# TODO: curl https://rtx.jdx.dev/install.sh | sh
-if [ -d "$HOME/.local/share/rtx" ] && command -v rtx &>/dev/null; then
-  eval "$($HOME/.local/share/rtx/bin/rtx activate zsh)"
+# TODO: curl https://mise.jdx.dev/install.sh | sh
+if [ -d "$HOME/.local/share/mise" ] && command -v mise &>/dev/null; then
+  eval "$($HOME/.local/share/mise/bin/mise activate zsh)"
 elif [ -d "$HOME/.asdf" ]; then
   source "$HOME/.asdf/asdf.sh"
 fi

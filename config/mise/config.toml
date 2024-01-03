@@ -12,6 +12,7 @@ java = 'openjdk-21'
 
 # tool
 neovim = 'latest'
+fzf = 'latest'
 # yq, jq, rg, fd??
 
 # devops

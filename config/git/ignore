@@ -14,7 +14,7 @@
 .tool-versions
 .envrc
 .direnv/
-.rtx.toml
+.mise.toml
 
 ## vim
 tags
