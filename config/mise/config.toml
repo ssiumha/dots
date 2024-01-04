@@ -3,13 +3,6 @@
 [env]
 
 [tools]
-# lang
-# python = { version="3.12.0", virtualenv=".venv" }
-ruby = ['system', '3.3.0']
-node = '20.10.0'
-bun = '1.0.20'
-java = 'openjdk-21'
-
 # tool
 neovim = 'latest'
 fzf = 'latest'
@@ -24,11 +17,22 @@ github-cli = 'latest'
 kubectl = 'latest'
 helm = 'latest'
 k9s = 'latest'
-telepresence = 'latest'
-pre-commit = 'latest'
+# telepresence = 'latest'
+# pre-commit = 'latest'
+
+# lang
+# python = { version="3.12.0", virtualenv=".venv" }
+# python.version="{{ exec(command='cat .python-version') | split(pat='-') | first }}"
+# python.virtualenv="{{env.HOME}}/.cache/venv/{{ exec(command='cat .python-version') }}"
+
+ruby = ['system', '3.3.0']
+node = '20.10.0'
+bun = '1.0.20'
+java = 'openjdk-21'
 
 [settings]
 experimental = true # with python virtaulenv activation
+legacy_version_file_disable_tools=['python']
 
 [plugins]
 
