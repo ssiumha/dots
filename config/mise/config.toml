@@ -29,10 +29,7 @@ ruby = ['system', '3.3.0']
 node = '20.10.0'
 bun = '1.0.20'
 java = 'openjdk-21'
-
-[settings]
-experimental = true # with python virtaulenv activation
-legacy_version_file_disable_tools=['python']
+python = "3.12.0"
 
 [plugins]
 
