@@ -61,7 +61,7 @@ export LSCOLORS="Gxfxcxdxbxegedabagacad"
 if [[ "$OSTYPE" != darwin* || $(which ls) != /bin/ls ]]; then
   export LS_OPTIONS="--color=tty"
 fi
-alias ls="ls $LS_OPTIONS"
+alias ls="ls -A $LS_OPTIONS"
 ####
 
 
@@ -85,9 +85,9 @@ else
 fi
 
 if command -v lsd &>/dev/null; then
-  alias l="lsd -lh"
+  alias l="lsd -Ah"
   alias la="lsd -Ah"
-  alias ll="lsd -lh"
+  alias ll="lsd -Alh"
   alias lla="lsd -lAh"
 elif command -v exa &>/dev/null; then
   alias l="exa -s type"
@@ -97,9 +97,9 @@ elif command -v exa &>/dev/null; then
   alias lla="exa -s type -la"
   alias lt="exa -s type --tree -l"
 else
-  alias l="ls -lh"
+  alias l="ls -Ah"
   alias la="ls -Ah"
-  alias ll="ls -lh"
+  alias ll="ls -lAh"
   alias lla="ls -lAh"
 fi
 
