@@ -3,6 +3,8 @@
 # time RUN_ZSH_PROFILE=true zsh -i -c exit
 [ "$RUN_ZSH_PROFILE" = "true" ] && zmodload zsh/zprof
 
+# TODO: export _ZSH_INIT_MINIMAL= is wsl
+
 ################################
 # Common
 ################################
@@ -89,6 +91,7 @@ if command -v lsd &>/dev/null; then
   alias la="lsd -Ah"
   alias ll="lsd -Alh"
   alias lla="lsd -lAh"
+  alias lt="l -Ah --tree"
 elif command -v exa &>/dev/null; then
   alias l="exa -s type"
   alias la="exa -s type -a"
@@ -214,6 +217,8 @@ fi
 
 if [[ "$_ZSH_INIT_MINIMAL" != true ]]; then
   autoload -Uz compinit; compinit
+
+  command -v mise &>/dev/null && eval "$(mise completion zsh)"
 fi
 
 bindkey '^I' expand-or-complete
@@ -320,6 +325,20 @@ _fzf_command_complete_gb() {
     git for-each-ref --sort=committerdate refs/heads/ --color=always \
       --format="%(HEAD) %(color:green)%(committerdate:short)%(color:reset) %09 %(color:yellow)%(refname:short)%(color:reset) %09 %(authorname) %09 %(contents:subject)" \
       | column -t -s $'\t'
+  )
+}
+
+_fzf_command_complete_di_post() { awk '{ print $3 }' }
+_fzf_command_complete_di() {
+  _fzf_complete -m --preview 'echo {} | awk "{print $3}" | xargs docker image inspect' --preview-window right:40%:wrap --min-height 15 -- "$@" < <(
+    command docker images
+  )
+}
+
+_fzf_command_complete_dc_post() { awk '{ print $1 }' }
+_fzf_command_complete_dc() {
+  _fzf_complete -m --preview 'echo {}' --preview-window down:3:wrap --min-height 15 -- "$@" < <(
+    command docker container ls
   )
 }
 
