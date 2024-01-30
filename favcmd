@@ -4,6 +4,7 @@
 v ~/dotfiles/favcmd
 v ~/dotfiles/config/nvim/snips
 v ~/dotfiles/config/nvim/words
+v $(mise config | grep '.mise.toml' | awk '{print $1}' | perl -pe 's/~/$ENV{"HOME"}/')  ## open near mise config
 
 # bookmark
 open -a 'Google Chrome.app' https://lzone.de/cheat-sheet  ## cheatsheet Redis, MySQL, ElasticSearch...
@@ -15,6 +16,9 @@ open -a 'Google Chrome.app' 'https://docs.docker.com/compose/compose-file/build/
 open -a 'Google Chrome.app' 'https://grep.app'  ## search projects in git repo
 open -a 'Google Chrome.app' 'https://http.cat'  ## http status code
 open -a 'Google Chrome.app' 'https://carbon.now.sh/'  ## terminal command line to image, capture, twitter
+open -a 'Google Chrome.app' 'https://excalidraw.com'  ## draw diagram
+open -a 'Google Chrome.app' 'https://endoflife.date'  ## EOL
+open -a 'Google Chrome.app' 'https://www.calculator.net/ip-subnet-calculator.html?cclass=b&csubnet=20&cip=10.10.0.0&ctype=ipv4&printit=0&x=83&y=15'  ## open subnet calculator
 
 # macos
 security add-generic-password -a $LOGNAME -T "" -U -s 'test-pass' -w 'PASS'  ## Save password to keychian
@@ -35,6 +39,7 @@ openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out cert.crt -
 openssl rand -hex 16  ## generate random password
 
 for i in {1..100}; do echo $i; done
+for i in $(echo $res); do echo $i; done  ## iterate variable line by line
 tmux send-keys -t $(tmux split-window -d -P -F "#{pane_id}" 'ssh temp0') 'ls' Enter
 for i in {0..6}; do tmux send-keys -t $(tmux split-window -d -P -F "#{pane_id}" "ssh temp$i") 'ls' Enter; tmux select-layout tiled; done
 tmux capture-pane -J -p -S - -t $PANE_ID > /tmp/pane.log  ## tmux save to logs ;; -S - : from start ;; -p : to stdout ;; -J : wrapped lines join ;; -t : target. %123
@@ -71,11 +76,16 @@ bundle config set --local jobs 4
 bundle config set --local retry 3
 bundle config set --local clean true
 bundle config build.pg --with-pg-config=$(brew --prefix libpq)/bin/pg_config
+bundle config build.mysql2 --with-mysql-dir=$(brew --prefix mysql)
 bundle config build.iconv --with-iconv-dir=$(brew --prefix libiconv)
 bundle config build.nokogiri --with-iconv-dir=$(brew --prefix libiconv)
 brew install libpq  ## install postgres library
 gem bump -v pre
 
+ruby -r sequel -r irb -e 'DB = Sequel.connect(ENV[:DB_URL.to_s]); IRB.start'
+ruby -r sequel -r irb -e 'DB = Sequel.sqlite("x.db"); puts "ex: DB.tables\nex: DB[:user].where(name: :abc)"; IRB.start'  ## require `gem install sqlite3 sequel`
+ruby -r sequel -r irb -e 'DB = Sequel.postgres("dbname", user: "", password: "", host: ""); IRB.start'  ## require `gem install pg sequel`
+ruby -r sequel -r irb -e 'DB = Sequel.connect("postgres://user:password@localhost/my_db"); IRB.start'  ## require `gem install pg sequel`
 ruby -r openssl -e 'puts OpenSSL::OPENSSL_VERSION'
 | ruby -rjson -e 'puts JSON[STDIN.read, symbolize_names: true]'  ## input json: '{"a":[...]}'
 | ruby -rnokogiri -e 'puts Nokogiri::XML(STDIN.read)'  ## input XML
@@ -95,6 +105,7 @@ bin/rails routes --expand
 bin/rails g scaffold_controller 'm/model' index show
 watch -cn1 bundle exec rspec --force-color spec/**  ## watch test in rspec rails
 
+bundle exec rails new . --name fooapp --database=sqlite3 --skip-docker --asset-pipeline=propshaft
 bundle exec rubocop --show-cops | awk '!/ +- /{a=0}; /Exclude/||/^[A-Z]/{ a=1 }; a' | tac | awk 'a; /^[A-Z]/{a=0}; !a&&/^ /{a=1; print};' | tac  ## get rubocop exclude options
 
 rg --color=never -l '^class \w.+::' app/controllers | xargs -I% vim -Nens +'norm ggGI  ' +'norm ggWd2f:Omodule pxx' +'norm Goend' +wq %  ## rails class replace to module
@@ -108,18 +119,23 @@ pyenv virtualenv 3.12.0 3.12.0-vname
 
 # nodejs
 yarn jest --watch --config 'test/jest-e2e.json' 'test/XXX.e2e-spec.ts' -t 'it_name'
+npx playwright codegen ${URL}
 
 # docker
 curl host.docker.internal  ## request host in docker image
 curl -XGET -s -o /dev/null -w "%{http_code}" "http://example.com"  ## check http status code
 curl --head "http://example.com"  ## fetch head only
+curl 'https://endoflife.date/api/amazon-eks.json' | jq -r '(["cycle", "release", "eol"], (.[] | [.cycle, .releaseDate, .eol])) | @tsv' | column -ts $'\t'  ## EOL EKS
+
+curl -X POST --data '{"jsonrpc":"2.0","id":1,"method" :"info.peers"}' -H 'content-type:application/json;' localhost:9650/ext/info  ## rpc request info peers
+
 docker run --rm -p 4444:4444 seleniarm/standalone-chromium  ## multi arch selenium
 docker system df  ## check docker volume size
 du -ks /var/lib/docker/containers/* | sort -n | tail  ## check docker containers size by 1KB
 docker compose config | yq '.services[]|key'
 docker compose ps -q ${SERVICE} | xargs docker inspect --format='{{.LogPath}}' | tail -n1 | xargs tail -f  ## docker logs from file
 docker compose up
-docker compose down
+docker compose down -v --remove-orphans --timeout=10
 docker compose exec -it
 
 docker buildx build --no-cache -t 'test:test' . && docker run --rm -it 'test:test'
@@ -137,6 +153,8 @@ docker ps --format json | jq -r '([.Names, .State, .ID, .Image, .Ports] | @tsv)'
 
 docker run --rm -it --network bridge mysql mysqlsh root@host.docker.internal:3306 -e 'util.checkForServerUpgrade();'
 
+docker run --rm -it ubuntu cat /proc/sys/kernel/random/uuid | tr -d '-' | base64 | cut -b 1-22  ## generate uuid 22 char
+
 # terraform
 terraform plan -out plan.out | tee plan.std.out
 terraform apply plan.out   ## or TF_LOG=DEBUG or TF_LOG=TRACE
@@ -145,6 +163,7 @@ terraform apply plan.out   ## or TF_LOG=DEBUG or TF_LOG=TRACE
 aws eks update-kubeconfig --name ${CLUSTER_NAME} --profile ${PROFILE}
 aws configure --profile ${PROFILE} ## region=ap-northeast-2, format=text|table|json|yaml
 aws s3 ls
+aws sts get-caller-identity  ## check simply current account info
 aws sts get-caller-identity --profile ${PROFILE}
 aws sts get-caller-identity --query Account --output text  ## get aws account id
 aws ecr get-login-password --region ${AWS_REGION} | docker login --password-stdin --username AWS ${ECR_REGISTRY}
@@ -187,6 +206,9 @@ fd -tf . 'app/views' -x perl -i -pe 's/_admin_path/_path/g' ## bulk replace file
 perl -MTime::Piece -e 'print localtime->datetime;' ## print datetime iso8601
 perl -MTime::Piece -e 'print localtime->ymd;' ## print datetime ymd
 
+# jq
+| jq 'with_entries(select([.key] | inside(["abi", "bytecode", "contractName"])))'  ## select specific keys in json
+
 # curl
 curl --header "Host: test.example.com" http://aws-domain.elb.amazonaws.com  ## DNS 설정 없이 ingress 테스트할 때 사용
 curl --proxy "http://proxy.example.com" "http://example.com"  ## proxy 테스트
@@ -206,6 +228,7 @@ git worktree add ../${PATH} ${BRANCH}
 git push --set-upstream origin master
 git status --short | awk '!/##/{print$2}'  ## git status file list
 git merge -Xours ${branch}  ## 충돌 발생시, ours (HEAD, stage#2)를 사용한다
+git mergetool --tool=nvimdiff
 git checkout --their -- :g  ## git conflit 해결용, theirs (merge target, stage#3) 기준으로 맞춘다. rebase일 경우 작업물로 설정
 git checkout master -- :g  ## git conflit 해결용, master로 맞춰버리기..
 git show --name-only
@@ -215,6 +238,7 @@ git config --global --get user.email
 git config --global --add user.name ${NAME}
 git config --global --list
 git submodule update --init
+git commit --allow-empty -m 'empty'
 
 git remote add up git@github.com:$OWNER/$REPO.git
 git rev-parse --show-toplevel  ## git root path
@@ -236,6 +260,9 @@ gh ssh-key list
 gh pr checks -i5 --watch $(gh api /user --jq '.login'):$(g branch --show-current)  ## watch github pr actions
 gh pr checks $(gh api /user --jq '.login'):$(g branch --show-current) | fzf | perl -ne '($r,$j)=m[https.+?github.com/(.+)/runs/.+/job/(\d+)]; $n=($r=~s@/@_@gr); $log="/tmp/github_action_${n}_${j}.log"; `gh api repos/$r/jobs/$j/logs > ${log}`; exec "nvim +AnsiEsc ${log}"'  ## github action job download log
 # old: gh pr checks $(gh api /user --jq '.login'):$(g branch --show-current) | fzf | perl -ne 'm[https.+?github.com/(.+)/runs/.+/job/(\d+)]; print `gh api repos/$1/jobs/$2/logs`' > '/tmp/github_action.log' && v /tmp/github_action.log  ## github action job download log
+
+# mise
+curl https://mise.jdx.dev/install.sh | sh
 
 # asdf
 asdf plugin add $(curl 'https://github.com/asdf-vm/asdf-plugins/tree/master/plugins' | jq -r '.payload.tree.items[].name' | fzf)
@@ -270,6 +297,12 @@ PGPASSWORD='postgres' psql -h localhost -U postgres -d $DB -c '\d table_name'  #
 PGPASSWORD='postgres' psql -h localhost -U postgres -d $DB -c 'select * from table_name limit 10'  ## select
 PGPASSWORD='postgres' psql -h localhost -U postgres -d $DB -c 'insert into "table_name" ("col1", "col2", ...) '" values ('val1', 'val2', ...)"  ## insert
 PGPASSWORD='postgres' psql -h localhost -U postgres -d $DB ## multiline <<SQL
+
+# network
+echo 'https://url' | tee >(nslookup) >(dig) >(xargs ping -c3)  ## test network url full
+dog 'https://url'  ## alternative dig
+gping 'https://url'  ## alternative ping
+ss  ## alternative netstat
 
 # open
 open -na RubyMine.app --args .
