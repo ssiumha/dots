@@ -33,5 +33,10 @@ python = "3.12.0"
 
 [plugins]
 
-# [alias.node]
+# [alias.yarn]
 # my_custom_node = '20'
+
+[tasks."yarn:latest"]
+description = 'set yarn version to latest'
+run = "yarn set version latest"
+
