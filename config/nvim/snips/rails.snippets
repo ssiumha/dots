@@ -7,3 +7,8 @@ default:
   email: test@example.com
   encrypted_password: <%= Admin.new.send :password_digest, 'password' %>
 endsnippet
+
+snippet config_database_url "postgres:// or mysql2://"
+development:
+  url: '<%= ENV.fetch('DATABASE_URL', 'mysql2://root:password@127.0.0.1:3306') %>'
+endsnippet

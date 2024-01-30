@@ -1,0 +1,54 @@
+snippet topologySpreadConstraints "basic option"
+      topologySpreadConstraints:
+        - labelSelector:
+            matchLabels:
+              app: app-name
+          maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: DoNotSchedule
+endsnippet
+
+snippet base_deployment "template"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: dev
+spec:
+  replicas: 2
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: api
+      containers:
+        - env:
+          - name: DATABASE_URL
+            value: 'postgres://user:password@postgresql/dev'
+          image: 000000000000.dkr.ecr.ap-northeast-2.amazonaws.com/app:latest
+          imagePullPolicy: Always
+          name: api
+          ports:
+            - containerPort: 8080
+              name: http
+          resources:
+            limits:
+              memory: "1Gi"
+              ephemeral-storage: "4Gi"
+            requests:
+              cpu: "100m"
+              memory: "1Gi"
+              ephemeral-storage: "4Gi"
+endsnippet

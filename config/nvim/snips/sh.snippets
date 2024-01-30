@@ -25,3 +25,9 @@ if [ -z "$1" ]; then
   exit 1
 fi
 endsnippet
+
+snippet template_strict "start shell script"
+#!/usr/bin/env bash
+
+set -euxo pipefail
+endsnippet

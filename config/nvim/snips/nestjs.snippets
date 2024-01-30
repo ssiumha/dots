@@ -1,0 +1,75 @@
+snippet testing_typeorm_psql ""
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [
+        TypeOrmModule.forFeature([User]),
+        TypeOrmModule.forRoot({
+          type: "postgres",
+          database: "dev",
+          host: "127.0.0.1",
+          port: 5435,
+          username: "postgres",
+          password: "postgres",
+          entities: [User],
+          synchronize: true,
+        }),
+      ],
+      providers: [
+        {
+          provide: getRepositoryToken(Repository<User>),
+          useValue: {},
+        },
+        UserRepo,
+        UserService,
+      ],
+    }).compile();
+endsnippet
+
+snippet testing_typeorm_sqlite ""
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [
+        TypeOrmModule.forFeature([User]),
+        TypeOrmModule.forRoot({
+          type: 'sqlite',
+          database: ':memory:',
+          entities: [__dirname + '/**/*.entity.ts'],
+          synchronize: true,
+        }),
+      ],
+      providers: [UserService],
+    }).compile();
+endsnippet
+
+snippet testing_e2e ""
+import * as request from 'supertest';
+
+describe('UserController (e2e)', () => {
+  let app: INestApplication;
+
+  beforeAll(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [UserModule],
+    }).compile();
+
+    app = module.createNestApplication();
+    await app.init();
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  it(
+    'update name',
+    async () => {
+      await request(app.getHttpServer())
+        .post('/user')
+        .type('application/json')
+        .send({ name: 'TEST' })
+        .expect(201)
+        .expect(({ body }) => {
+          expect(body.name).toEqual('TEST');
+        });
+    }
+  )
+});
+endsnippet

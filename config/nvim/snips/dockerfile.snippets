@@ -1,3 +1,67 @@
 snippet mount_cache "cache specific target path"
 RUN --mount=type=cache,id=gem,sharing=locked,target=/gem bundle install
 endsnippet
+
+snippet install_apt "apt-get install"
+RUN apt-get update && apt-get install -y curl
+endsnippet
+
+snippet replace_env "replace env"
+ENV PATH="~/bin:$PATH"
+endsnippet
+
+snippet heredoc_copy "inline source"
+COPY <<EOF /index.html
+(your index page goes here)
+EOF
+endsnippet
+
+snippet heredoc_copy_multiple "inline source multiple"
+COPY <<robots.txt <<humans.txt /usr/share/nginx/html/
+(robots content)
+robots.txt
+(humans content)
+humans.txt
+endsnippet
+
+snippet heredoc_run "warning: not working exit"
+RUN <<EOF
+apt-get update
+apt-get install -y curl
+EOF
+endsnippet
+
+snippet heredoc_shabang "with run"
+RUN <<EOF
+#!/usr/bin/env python3
+print(1)
+endsnippet
+
+snippet simple_sinatra "recommend volume"
+FROM ruby:3.3
+WORKDIR /app
+RUN gem install sinatra puma haml
+
+COPY <<-EOF app.rb
+require 'sinatra'
+
+configure do
+  set :bind, '0.0.0.0'
+end
+
+get '/' do
+  haml :index, locals: { bar: :foo }
+end
+
+__END__
+
+@@ layout
+%html
+  != yield
+
+@@ index
+%div.title Hello world.
+EOF
+
+CMD ["ruby", "app.rb"]
+endsnippet

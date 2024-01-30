@@ -25,9 +25,16 @@ Host ${host_root}
   RemoteCommand sudo su
 endsnippet
 
-snippet github "porxy. can using `git@mygithub:user/repo.git`"
+snippet github_proxy "proxy. can using `git@mygithub:user/repo.git`"
 Host mygithub
   HostName github.com
   User git
   IdentityFile ~/.ssh/my_ed25519
+endsnippet
+
+snippet agent "add keys to agent"
+Host github.com
+  AddKeysToAgent yes
+  UseKeychain yes
+  IdentityFile ~/.ssh/id_ed25519
 endsnippet

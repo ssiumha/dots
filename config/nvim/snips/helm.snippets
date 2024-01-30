@@ -1,0 +1,21 @@
+snippet topology_zone "topologySpreadConstraints"
+  topologySpreadConstraints:
+  - maxSkew: 1
+    whenUnsatisfiable: DoNotSchedule
+    topologyKey: topology.kubernetes.io/zone
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/instance: appname
+endsnippet
+
+
+snippet resources "resources template"
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 50m
+      ephemeral-storage: "100Mi"
+    limits:
+      memory: 512Mi
+      ephemeral-storage: "100Mi"
+endsnippet

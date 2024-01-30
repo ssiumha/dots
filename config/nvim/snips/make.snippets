@@ -12,3 +12,20 @@ tar -X .dockerignore -czh . \
   | docker buildx build --force-rm --no-cache --pull \
     --tag image:tag -
 endsnippet
+
+snippet git_tag "GIT_TAG"
+GIT_TAG=$(shell git log -1 --pretty='format:%cd-%h' --date=format:'%Y.%m.%d')
+endsnippet
+
+snippet build_cross "build cross compile"
+DOCKER_IMAGE=registry.example.com/imagename
+TAG_BASE=test
+
+build-docker:
+  docker buildx create --name container-builder --platformlinux/arm64,linux/amd64 || echo 'Ignore error'
+  docker pull ${DOCKER_IMAGE}:${TAG_BASE} || echo "Ignore error"
+  docker buildx build --builder=container-builder --platform=linux/arm64,linux/amd64 --tag ${DOCKER_IMAGE}:${TAG_BASE} --pull --push .
+  docker buildx imagetools inspect ${DOCKER_IMAGE}:${TAG_BASE}
+  docker pull ${DOCKER_IMAGE}:${TAG_BASE}
+  docker search ${DOCKER_IMAGE}
+endsnippet
