@@ -25,7 +25,9 @@ tmpfile=$(mktemp)
 
 snippet_targets=("all.snippets")
 if [ "$filetype" = "zsh" ]; then snippet_targets+=("sh.snippets");
+elif [[ "$filetype" == "yaml" && "$filepath" == *"values.yaml" ]]; then snippet_targets+=("helm.snippets");
 elif [[ "$filetype" == "yaml" && "$filepath" == *"docker-compose"* ]]; then snippet_targets+=("docker_compose.snippets");
+elif [[ "$filetype" == "yaml" && "$filepath" == *"compose"* ]]; then snippet_targets+=("docker_compose.snippets");
 elif [[ "$filetype" == "yaml" && "$filepath" == *".github/workflows/"* ]]; then snippet_targets+=("github_workflow.snippets");
 else snippet_targets+=("$filetype*.snippets" );
 fi
@@ -43,6 +45,7 @@ if [ ! -s "$tmpfile" ]; then
   exit 1
 fi
 
+# TODO: ${} -> $$
 replace_words=$(perl -nle 'print "$1" if /\${(.+?)}/' $tmpfile | sort -r | perl -nle '/(^\d+)/; print unless $seen{$1}++' | sort)
 
 if [ ! -z "$replace_words" ]; then
