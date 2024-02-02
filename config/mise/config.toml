@@ -6,11 +6,11 @@
 # tool
 neovim = 'latest'
 fzf = 'latest'
+zellij = 'latest'
 # yq, jq, rg, fd??
 
 # devops
 terraform = '1.1.8'
-tflint = '0.48.0'
 nova = '3.6.4'
 awscli = 'latest'
 github-cli = 'latest'
@@ -31,6 +31,9 @@ bun = '1.0.20'
 java = 'openjdk-21'
 python = "3.12.0"
 
+yamllint = "1.33.0"
+tflint = "0.50.2"
+
 [plugins]
 
 # [alias.yarn]
@@ -39,4 +42,7 @@ python = "3.12.0"
 [tasks."yarn:latest"]
 description = 'set yarn version to latest'
 run = "yarn set version latest"
+
+[settings]
+python_venv_auto_create = true
 
