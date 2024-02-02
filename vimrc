@@ -209,8 +209,6 @@ if has('nvim-0.7.0')
   Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
   Plug 'nvim-treesitter/nvim-treesitter-context'
   Plug 'nvim-treesitter/nvim-treesitter-textobjects'
-
-  highlight TreesitterContext guibg=gray ctermbg=8
 endif
 
 call plug#end()
@@ -220,12 +218,21 @@ call plug#end()
 "----------------
 colorscheme jellybeans
 
-if has('nvim-0.7.0') && has('lua')
+highlight TreesitterContext guibg=gray ctermbg=8
+
+if has('nvim-0.7.0')
+
+autocmd FileType yaml
+      \ setlocal nofoldenable foldmethod=expr foldexpr=nvim_treesitter#foldexpr()
+
+set runtimepath^=~/.cache/treesitter
+
 lua << EOF
   require'nvim-treesitter.configs'.setup {
+    parser_install_dir = "~/.cache/treesitter",
     ensure_installed = { 'ruby', 'yaml' },
     auto_install = true,
-    highlight = { enable = true, additional_vim_regex_highlighting = false },
+    -- highlight = { enable = true, additional_vim_regex_highlighting = false },
 
     textobjects = {
       select = {
@@ -267,6 +274,7 @@ lua << EOF
 
   require'treesitter-context'.setup{
     enable = true,
+    line_numbers = true,
     patterns = {
       default = { 'class', 'function', 'method' }
     }
