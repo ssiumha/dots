@@ -145,11 +145,26 @@ Plug 'tpope/vim-fugitive', { 'on': ['Git'] }
 Plug 'vim-test/vim-test'
 
 " UI
+" TODO: https://github.com/dense-analysis/ale?tab=readme-ov-file#how-can-i-customise-the-statusline
 Plug 'itchyny/lightline.vim'
-  let g:lightline = {
-        \ 'component_function': {
+  let g:lightline = {}
+  let g:lightline.active = {
+        \ 'left': [ [ 'mode', 'paste' ],
+        \           [ 'readonly', 'filename', 'modified' ],
+        \           [ 'treesitter' ] ],
+        \ 'right': [ [ 'lineinfo' ],
+        \            [ 'percent' ],
+        \            [ 'fileformat', 'fileencoding', 'filetype' ] ] }
+  let g:lightline.inactive = {
+        \ 'left': [ [ 'filename' ] ],
+        \ 'right': [ [ 'lineinfo' ],
+        \            [ 'percent' ] ] }
+  let g:lightline.tabline = {
+        \ 'left': [ [ 'tabs' ] ],
+        \ 'right': [ [ 'close' ] ] }
+  let g:lightline.component_function = {
         \   'filename': 'LightlineFilename',
-        \ }
+        \   'treesitter': 'LightlineTreesitter',
         \ }
 
   function! LightlineFilename()
@@ -159,6 +174,17 @@ Plug 'itchyny/lightline.vim'
       return path[len(root)+1:]
     endif
     return expand('%')
+  endfunction
+
+  " TODO yaml
+  " InspectTree
+  " echo nvim_treesitter#statusline({ "type_patterns": ['flow_node'] })
+  function! LightlineTreesitter()
+    try
+      return nvim_treesitter#statusline(100)
+    catch
+      return ""
+    endtry
   endfunction
 
 
