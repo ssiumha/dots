@@ -168,6 +168,14 @@ Plug 'nanotech/jellybeans.vim'
 Plug 'powerman/vim-plugin-AnsiEsc'
 Plug 'tpope/vim-commentary'
 
+Plug 'nathanaelkane/vim-indent-guides'
+  let g:indent_guides_enable_on_vim_startup = 1
+  let g:indent_guides_indent_levels = 16
+  let g:indent_guides_guide_size = 2
+  let g:indent_guides_start_level = 2
+  let g:indent_guides_auto_colors = 0
+  "highlight IndentGuidesEven ctermbg=darkgray
+
 " TODO
 " https://github.com/hrsh7th/nvim-cmp
 
@@ -182,6 +190,16 @@ if has('python3') " ref: checkhealth provider
 
     autocmd FileType snippets setlocal expandtab
 endif
+
+Plug 'dense-analysis/ale'
+  " let g:ale_fixers = {
+  " \   '*': ['remove_trailing_lines', 'trim_whitespace'],
+  " \   'yaml': ['yamllint'],
+  " \}
+  let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
+  let g:ale_sign_error = '✘'
+  let g:ale_sign_warning = '⚠'
+  let g:ale_lint_on_text_changed = 'never'
 
 " Lang
 Plug 'tpope/vim-rails'
