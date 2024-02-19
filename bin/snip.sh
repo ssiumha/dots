@@ -29,11 +29,12 @@ elif [[ "$filetype" == "yaml" && "$filepath" == *"values.yaml" ]]; then snippet_
 elif [[ "$filetype" == "yaml" && "$filepath" == *"docker-compose"* ]]; then snippet_targets+=("docker_compose.snippets");
 elif [[ "$filetype" == "yaml" && "$filepath" == *"compose"* ]]; then snippet_targets+=("docker_compose.snippets");
 elif [[ "$filetype" == "yaml" && "$filepath" == *".github/workflows/"* ]]; then snippet_targets+=("github_workflow.snippets");
+elif [[ "$filetype" == "typescript" ]]; then snippet_targets+=("javascript.snippets");
 else snippet_targets+=("$filetype*.snippets" );
 fi
 
 rg --with-filename --color=never '^snippet ' ${snippet_targets[@]} \
-  | perl -ne 's/^(?<f>.+?):snippet (?<n>.+?) "(?<c>.+)"//; printf qq{%-30s\t\033[33m%-20s\033[0m\t%s\n}, $+{n}, $+{c}, $+{f}' \
+  | perl -ne 's/^(?<f>.+?):snippet (?<n>.+?) "(?<c>.*)"//; printf qq{%-30s\t\033[33m%-20s\033[0m\t%s\n}, $+{n}, $+{c}, $+{f}' \
   | fzf --delimiter "\t" --with-nth='1,2' --select-1 --height '~50%' \
         --preview 'perl -ne "\$a={1}; print if /^snippet \$a/../endsnippet/ and not /^snippet|endsnippet/" {3} \
           | bat --plain --color always --language ruby' \
