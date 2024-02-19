@@ -1,0 +1,7 @@
+snippet null_default "set column null and default"
+      t.integer :number, null: false, default: -1
+endsnippet
+
+snippet add_index_unique "unique code"
+    add_index :product, :code, unique: true
+endsnippet

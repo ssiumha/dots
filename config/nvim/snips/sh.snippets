@@ -2,6 +2,10 @@ snippet source_location "get directory path"
 script_dir=$(dirname $(realpath "$0"))
 endsnippet
 
+snippet source_location_v2 "get directory path"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+endsnippet
+
 snippet iter_textline "loop lines"
 cat $file | while IFS=$'\n' read -r line; do
 	echo $line
@@ -30,4 +34,42 @@ snippet template_strict "start shell script"
 #!/usr/bin/env bash
 
 set -euxo pipefail
+endsnippet
+
+snippet run_docker_compose "run heredoc"
+cat <<-EOF | docker compose --file - --project-name ${COMPOSE_NAME} up --detach --force-recreate --wait
+  version: "3.9"
+
+  services:
+    postgres:
+      image: postgres:11-alpine
+      container_name: \${COMPOSE_PROJECT_NAME}-postgres
+      healthcheck:
+        test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER']
+      environment:
+        POSTGRES_DB: test_db
+        POSTGRES_USER: user
+        POSTGRES_PASSWORD: password
+      expose:
+        - "5432"
+      networks:
+        - docker-compose-default
+
+    redis:
+      image: redis
+      container_name: \${COMPOSE_PROJECT_NAME}-redis
+      healthcheck:
+        test: ['CMD', 'redis-cli', 'ping']
+        interval: 10s
+        timeout: 5s
+        retries: 5
+      expose:
+        - "6379"
+      networks:
+        - docker-compose-default
+
+  networks:
+    docker-compose-default:
+      external: true
+EOF
 endsnippet

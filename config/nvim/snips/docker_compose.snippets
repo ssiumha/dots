@@ -17,6 +17,16 @@ services:
       - another_node
 endsnippet
 
+snippet args "services.<service>.args"
+    args:
+      - NAME=test
+endsnippet
+
+snippet command "services.<service>.command"
+    command:
+      - NAME=test
+endsnippet
+
 snippet environment "services.<service>.environment"
     environment:
       - NAME=test

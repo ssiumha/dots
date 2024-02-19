@@ -1,0 +1,38 @@
+snippet tomorrow "with timezone"
+  const tomorrow = (new Date((new Date()).valueOf() + (86400 + 32400)*1000));
+endsnippet
+
+snippet get_time_string "like 2401010900"
+const getTimeString = () => {
+  const date = new Date()
+
+  return [
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDay(),
+    date.getHours(),
+    date.getMinutes()
+  ].map(num =>
+    num.toString()
+       .replace(/^\d\d(\d\d)$/, '$1')
+       .replace(/^(\d)$/, '0$1')
+  ).join('')
+}
+endsnippet
+
+snippet for_between "0 -> 9"
+for (let i = 0; i < 10; i++) {
+}
+endsnippet
+
+snippet random "0 ~ 9"
+Math.floor(Math.random() * 10)
+endsnippet
+
+snippet timestamp "second, typeof number"
+Date.now()
+endsnippet
+
+snippet sleep "await sleep(ms)"
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+endsnippet

@@ -73,3 +73,14 @@ describe('UserController (e2e)', () => {
   )
 });
 endsnippet
+
+snippet testing_mock_service ""
+providers: [
+  {
+    provide: UsersService,
+    useValue: {
+      getUser: () => 3
+    }
+  }
+]
+endsnippet
