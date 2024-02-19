@@ -10,8 +10,18 @@
   # delta --show-syntax-themes
   # delta --diff-so-fancy --show-config
   navigate = true
+[rerere]
+  enabled = true
+[push]
+  # push local_branch_name => remote/local_branch_name
+  default = current
 [diff]
   colorMoved = default
+  algorithm = histogram
+[merge]
+  conflictstyle = zdiff3
+; [url "git@github.com:"]
+; 	insteadOf = https://github.com/
 [alias]
   d = diff
   ds = diff --staged
@@ -31,6 +41,7 @@
 
   pr = pull --autostash --ff-only
   puo = push origin HEAD
+  puof = push origin HEAD --force-with-lease
 
   cv = commit -v
 

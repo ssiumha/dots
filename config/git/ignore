@@ -15,6 +15,7 @@
 .envrc
 .direnv/
 .mise.toml
+.editorconfig
 
 ## vim
 tags
