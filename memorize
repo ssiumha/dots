@@ -1,7 +1,7 @@
 # vim:ft=zsh wrap
 
-# favcmd
-v ~/dotfiles/favcmd
+# memorize
+v ~/dotfiles/memorize
 v ~/dotfiles/config/nvim/snips
 v ~/dotfiles/config/nvim/words
 v $(mise config | grep '.mise.toml' | awk '{print $1}' | perl -pe 's/~/$ENV{"HOME"}/')  ## open near mise config
@@ -87,6 +87,9 @@ ruby -r sequel -r irb -e 'DB = Sequel.sqlite("x.db"); puts "ex: DB.tables\nex: D
 ruby -r sequel -r irb -e 'DB = Sequel.postgres("dbname", user: "", password: "", host: ""); IRB.start'  ## require `gem install pg sequel`
 ruby -r sequel -r irb -e 'DB = Sequel.connect("postgres://user:password@localhost/my_db"); IRB.start'  ## require `gem install pg sequel`
 ruby -r openssl -e 'puts OpenSSL::OPENSSL_VERSION'
+ruby -r erb -e 'puts ERB.new(File.read "./temp.tt").result_with_hash(name: ARGV.first)' name  ## erb template
+ruby -r active_support/all -e 'puts "asdf".camelize.underscore'
+| xargs -I% ruby -rerb -e 'File.write "./#{ARGV.first.downcase}.rb", ERB.new(File.read "./temp.tt").result_with_hash(name: ARGV.first)' %
 | ruby -rjson -e 'puts JSON[STDIN.read, symbolize_names: true]'  ## input json: '{"a":[...]}'
 | ruby -rnokogiri -e 'puts Nokogiri::XML(STDIN.read)'  ## input XML
 | ruby -e 'puts STDIN.read.to_i(16)'  ## hex to integer
@@ -104,6 +107,8 @@ bin/rails test -v | tee >(perl -lne 'print "\n====" if /^Failure:/; print if /^F
 bin/rails routes --expand
 bin/rails g scaffold_controller 'm/model' index show
 watch -cn1 bundle exec rspec --force-color spec/**  ## watch test in rspec rails
+
+bin/rails g model User email:string:index age:integer birth_at:datetime 'point:decimal{5,2}' 'group:references{polymorphic}' disabled:boolean salutation:text
 
 bundle exec rails new . --name fooapp --database=sqlite3 --skip-docker --asset-pipeline=propshaft
 bundle exec rubocop --show-cops | awk '!/ +- /{a=0}; /Exclude/||/^[A-Z]/{ a=1 }; a' | tac | awk 'a; /^[A-Z]/{a=0}; !a&&/^ /{a=1; print};' | tac  ## get rubocop exclude options
@@ -268,21 +273,6 @@ curl https://mise.jdx.dev/install.sh | sh
 asdf plugin add $(curl 'https://github.com/asdf-vm/asdf-plugins/tree/master/plugins' | jq -r '.payload.tree.items[].name' | fzf)
 asdf plugin update --all
 asdf update
-asdf plugin add terraform
-asdf plugin add awscli
-asdf plugin add kubectl
-asdf plugin add telepresence
-asdf plugin add eksctl
-asdf plugin add helm
-asdf plugin add helmfile
-asdf plugin add k9s
-asdf plugin add cmctl
-asdf plugin add direnv
-asdf plugin add yq
-asdf plugin add jq
-asdf plugin add pre-commit
-asdf plugin add nova
-asdf plugin add lazydocker https://github.com/comdotlinux/asdf-lazydocker.git
 
 # redis
 redis-cli -p 26379 info ## sentinel info
