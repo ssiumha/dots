@@ -42,7 +42,3 @@ tflint = "0.50.2"
 [tasks."yarn:latest"]
 description = 'set yarn version to latest'
 run = "yarn set version latest"
-
-[settings]
-python_venv_auto_create = true
-
