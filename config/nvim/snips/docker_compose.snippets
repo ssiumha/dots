@@ -119,3 +119,58 @@ snippet x_environment_import "services.<service>"
     environment:
       *environment
 endsnippet
+
+snippet fullset_database ""
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: \${COMPOSE_PROJECT_NAME}-mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin' ,'ping', '-h', 'localhost']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    environment:
+      MYSQL_ROOT_PASSWORD: 'password'
+    expose:
+      - '3306'
+    networks:
+      - docker-compose-default
+
+  redis:
+    image: bitnami/redis:6.2.7
+    container_name: \${COMPOSE_PROJECT_NAME}-redis
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    environment:
+      REDIS_EXTRA_FLAGS: '--databases 256'
+      ALLOW_EMPTY_PASSWORD: 'yes'
+    expose:
+      - '6379'
+    networks:
+      - docker-compose-default
+
+  elasticsearch:
+    image: bitnami/elasticsearch:7.17.7
+    container_name: \${COMPOSE_PROJECT_NAME}-elasticsearch
+    healthcheck:
+      test: ['CMD', 'elasticsearch-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    environment:
+      ELASTICSEARCH_HEAP_SIZE: '1024m'
+    expose:
+      - '9200'
+    networks:
+      - docker-compose-default
+
+networks:
+  docker-compose-default:
+    external: true
+endsnippet

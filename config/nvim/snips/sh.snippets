@@ -68,6 +68,23 @@ cat <<-EOF | docker compose --file - --project-name ${COMPOSE_NAME} up --detach 
       networks:
         - docker-compose-default
 
+    mysql:
+      image: mysql:8.0
+      container_name: \${COMPOSE_PROJECT_NAME}-mysql
+      healthcheck:
+        test: ['CMD', 'mysqladmin' ,'ping', '-h', 'localhost']
+        timeout: 20s
+        retries: 10
+      environment:
+        MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+        MYSQL_USER: "user"
+        MYSQL_PASSWORD: "password"
+        MYSQL_DATABASE: "database"
+      expose:
+        - "3306"
+      networks:
+        - docker-compose-default
+
   networks:
     docker-compose-default:
       external: true
