@@ -29,13 +29,14 @@ class GithubRelease
   # TODO linux case
   def download_url_path
     @download_url_path ||= begin
-                             res = Net::HTTP.get_response URI("https://github.com/#{@path}/releases/expanded_assets/#{@tag}")
-                             download_paths = res.body.split("\n").grep(/href/).grep_v(/sha256sum|deb|msi/).map { |url| /href="(?<href>.+?)"/ =~ url; href }
+                             download_paths = assets_urls
 
                              download_paths = case `uname -s`.chop
                                               when /darwin/i then download_paths.grep(/darwin|apple|mac/)
                                               else download_paths.grep(/linux/)
                                               end
+
+                             download_paths = assets_urls if download_paths.empty?
 
                              if download_paths.count > 1
                                download_paths = case `uname -m`.chop
@@ -48,6 +49,15 @@ class GithubRelease
                              download_paths.first
                            end
   end
+
+  def expanded_assets
+    @expanded_assets ||= Net::HTTP.get_response URI("https://github.com/#{@path}/releases/expanded_assets/#{@tag}")
+  end
+
+  def assets_urls
+    expanded_assets.body.split("\n").grep(/href/).grep_v(/sha256sum|deb|msi/).map { |url| /href="(?<href>.+?)"/ =~ url; href }
+  end
+
 
   def download_filename
     @download_filename ||= begin

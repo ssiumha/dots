@@ -6,7 +6,14 @@
 # tool
 neovim = 'latest'
 fzf = 'latest'
+ripgrep = 'latest'
+delta = 'latest'
 zellij = 'latest'
+# difftastic = 'latest'
+zoxide = 'latest'
+fd = 'latest'
+# bat = 'latest'
+dust = 'latest'
 # yq, jq, rg, fd??
 
 # devops
