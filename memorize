@@ -142,6 +142,7 @@ docker compose ps -q ${SERVICE} | xargs docker inspect --format='{{.LogPath}}' |
 docker compose up
 docker compose down -v --remove-orphans --timeout=10
 docker compose exec -it
+docker tag first:xxx second:yyy  ## rename docker tag
 
 docker buildx build --no-cache -t 'test:test' . && docker run --rm -it 'test:test'
 docker buildx create --name remote-container --driver remote tcp://remote-addr:1234
@@ -165,6 +166,7 @@ terraform plan -out plan.out | tee plan.std.out
 terraform apply plan.out   ## or TF_LOG=DEBUG or TF_LOG=TRACE
 
 # aws
+aws --cli-auto-prompt  ## aws auto prompt
 aws eks update-kubeconfig --name ${CLUSTER_NAME} --profile ${PROFILE}
 aws configure --profile ${PROFILE} ## region=ap-northeast-2, format=text|table|json|yaml
 aws s3 ls
@@ -226,6 +228,7 @@ curl 'https://ipinfo.io/4.4.4.4'  ## check ip info
 
 # git
 git log --patch -S ${QUERY}  ## history search
+git commit –allow-empty -m ""
 git fetch --tags  ## fetch all tags
 git fetch origin tag ${TAG} --no-tags ## fetch single tag
 git switch -d tags/${TAG}  ## switch to tag
@@ -253,6 +256,7 @@ gh pr list --web ## open pull request github
 open https://github.com/$(git remote get-url up | perl -ne 'print /:(.+).git/') ## open github
 open https://github.com/$(git remote get-url up | perl -ne 'print /:(.+).git/')/pulls ## open github pr
 gh pr -R $(git remote get-url up | perl -ne 'print /:(.+).git/') list  ## PR list current up remote
+gh pr checkout ${NUMBER}
 
 gh api repos/${OWNER}/${REPO}/pulls/5355  ## list pr info json
 gh api repos/${OWNER}/${REPO}/pulls/5355/files  ## list pr files json
