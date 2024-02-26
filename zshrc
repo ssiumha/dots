@@ -163,6 +163,7 @@ PS1=$PROMPT
 # TODO: curl https://mise.jdx.dev/install.sh | sh
 if [ -d "$HOME/.local/share/mise" ]; then
   eval "$($HOME/.local/bin/mise activate zsh)"
+  alias -g m="mise run"
 elif [ -d "$HOME/.asdf" ]; then
   source "$HOME/.asdf/asdf.sh"
 fi
