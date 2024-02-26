@@ -64,6 +64,9 @@ if [[ "$OSTYPE" != darwin* || $(which ls) != /bin/ls ]]; then
   export LS_OPTIONS="--color=tty"
 fi
 alias ls="ls -A $LS_OPTIONS"
+
+# AWS
+export AWS_CLI_AUTO_PROMPT=on-partial
 ####
 
 
@@ -219,6 +222,7 @@ if [[ "$_ZSH_INIT_MINIMAL" != true ]]; then
   autoload -Uz compinit; compinit
 
   command -v mise &>/dev/null && eval "$(mise completion zsh)"
+  command -v aws_completer &>/dev/null && complete -C aws_completer aws
 fi
 
 bindkey '^I' expand-or-complete
