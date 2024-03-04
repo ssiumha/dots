@@ -1,0 +1,32 @@
+snippet template "menu, index, show"
+# frozen_string_literal: true
+
+ActiveAdmin.register Book do
+  menu parent: 'Manage', priority: 1
+
+  index do
+    column :id
+    column :title
+    column(:loaners) do |loaners|
+      loaners.ai(html: true)
+    end
+    column :created_at
+
+    actions
+  end
+
+  show do
+    attributes_table do
+      row :title
+      row :author
+    end
+
+    panel :loaners do
+      table_for book.loaners do
+        column(:id) { _1 }
+        column :expired_at
+      end
+    end
+  end
+end
+endsnippet

@@ -5,3 +5,7 @@ endsnippet
 snippet add_index_unique "unique code"
     add_index :product, :code, unique: true
 endsnippet
+
+snippet t_unique "unique code"
+      t.string :product_id, null: false, index: { unique: true }
+endsnippet

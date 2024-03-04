@@ -19,18 +19,25 @@ fi
 filetype=$1
 filepath=$2
 
-cd $HOME/dotfiles/config/nvim/snips
+cd $HOME/dotfiles/snips
 
 tmpfile=$(mktemp)
 
 snippet_targets=("all.snippets")
+snippet_targets+=("$filetype*.snippets" )
 if [ "$filetype" = "zsh" ]; then snippet_targets+=("sh.snippets");
 elif [[ "$filetype" == "yaml" && "$filepath" == *"values.yaml" ]]; then snippet_targets+=("helm.snippets");
 elif [[ "$filetype" == "yaml" && "$filepath" == *"docker-compose"* ]]; then snippet_targets+=("docker_compose.snippets");
 elif [[ "$filetype" == "yaml" && "$filepath" == *"compose"* ]]; then snippet_targets+=("docker_compose.snippets");
 elif [[ "$filetype" == "yaml" && "$filepath" == *".github/workflows/"* ]]; then snippet_targets+=("github_workflow.snippets");
+
+elif [[ "$filetype" == "eruby.yaml" && "$filepath" == *"test/fixtures/"* ]]; then snippet_targets+=("rails_fixture.snippets");
+elif [[ "$filetype" == "eruby" && "$filepath" == *"app/views/"* ]]; then snippet_targets+=("rails_view.snippets");
+elif [[ "$filetype" == "ruby" && "$filepath" == *"db/migrate/"* ]]; then snippet_targets+=("rails_migrate.snippets");
+elif [[ "$filetype" == "ruby" && "$filepath" == *"test/"* ]]; then snippet_targets+=("rails_minitest.snippets");
+
 elif [[ "$filetype" == "typescript" ]]; then snippet_targets+=("javascript.snippets");
-else snippet_targets+=("$filetype*.snippets" );
+# else snippet_targets+=("$filetype*.snippets" );
 fi
 
 rg --with-filename --color=never '^snippet ' ${snippet_targets[@]} \

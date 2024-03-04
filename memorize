@@ -2,7 +2,7 @@
 
 # memorize
 v ~/dotfiles/memorize
-v ~/dotfiles/config/nvim/snips
+v ~/dotfiles/snips
 v ~/dotfiles/config/nvim/words
 v $(mise config | grep '.mise.toml' | awk '{print $1}' | perl -pe 's/~/$ENV{"HOME"}/')  ## open near mise config
 

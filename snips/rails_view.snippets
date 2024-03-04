@@ -1,0 +1,59 @@
+snippet turbo_frame "simple sample"
+<turbo-frame id="comments">
+</turbo-frame>
+endsnippet
+
+snippet turbo_frame_tag "using ruby block"
+<%= turbo_frame_tag :show_orderbook do %>
+<% end %>
+endsnippet
+
+snippet turbo_refresh_method "to head"
+<meta name="turbo-refresh-method" content="morph">
+endsnippet
+
+snippet turbo_refresh_scroll "to head"
+<meta name="turbo-refresh-scroll" content="preserve">
+endsnippet
+
+snippet turbo_reload "in javascript"
+<%= turbo_frame_tag :comments,
+                    src: comments_path,
+                    loading: :eager,
+                    turbo_frame: :_top %>
+
+<script>
+  function reloadTurboFrame(elementId) {
+    const el = document.getElementById(elementId);
+
+    el.delegate.view.missing = () => {};
+    el.reload();
+  }
+
+  reloadTurboFrame('comments')
+</sciprt>
+endsnippet
+
+snippet turbo_visit_frame "visit only specific frame"
+<%= turbo_frame_tag :comments %>
+
+<script>
+  Turbo.visit(location, { frame: 'comments' })
+</script>
+endsnippet
+
+
+# TODO: rails js
+snippet stimulus_reloader ""
+export default class extends Controller {
+  connect() {
+    this.timer = setInterval(() => {
+      // ...
+    }, 5000);
+  }
+
+  disconnect() {
+    clearInterval(this.timer)
+  }
+}
+endsnippet

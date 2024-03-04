@@ -1,0 +1,22 @@
+snippet assert_difference "simple counting"
+    assert_difference 'Product.count', 0 do
+    end
+endsnippet
+
+snippet assert_difference_multiple "simple counting"
+    assert_difference 'Product.count' => 1, 'User.count' => 0 do
+    end
+endsnippet
+
+snippet assert_raises "simple catch"
+    assert_raises(StandardError, 'Invalid message #nil') do
+endsnippet
+
+snippet stub_logger "dark magic"
+    Rails.logger.stub :debug, -> (*args, &block) {
+      log = block.call
+      return_log = log if log.match? /^return/
+    } do
+      assert_match /"ok.*? => .*?true/, return_log
+    end
+endsnippet
