@@ -257,7 +257,15 @@ bindkey '^F' fzf-completion
 
 #### command complete
 
-# _fzf_dir_completion
+_fzf_compgen_path() {
+  fd --type f --hidden --follow . "$1"
+}
+
+_fzf_compgen_dir() {
+  fd --type d --hidden --follow . "$1"
+}
+
+# _fzf_dir_completion() {
 #   fd .
 # }
 
