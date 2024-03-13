@@ -380,6 +380,12 @@ _fzf_command_complete_rise_dir() {
   )
 }
 
+_fzf_pane_complete() {
+  _fzf_complete -m --min-height 15 -- "$@" < <(
+    tmux capture-pane -J -p -t $TMUX_PANE | perl -pe 's/\s+/\n/g;' | awk '!a[$0]++' | sort
+  )
+}
+
 _fzf_my_completion_hook() {
   local prefix lbuf
   prefix=$1
@@ -387,6 +393,8 @@ _fzf_my_completion_hook() {
 
   if [[ "$prefix" == "|" ]]; then
     prefix="" eval _fzf_pipe_complete ${(q)lbuf}
+  elif [[ "$prefix" == "?" ]]; then
+    prefix="" eval _fzf_pane_complete ${(q)lbuf}
   elif [[ "$prefix" == "\$(" ]]; then
     prefix="" eval _fzf_sub_complete ${(q)lbuf}
   elif [[ "$prefix" == .. ]]; then
