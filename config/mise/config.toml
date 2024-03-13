@@ -41,10 +41,13 @@ python = "3.12.0"
 yamllint = "1.33.0"
 tflint = "0.50.2"
 
-[plugins]
+[alias.ruby]
+dotfiles = '3.3.0'
 
 # [alias.yarn]
 # my_custom_node = '20'
+
+[plugins]
 
 [tasks."yarn:latest"]
 description = 'set yarn version to latest'
