@@ -103,3 +103,63 @@ def rows_to_html_table(rows)
   html += '</table>'
 end
 endsnippet
+
+snippet elapsed_time "performance check"
+start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+run!
+finish = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+
+elapsed = finish - start
+endsnippet
+
+snippet pattern_matching "case hinting"
+case expression
+in [1, a, [3, b] => c] if condition
+in [_, *a, ^a]
+in { foo: 1, **rest }
+in foo:, bar: b
+in foo:, **_
+in foo:, **rest if rest.empty?
+in foo:, **nil
+in (1..10)
+in a: 0.. => first
+in Integer | String
+else
+end
+endsnippet
+
+snippet pattern_matching_raise "exact matching"
+begin
+  case [1,2]
+  in [1]
+    :no_match
+  end
+rescue NoMatchingPatternError => e
+end
+endsnippet
+
+snippet pattern_matching_deconstruct_keys "awesome case"
+class Date
+  def deconstruct_keys(keys) = { year:, meonth:, day: }
+end
+
+case Date.new
+in year:
+end
+endsnippet
+
+snippet pattern_matching_oneline_in "if no matching, nothing"
+{ foo:, bar: } in { foo: f }
+endsnippet
+
+snippet pattern_matching_oneline_arrow "if no matching, NoMatchingPatternError"
+{ foo:, bar: } => { foo: }
+endsnippet
+
+snippet pattern_matching_blocks "any, all, select, find"
+users.any? { it in { name: /C/, age: 20.. } }
+endsnippet
+
+snippet pattern_matching_expression "require ( )"
+Time.now.year in ^(rand(2021..2023))
+endsnippet

@@ -1,3 +1,48 @@
+snippet if_zero_length_string ""
+if [ -z "${A}" ]; then
+fi
+endsnippet
+
+snippet if_positive_length_string "length > 0"
+if [ -n "${A}" ]; then
+fi
+endsnippet
+
+snippet if_directory ""
+if [ -d "${A}" ]; then
+fi
+endsnippet
+
+snippet if_symbolic_file ""
+if [ -L "${A}" ]; then
+fi
+endsnippet
+
+snippet if_readable_file ""
+if [ -r "${A}" ]; then
+fi
+endsnippet
+
+snippet if_file_size_positive "size > 0"
+if [ -s "${A}" ]; then
+fi
+endsnippet
+
+snippet if_file_writable ""
+if [ -w "${A}" ]; then
+fi
+endsnippet
+
+snippet if_file_executable ""
+if [ -x "${A}" ]; then
+fi
+endsnippet
+
+snippet if_regular_file "is not directory"
+if [ -f "${A}" ]; then
+fi
+endsnippet
+
 snippet source_location "get directory path"
 script_dir=$(dirname $(realpath "$0"))
 endsnippet

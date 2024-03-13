@@ -21,3 +21,7 @@ Turbo::StreamsChannel.broadcast_update_to(Post.last, :comments,
   locals: {}
 )
 endsnippet
+
+snippet application_autoload_lib ""
+    config.autoload_lib ignore: %w[assets tasks]
+endsnippet
