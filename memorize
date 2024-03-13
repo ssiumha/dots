@@ -42,7 +42,7 @@ for i in {1..100}; do echo $i; done
 for i in $(echo $res); do echo $i; done  ## iterate variable line by line
 tmux send-keys -t $(tmux split-window -d -P -F "#{pane_id}" 'ssh temp0') 'ls' Enter
 for i in {0..6}; do tmux send-keys -t $(tmux split-window -d -P -F "#{pane_id}" "ssh temp$i") 'ls' Enter; tmux select-layout tiled; done
-tmux capture-pane -J -p -S - -t $PANE_ID > /tmp/pane.log  ## tmux save to logs ;; -S - : from start ;; -p : to stdout ;; -J : wrapped lines join ;; -t : target. %123
+tmux capture-pane -J -p -S - -t $TMUX_PANE > /tmp/pane.log  ## tmux save to logs ;; -S - : from start ;; -p : to stdout ;; -J : wrapped lines join ;; -t : target. %123
 
 | cut -c-$COLUMNS
 
