@@ -54,7 +54,15 @@ set tabstop=2 shiftwidth=0 softtabstop=-1
 set expandtab shiftround
 set backspace=2 "indent,eol,start
 
-set timeoutlen=200
+set timeoutlen=250
+
+set iskeyword+=\-
+
+set completeopt=menu,menuone,longest
+
+" netrw
+let g:netrw_fastbrowse = 2 " prevent reset cursor. but want refresh, need <c-l>
+let g:netrw_liststyle = 3 " tree mode
 
 "----------------
 " file
@@ -66,8 +74,8 @@ let &backupdir = expand('$HOME/.cache/vim/backup')
 let &directory = expand('$HOME/.cache/vim/swap')
 
 " TODO: UpdateRemotePlugin
-
-" let g:ruby_host_prog = '$(ASDF_RUBY_VERSION=system gem environment gemdir)/bin/neovim-ruby-host'
+" TODO: gem install neovim --bindir ~/.local/bin
+let g:ruby_host_prog = '$HOME/.local/bin/neovim-ruby-host'
 
 "----------------
 " complete
@@ -94,7 +102,7 @@ call plug#begin(expand('$HOME/.local/vim/plugged'))
 
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
-  let $FZF_DEFAULT_COMMAND="fd -tf --no-ignore-vcs"
+  let $FZF_DEFAULT_COMMAND="fd -tf --no-ignore-vcs --follow"
   nnoremap <space>p <esc>:Files<cr>
   nnoremap <space>p[ <esc>:History<cr>
   nnoremap <space>pb <esc>:Buffers<cr>
