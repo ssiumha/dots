@@ -13,6 +13,24 @@ module Cmd
   end
 end
 
+class Time
+  def self.how_ago(time)
+    delta = (Time.now - Time.new(time)).to_i
+    case delta
+    in ..0
+      "#{-delta}s after"
+    in 0..300
+      "#{delta}s ago"
+    in 0..3599
+      "#{delta / 60}m ago"
+    in 0..86400
+      "#{delta / 3600}h ago"
+    else
+      "#{delta / 86400} days ago"
+    end
+  end
+end
+
 class String
   %i[black red green yellow blue magenta cyan gray].each_with_index do |k, i|
     define_method k, -> { "\e[#{30 + i}m#{self}\e[0m" }

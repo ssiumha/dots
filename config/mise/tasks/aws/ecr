@@ -9,9 +9,9 @@ require 'optparse'
 require 'json'
 
 options = {}
-OptionParser.new do |opts|
+option_parser = OptionParser.new do |opts|
   opts.on('-sTAG', '--search=TAG', 'Search image tag perfix') { options[:search] = _1 }
-end.parse!
+end.tap(&:parse!)
 repo_name = ARGV.pop
 
 if repo_name.nil?
@@ -52,9 +52,9 @@ else
   end
 
   images.reverse.each do |image|
-    # TODO: xxx ago
+    # TODO: size to human readable
     puts <<~EOF
-      pushed_at: #{image['imagePushedAt']}
+      pushed_at: #{image['imagePushedAt']} (#{Time.how_ago(image['imagePushedAt'])})
         digest: #{image['imageDigest']}
         size: #{image['imageSizeInBytes']}
         tags:
@@ -65,4 +65,7 @@ else
   end
 
   puts "ECR_BASE_URL: #{images.first['registryId']}.dkr.ecr.ap-northeast-2.amazonaws.com/#{repo_name}"
+  puts ''
+  puts option_parser.help
 end
+
