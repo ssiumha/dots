@@ -226,14 +226,31 @@ if has('python3') " ref: checkhealth provider
 endif
 
 Plug 'dense-analysis/ale'
-  " let g:ale_fixers = {
+  let g:ale_fixers = {
+  \   'yaml': ['yamllint'],
+  \   'javascript': ['eslint'],
+  \   'typescript': ['eslint'],
+  \}
   " \   '*': ['remove_trailing_lines', 'trim_whitespace'],
-  " \   'yaml': ['yamllint'],
-  " \}
+
+  let g:ale_linters_ignore = {'typescript': ['deno']}
   let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
   let g:ale_sign_error = '✘'
   let g:ale_sign_warning = '⚠'
   let g:ale_lint_on_text_changed = 'never'
+
+  let g:ale_completion_enabled = 1
+  set omnifunc=ale#completion#OmniFunc
+
+  " getline(1, '$')
+  " TODO
+  function! FzfVimOmniComplete(...)
+    return fzf#vim#complete(s:extend({
+          \ 'prefix': '^.*$',
+          \ 'source': ale#completion#OmniFunc(1, '')}, get(a:000, 0, fzf#wrap())))
+  endfunction
+
+Plug 'neovim/nvim-lspconfig'
 
 " Lang
 Plug 'tpope/vim-rails'
@@ -254,14 +271,42 @@ colorscheme jellybeans
 
 highlight TreesitterContext guibg=gray ctermbg=8
 
-if has('nvim-0.7.0')
+"autocmd Filetype ruby setlocal omnifunc=v:lua.vim.lsp.omnifunc
+
+nnoremap <silent> gd    <cmd>lua vim.lsp.buf.declaration()<CR>
+nnoremap <silent> gi    <cmd>lua vim.lsp.buf.implementation()<CR>
+nnoremap <silent> <c-]> <cmd>lua vim.lsp.buf.definition()<CR>
+nnoremap <silent> K     <cmd>lua vim.lsp.buf.hover()<CR>
 
 autocmd FileType yaml
       \ setlocal nofoldenable foldmethod=expr foldexpr=nvim_treesitter#foldexpr()
 
 set runtimepath^=~/.cache/treesitter
 
+" https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md
+" TODO: brew install yaml-language-server
+" TODO: npm install -g dockerfile-language-server-nodejs @microsoft/compose-language-service bash-language-server
+" TODO: ast-grep? css json nginx? perl? postgres prisma rubocop? sorbat? sql stimulus_ls syntax_tree
+" TODO: html, htmx, terraform? tsserver, vue(or volar, vuels), ttags, typst?, unison(markdown), vimls,
+if has('nvim-0.7.0')
 lua << EOF
+  lspconfig = require'lspconfig'
+  lspconfig.bashls.setup{}
+  lspconfig.dockerls.setup{}
+  lspconfig.docker_compose_language_service.setup{}
+  lspconfig.ruby_ls.setup{}
+  lspconfig.yamlls.setup {
+    settings = {
+      yaml = {
+        schemas = {
+          -- TODO: use environment variable?
+          ["https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.29.2-standalone-strict/deployment.json"] = "deployment/**/deployment/*.yaml",
+          ["https://json.schemastore.org/github-workflow.json"] = ".github/workflows/*",
+        }
+      }
+    }
+  }
+
   require'nvim-treesitter.configs'.setup {
     parser_install_dir = "~/.cache/treesitter",
     ensure_installed = { 'ruby', 'yaml' },
