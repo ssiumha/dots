@@ -220,7 +220,14 @@ fi
 ################################
 
 if [[ "$_ZSH_INIT_MINIMAL" != true ]]; then
-  autoload -Uz compinit; compinit
+  export ZSH_COMPDUMP=~/.cache/zcompdump
+
+  autoload -Uz compinit
+  if [ ! -f "$ZSH_COMPDUMP" ] || [ $(find "$ZSH_COMPDUMP" -mtime +1 -print) ]; then
+    echo 'compinit!'
+    compinit -d "$ZSH_COMPDUMP"
+  fi
+  compinit -C -d "$ZSH_COMPDUMP"
 
   command -v mise &>/dev/null && eval "$(mise completion zsh)"
   command -v aws_completer &>/dev/null && complete -C aws_completer aws
