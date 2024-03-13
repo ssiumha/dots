@@ -1,2 +1,10 @@
 .git
+
+.terraform
+
 node_modules
+
+.ruby-lsp
+vendor/bundle
+public/assets
+tmp/cache

@@ -18,3 +18,8 @@
 -g=!.svn/
 -g=!.devbox/
 -g=!log/
+
+-g=!builds/
+-g=!*.svg
+-g=!public/assets
+-g=!.ruby-lsp/
