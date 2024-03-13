@@ -42,6 +42,7 @@ fi
 
 rg --with-filename --color=never '^snippet ' ${snippet_targets[@]} \
   | perl -ne 's/^(?<f>.+?):snippet (?<n>.+?) "(?<c>.*)"//; printf qq{%-30s\t\033[33m%-20s\033[0m\t%s\n}, $+{n}, $+{c}, $+{f}' \
+  | sort \
   | fzf --delimiter "\t" --with-nth='1,2' --select-1 --height '~50%' \
         --preview 'perl -ne "\$a={1}; print if /^snippet \$a/../endsnippet/ and not /^snippet|endsnippet/" {3} \
           | bat --plain --color always --language ruby' \
