@@ -163,7 +163,7 @@ PS1=$PROMPT
 # TODO: curl https://mise.jdx.dev/install.sh | sh
 if [ -d "$HOME/.local/share/mise" ]; then
   eval "$($HOME/.local/bin/mise activate zsh)"
-  alias -g m="mise run"
+  alias m="mise run"
 elif [ -d "$HOME/.asdf" ]; then
   source "$HOME/.asdf/asdf.sh"
 fi
@@ -267,6 +267,15 @@ _fzf_complete_make() {
   )
 }
 _fzf_complete_make_post() {
+  awk '{print $1}'
+}
+
+_fzf_complete_m() {
+  _fzf_complete --min-height 15 -- "$@" < <(
+    command mise tasks ls --no-header
+  )
+}
+_fzf_complete_m_post() {
   awk '{print $1}'
 }
 
