@@ -77,6 +77,8 @@ let &directory = expand('$HOME/.cache/vim/swap')
 " TODO: gem install neovim --bindir ~/.local/bin
 let g:ruby_host_prog = '$HOME/.local/bin/neovim-ruby-host'
 
+set runtimepath^=~/dotfiles/vim
+
 "----------------
 " complete
 "----------------
@@ -212,18 +214,6 @@ Plug 'nathanaelkane/vim-indent-guides'
 
 " TODO
 " https://github.com/hrsh7th/nvim-cmp
-
-" TODO reference syntax only
-if has('python3') " ref: checkhealth provider
-  Plug 'SirVer/UltiSnips'
-    let g:UltiSnipesExpandTrigger="<tab>"
-    let g:UltiSnipsJumpForwardTrigger="<tab>"
-    let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
-    let g:UltiSnipsEditSplit="vertical"
-    let g:UltiSnipsSnippetDirectories=['snips'] " config/nvim/snips
-
-    autocmd FileType snippets setlocal expandtab
-endif
 
 Plug 'dense-analysis/ale'
   let g:ale_fixers = {
