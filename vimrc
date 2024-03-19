@@ -131,7 +131,7 @@ Plug 'voldikss/vim-floaterm'
       let [shell, shellslash, shellcmdflag, shellxquote] = floaterm#util#use_sh_or_cmd()
 
       let s:mysnip_tempfile = tempname()
-      let newcmd = [&shell, &shellcmdflag, '$HOME/dotfiles/bin/snip.sh ' . &filetype . ' "' . expand('%:p') . '" > ' . s:mysnip_tempfile]
+      let newcmd = [&shell, &shellcmdflag, '$HOME/dotfiles/bin/snip ' . &filetype . ' "' . expand('%:p') . '" > ' . s:mysnip_tempfile]
       let jobopts = { 'on_exit': funcref('s:mysnip_on_exit') }
       let config = {}
       let bufnr = floaterm#terminal#open(-1, newcmd, jobopts, config)
