@@ -27,6 +27,7 @@ setopt pushdminus         # can use -, $OLDPWD, when pushed
 # Path
 ################################
 echo $PATH | grep -q "$HOME/.local/bin" && : || export PATH="$HOME/.local/bin:$PATH"
+echo $PATH | grep -q "$HOME/dotfiles/bin" && : || export PATH="$HOME/dotfiles/bin:$PATH"
 
 ################################
 # Env
