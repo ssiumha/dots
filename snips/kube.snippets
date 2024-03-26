@@ -1,3 +1,15 @@
+snippet node_affinity_to_instance_type "spec.template.spec.affinity"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node.kubernetes.io/instance-type
+                    operator: In
+                    values:
+                      - c7i.2xlarge
+endsnippet
+
 snippet topologySpreadConstraints "basic option"
       topologySpreadConstraints:
         - labelSelector:
@@ -131,4 +143,9 @@ spec:
       resources:
         requests:
           storage: 1Gi
+endsnippet
+
+snippet graceful_terminate "spec.terminationGracePeriodSeconds"
+    spec:
+      terminationGracePeriodSeconds: 120
 endsnippet

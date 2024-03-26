@@ -140,3 +140,8 @@ cat <<-EOF | docker compose --file - --project-name ${COMPOSE_NAME} up --detach 
       external: true
 EOF
 endsnippet
+
+snippet kubectl_with_perl "run heredoc"
+kubectl exec -i -n ns deploy/app -- perl - <<-'EOF'
+EOF
+endsnippet

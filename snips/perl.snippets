@@ -1,0 +1,32 @@
+snippet subroutine ""
+sub method {
+  my ($a1, $a2) = @_;
+}
+endsnippet
+
+snippet input_line "gets"
+my $line = <STDIN>;
+chomp $line;
+endsnippet
+
+snippet environment_variable "HOME"
+$ENV{HOME}
+endsnippet
+
+snippet getopt ""
+use Getopt::Long;
+
+sub help {
+  my $help = <<~"EOF";
+  Usage: $0 [--help]
+  EOF
+
+  print $help;
+
+  exit 1;
+}
+
+GetOptions(
+  help => sub { help; }
+) or help;
+endsnippet

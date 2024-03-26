@@ -163,3 +163,53 @@ endsnippet
 snippet pattern_matching_expression "require ( )"
 Time.now.year in ^(rand(2021..2023))
 endsnippet
+
+snippet option_parser "template"
+require 'optparse'
+
+options = {}
+option_parser = OptionParser.new do |opts|
+  opts.banner = 'Usage: cmd [--help]'
+
+  opts.on('-sTAG', '--search=TAG', 'search option description') { options[:search] = _1 }
+
+  opts.on_tail('-h', '--help', 'show help') { puts opts; exit 0 }
+end.tap(&:parse!)
+
+order_arg = ARGV.pop
+
+puts option_parser.help
+endsnippet
+
+snippet option_parser_into ""
+options = {}
+option_parser = OptionParser.new do |opts|
+end.tap { _1.parse! into: options }
+endsnippet
+
+snippet chdir ""
+Dir.chdir(path) do
+end
+endsnippet
+
+snippet regex_named_capture ""
+# or $~[:name]
+matches[:name] if matches = str.match(/(?<name>.+)/)
+endsnippet
+
+snippet popen ""
+selected = IO.popen(cmd, 'w+') do |p|
+  p.puts snip_headers
+  p.close_write
+  p.read
+end
+endsnippet
+
+snippet glob ""
+Dir.glob('*.rb').each do |f|
+end
+endsnippet
+
+snippet glob_short ""
+Dir['*.rb']
+endsnippet

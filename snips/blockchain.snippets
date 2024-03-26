@@ -1,0 +1,10 @@
+snippet info_peers_in_kube ""
+for i in {1..6}; do curl -s -X POST --data '{"jsonrpc":"2.0","id":1,"method" :"info.peers"}' -H 'content-type:application/json;' node-$i.app:9650/ext/info | jq '.result.numPeers'; done
+endsnippet
+
+snippet get_tx_receipt ""
+curl node-$i.app:9650/ext/info \
+  -X POST \
+  -H "Content-Type: application/json" \
+  --data '{"method":"eth_getTransactionReceipt","params":["0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"],"id":1,"jsonrpc":"2.0"}'
+endsnippet

@@ -1,3 +1,17 @@
+snippet eks_managed_node_gorups "in eks module"
+  eks_managed_node_group_defaults = {
+    instance_types = ["m5.xlarge"]
+    max_size       = 99
+  }
+  eks_managed_node_groups = {
+    "${local.cluster_name}_a" = {
+      label = {
+        Postfix = "a"
+      }
+    }
+  }
+endsnippet
+
 snippet manual_irsa "s3 role sample"
 resource "aws_iam_role" "irsa-foo-role" {
   name = "${local.cluster_name}-irsa-foo-role"

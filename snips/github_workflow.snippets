@@ -66,3 +66,25 @@ snippet step_gh_diff_files "jobs.job.steps[n]"
         run: |
           gh pr diff ${PR_NUMBER} --name-only
 endsnippet
+
+snippet check_gh_using_perl ""
+perl <<-'EOF'
+  $_ = `gh api "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}" -q '.title'`;
+  chomp;
+
+  if ($? != 0) {
+    print '::error::Failed to fetch the PR title';
+    exit 1;
+  }
+
+  my @errors = ();
+  push @errors, '::error::Detected trailing spaces' if /(^\s|\s$)/;
+  push @errors, '::error::Detected double spaces' if /\s\s+/;
+
+  if (@errors) {
+    print "::error::Invalid PR title! : `$_`\n";
+    print join "\n", @errors;
+    exit 1;
+  }
+EOF
+endsnippet

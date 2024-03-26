@@ -1,0 +1,15 @@
+
+snippet to_prepare "in config/initalizers"
+Rails.application.config.to_prepare do
+end
+endsnippet
+
+snippet to_prepare_when_relorad "in config/initalizers"
+Rails.application.reloader.to_prepare do
+end
+endsnippet
+
+snippet after_initialize "in config/initalizers"
+Rails.application.config.after_initialize do
+end
+endsnippet
