@@ -4,7 +4,6 @@
 #   `!p python code...`
 #   `date +%d`
 #   perl -e '$s=q(test code long ${0}); $s =~ s{\$\{(.+?)\}}{ (0+$1) * 99; eval($code) }ge; print $s;'
-#   check filename (docker-compose, kube...)
 #   fix space query
 
 show_help() {
@@ -38,6 +37,9 @@ snippet_targets=$(perl - <<-'EOF' $1 $2
     push @snips, 'rails_view.snippets';
   }
   elsif ($ft eq 'ruby') {
+    push @snips, 'rails_amdin.snippets' if m#app/admin/#;
+    push @snips, 'rails_config.snippets' if m#config/#;
+    push @snips, 'rails_controller.snippets' if m#app/controllers/#;
     push @snips, 'rails_migrate.snippets' if m#db/migrate/#;
     push @snips, 'rails_minitest.snippets' if m#test/#;
   }
@@ -68,6 +70,7 @@ if [ ! -s "$tmpfile" ]; then
 fi
 
 # TODO: ${} -> $$
+# TODO: ##1, ##2, ##{1:default}
 replace_words=$(perl -nle 'print "$1" if /\${(.+?)}/' $tmpfile | sort -r | perl -nle '/(^\d+)/; print unless $seen{$1}++' | sort)
 
 if [ ! -z "$replace_words" ]; then
