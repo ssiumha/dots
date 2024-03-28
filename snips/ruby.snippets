@@ -213,3 +213,64 @@ endsnippet
 snippet glob_short ""
 Dir['*.rb']
 endsnippet
+
+snippet run_script "like __main__"
+if __FILE__ == $0 # or $PROGRAM_NAME
+  main
+end
+endsnippet
+
+snippet ractor_take_all "take all"
+5.times.map { Ractor.new(_1) { |i| sleep(5-i); puts i; i } }.map(&:take)
+# [0, 1, 2, 3, 4]
+endsnippet
+
+snippet thread_join_all "take all"
+5.times.map { |i| Thread.new { sleep(5 - i); puts i; i } }.map(&:join).map(&:value)
+# [0, 1, 2, 3, 4]
+endsnippet
+
+snippet process_with_thread ""
+thread = Thread.new do
+ensure
+  puts 'killed'
+end
+
+at_exit do
+  Thread.kill(thread)
+end
+
+loop do
+  sleep 1
+end
+endsnippet
+
+snippet signal_trap "Signal.trap"
+trap(:INT) do # 2, ^C
+  exit
+end
+
+trap(:TERM) do # 9, kill
+  exit
+end
+endsnippet
+
+snippet argf "special variable"
+$<
+endsnippet
+
+snippet command_line_arguments "special variable"
+$*
+endsnippet
+
+snippet stdout "special variable"
+$>
+endsnippet
+
+snippet gets "special variable"
+$_
+endsnippet
+
+snippet current_pid "special variable"
+$$
+endsnippet

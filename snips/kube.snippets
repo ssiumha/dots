@@ -149,3 +149,17 @@ snippet graceful_terminate "spec.terminationGracePeriodSeconds"
     spec:
       terminationGracePeriodSeconds: 120
 endsnippet
+
+snippet external_name "kind: service"
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: oauth2-proxy
+  namespace: app
+spec:
+  type: ExternalName
+  externalName: oauth2-proxy.helm.svc.cluster.local
+  ports:
+  - port: 80
+endsnippet

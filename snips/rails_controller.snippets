@@ -1,0 +1,11 @@
+snippet fresh_when ""
+def index
+  @message = find_paged_messages
+
+  if @messages.any?
+    fresh_when @messages
+  else
+    head :no_content
+  end
+end
+endsnippet

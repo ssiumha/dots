@@ -65,3 +65,24 @@ EOF
 
 CMD ["ruby", "app.rb"]
 endsnippet
+
+snippet install_sysstat ""
+RUN apt update && apt install -y procps sysstat cron
+RUN perl -i -pe 's/ENABLED="false"/ENABLED="true"/' /etc/default/sysstat && \
+  perl -i -pe 's;5-55/10;*;' /etc/cron.d/sysstat && \
+  perl -i -pe 's;debian-sa1 1 1;debian-sa1 5 12;' /etc/cron.d/sysstat
+
+COPY <<ENTRY_EOF /app/entrypoint.sh
+#!/usr/bin/env bash
+
+set -euxo pipefail
+
+service cron start
+service sysstat start
+
+/app/run "\\\$@"
+ENTRY_EOF
+
+RUN chmod +x /app/entrypoint.sh
+ENTRYPOINT ["/app/entrypoint.sh"]
+endsnippet
