@@ -9,6 +9,7 @@
 [delta]
   # delta --show-syntax-themes
   # delta --diff-so-fancy --show-config
+  plus-style = syntax "#114411"
   navigate = true
 [rerere]
   enabled = true
