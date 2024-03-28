@@ -179,8 +179,11 @@ curl -H "X-aws-ec2-metadata-token: $(curl -X PUT "http://169.254.169.254/latest/
 curl http://checkip.amazonaws.com/  ## get current ip
 aws eks describe-addon-versions --kubernetes-version 1.23 --addon-name coredns --output yaml | grep 'addonVersion:' | head  ## kube-proxy, vpc-cni, coredns, aws-ebs-csi-driver
 aws ec2 describe-instances --query 'Reservations[*].Instances[*].[Tags[?Key==`Name`].Value|[0],InstanceId,InstanceType,PrivateIpAddress,PublicIpAddress,State.Name]' --output text
+aws ec2 describe-instances --filters 'Name=tag:Name,Values=name_*' --query 'Reservations[*].Instances[*]'  ## .[InstanceId,PrivateIpAddress]
 aws ec2 describe-instance-types --query 'InstanceTypes[*].[InstanceType, MemoryInfo.SizeInMiB, VCpuInfo.DefaultVCpus]' --output text | grep -e '^m' | sort -k3 -n
 
+aws eks list-nodegroups --cluster-name ${NAME} | grep 129_2x
+aws eks update-nodegroup-config --cluster-name ${NAME} --nodegroup-name ${NGNAME} --scaling-config desiredSize=0
 
 # kubectl
 kubectl get pod -A -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,IMAGE:.spec.containers[].image'
@@ -193,7 +196,8 @@ export EKS_ENDPOINT=
 export EKS_TOKEN=
 docker run --rm -e EKS_SERVER=$(aws eks describe-cluster --name $EKS_CLUSTER | jq -r '.cluster.endpoint') -e EKS_TOKEN=$(aws --region ap-northeast-2 eks get-token --cluster-name $EKS_CLUSTER | jq -r '.status.token') bitnami/kubectl --server $EKS_SERVER --token $EKS_TOKEN --insecure-skip-tls-verify version
 kubectl run mysql-console --restart=Never -i --tty --attach --rm --image mysql --command -- bash
-
+kubectl wait --timeout 10m --for=condition=Ready -f pod.yaml
+v ~/.local/state/k9s/screen-dumps/  ## k9s log
 
 # helm
 helm show values --version ${VER} -n ${NS} ${CHART}
@@ -247,6 +251,7 @@ git config --global --add user.name ${NAME}
 git config --global --list
 git submodule update --init
 git commit --allow-empty -m 'empty'
+git diff node1.yaml | perl -pe 's/node1/node2/' | git apply -  ## git diff apply to another file
 
 git remote add up git@github.com:$OWNER/$REPO.git
 git rev-parse --show-toplevel  ## git root path
