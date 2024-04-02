@@ -15,53 +15,51 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-snippet_targets=$(perl - <<-'EOF' $1 $2
-  ($ft, $_) = @ARGV;
-  @snips = ('all.snippets');
-  push @snips, "$ft*.snippets" if $ft;
+ft=$1
+fp=$2
+snips=("all.snippets")
+snips+=("$ft*.snippets")
 
-  if ($ft eq 'zsh') {
-    push @snips, 'sh.snippets';
-  }
-  elsif ($ft eq 'yaml') {
-    push @snips, 'kube.snippets' if m#deployment/#;
-    push @snips, 'helm.snippets' if m#values.yaml$#;
-    push @snips, 'docker_compose.snippets' if m#docker-compose.*#;
-    push @snips, 'docker_compose.snippets' if m#compose.*#;
-    push @snips, 'github_workflow.snippets' if m#.github/workflows#;
-  }
-  elsif ($ft eq 'eruby.yaml' && m#test/fixtures/#) {
-    push @snips, 'rails_fixture.snippets';
-  }
-  elsif ($ft eq 'eruby' && m#app/views/#) {
-    push @snips, 'rails_view.snippets';
-  }
-  elsif ($ft eq 'ruby') {
-    push @snips, 'rails_amdin.snippets' if m#app/admin/#;
-    push @snips, 'rails_config.snippets' if m#config/#;
-    push @snips, 'rails_controller.snippets' if m#app/controllers/#;
-    push @snips, 'rails_migrate.snippets' if m#db/migrate/#;
-    push @snips, 'rails_minitest.snippets' if m#test/#;
-  }
-  elsif ($ft eq 'typescript') {
-    push @snips, 'javascript.snippets';
-  }
-
-  print join " ", @snips;
-EOF
-)
+case $ft in
+  typescript) snips+=("javascript.snippets") ;;
+  zsh) snips+=("sh.snippets") ;;
+  yaml)
+    case $fp in
+      *deployment/*      ) snips+=("kube.snippets") ;;
+      *values.yaml       ) snips+=("helm.snippets") ;;
+      *docker-compose.y* ) snips+=("docker_compose.snippets") ;;
+      *compose.y*        ) snips+=("docker_compose.snippets") ;;
+      *.github/workflows*) snips+=("github_workflow.snippets") ;;
+    esac ;;
+  ruby)
+    case $fp in
+      *app/admin/*      ) snips+=("rails_amdin.snippets") ;;
+      *app/controllers/*) snips+=("rails_controller.snippets") ;;
+      *config/*         ) snips+=("rails_config.snippets") ;;
+      *db/migrate/*     ) snips+=("rails_migrate.snippets") ;;
+      *test/*           ) snips+=("rails_minitest.snippets") ;;
+    esac ;;
+  eruby.yaml)
+    case $fp in
+      *test/fixtures/*) snips+=("rails_fixture.snippets") ;;
+    esac ;;
+  eruby)
+    case $fp in
+      *app/views/*) snips+=("rails_view.snippets") ;;
+    esac ;;
+esac
 
 cd $HOME/dotfiles/snips
 
 tmpfile=$(mktemp)
 
-rg --with-filename --color=never '^snippet ' $snippet_targets \
+rg --with-filename --color=never '^snippet ' ${snips[@]} \
   | perl -ne 's/^(?<f>.+?):snippet (?<n>.+?) "(?<c>.*)"//; printf qq{%-30s\t\033[33m%-20s\033[0m\t%s\n}, $+{n}, $+{c}, $+{f}' \
   | sort \
   | fzf --delimiter "\t" --with-nth='1,2' --select-1 --height '~50%' \
         --preview 'perl -ne "\$a=sprintf {1}; print if /^snippet \$a/../endsnippet/ and not /^snippet|endsnippet/" {3} \
           | bat --plain --color always --language ruby' \
-        --preview-window 'right:nowrap' \
+        --preview-window 'bottom:nowrap' \
         --bind 'ctrl-e:become(nvim {3})' \
         --bind 'enter:become(perl -ne "\$a=sprintf {1}; print if /^snippet \$a\b/../endsnippet/ and not /^snippet|endsnippet/" {3})' > $tmpfile
 
@@ -69,9 +67,7 @@ if [ ! -s "$tmpfile" ]; then
   exit 1
 fi
 
-# TODO: ${} -> $$
-# TODO: ##1, ##2, ##{1:default}
-replace_words=$(perl -nle 'print "$1" if /\${(.+?)}/' $tmpfile | sort -r | perl -nle '/(^\d+)/; print unless $seen{$1}++' | sort)
+replace_words=$(perl -nle 'print "$1" if /##{(.+?)}/' $tmpfile | sort -r | perl -nle '/(^\d+)/; print unless $seen{$1}++' | sort)
 
 if [ ! -z "$replace_words" ]; then
   echo "$replace_words" | while IFS=$'\n' read -r line; do
@@ -81,11 +77,14 @@ if [ ! -z "$replace_words" ]; then
     input_word=$(echo '' | fzf --delimiter "\t" --query "$rdefault" \
       --header "$line" \
       --preview-window 'bottom:nowrap:99%' \
-      --preview "perl -pe '\$a=q({q}); s;\\$\{$rnum.*?};\$a;g' $tmpfile | bat" \
+      --preview "perl -pe '\$a=q({q}); s;\##\{$rnum.*?};\$a;g' $tmpfile | bat" \
       --bind "ctrl-c:become(echo $rdefault)" \
       --bind 'enter:become(echo {q})')
 
-    perl -i -pe "s;\\$\{$rnum.*?};$input_word;g" $tmpfile
+    if [ -z "$input_word" ]; then
+      input_word=$rdefault
+    fi
+    perl -i -pe "s;\##\{$rnum.*?};$input_word;g" $tmpfile
   done
 fi
 
