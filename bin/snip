@@ -5,6 +5,7 @@
 #   `date +%d`
 #   perl -e '$s=q(test code long ${0}); $s =~ s{\$\{(.+?)\}}{ (0+$1) * 99; eval($code) }ge; print $s;'
 #   fix space query
+#   while do continue
 
 show_help() {
   echo "Usage: $0 <filetype>"
@@ -17,35 +18,37 @@ fi
 
 ft=$1
 fp=$2
-snips=("all.snippets")
-snips+=("$ft*.snippets")
+snips=("all.snips")
+snips+=("$ft.snips")
 
 case $ft in
-  typescript) snips+=("javascript.snippets") ;;
-  zsh) snips+=("sh.snippets") ;;
+  typescript) snips+=("javascript.snips") ;;
+  zsh) snips+=("sh.snips") ;;
   yaml)
     case $fp in
-      *deployment/*      ) snips+=("kube.snippets") ;;
-      *values.yaml       ) snips+=("helm.snippets") ;;
-      *docker-compose.y* ) snips+=("docker_compose.snippets") ;;
-      *compose.y*        ) snips+=("docker_compose.snippets") ;;
-      *.github/workflows*) snips+=("github_workflow.snippets") ;;
+      *deployment/*      ) snips+=("kube.snips") ;;
+      *values.yaml       ) snips+=("helm.snips") ;;
+      *docker-compose.y* ) snips+=("docker_compose.snips") ;;
+      *compose.y*        ) snips+=("docker_compose.snips") ;;
+      *.github/workflows*) snips+=("github_workflow.snips") ;;
     esac ;;
   ruby)
+    [[ $fp = *app* ]] && snips+=("rails.snips")
     case $fp in
-      *app/admin/*      ) snips+=("rails_amdin.snippets") ;;
-      *app/controllers/*) snips+=("rails_controller.snippets") ;;
-      *config/*         ) snips+=("rails_config.snippets") ;;
-      *db/migrate/*     ) snips+=("rails_migrate.snippets") ;;
-      *test/*           ) snips+=("rails_minitest.snippets") ;;
+      *app/admin/*      ) snips+=("rails_amdin.snips") ;;
+      *app/controllers/*) snips+=("rails_controller.snips") ;;
+      *app/models/*     ) snips+=("rails_model.snips") ;;
+      *config/*         ) snips+=("rails_config.snips") ;;
+      *db/migrate/*     ) snips+=("rails_migrate.snips") ;;
+      *test/*           ) snips+=("rails_minitest.snips") ;;
     esac ;;
   eruby.yaml)
     case $fp in
-      *test/fixtures/*) snips+=("rails_fixture.snippets") ;;
+      *test/fixtures/*) snips+=("rails_fixture.snips") ;;
     esac ;;
   eruby)
     case $fp in
-      *app/views/*) snips+=("rails_view.snippets") ;;
+      *app/views/*) snips+=("rails_view.snips") ;;
     esac ;;
 esac
 
@@ -61,7 +64,7 @@ rg --with-filename --color=never '^snippet ' ${snips[@]} \
           | bat --plain --color always --language ruby' \
         --preview-window 'bottom:nowrap' \
         --bind 'ctrl-e:become(nvim {3})' \
-        --bind 'enter:become(perl -ne "\$a=sprintf {1}; print if /^snippet \$a\b/../endsnippet/ and not /^snippet|endsnippet/" {3})' > $tmpfile
+        --bind 'enter:become(perl -ne "\$a=sprintf {1}; print if /^snippet \$a\b/../endsnippet/ and not /^snippet|endsnippet/" {3} > '$tmpfile')'
 
 if [ ! -s "$tmpfile" ]; then
   exit 1
