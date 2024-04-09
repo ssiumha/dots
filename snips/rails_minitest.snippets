@@ -20,3 +20,21 @@ snippet stub_logger "dark magic"
       assert_match /"ok.*? => .*?true/, return_log
     end
 endsnippet
+
+snippet test_upload_image ""
+class ContentImagesControllerTest < ActionDispatch::IntegrationTest
+  include ActionDispatch::TestProcess::FixtureFile
+
+  test "should be able to upload an image" do
+    image = fixture_file_upload('test_image.jpg', 'image/jpeg')
+
+    post content_images_url, params: { image: image )
+
+    assert_response :success
+
+    uploaded_image = ContentImage.last
+
+    assert_equal rails_blob_url(uploaded_image. image), JSON.parse(response.body)['file']l'url']
+  end
+end
+endsnippet

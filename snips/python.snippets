@@ -1,0 +1,15 @@
+snippet iter_numbers "[0, 1, ..., 9]"
+[x for x in range(10)]
+endsnippet
+
+snippet pattern_match ""
+match val:
+  case { "name": name, "age": int as age, **others }:
+    print(f"name: {name}, age: {age}")
+  case { "age": int as age } if age < 10:
+    print(f"{age}")
+  case name, age, *_:
+    print(f"array [{name}, {age}]")
+  case _:
+    print("Invalid")
+endsnippet

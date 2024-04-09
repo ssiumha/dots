@@ -62,3 +62,10 @@ resource "aws_iam_role_policy_attachment" "irsa-foo-role" {
   policy_arn = aws_iam_policy.foo-policy.arn
 }
 endsnippet
+
+snippet kubernetes_provider "version.tf"
+provider "kubernetes" {
+  config_path = "~/.kube/config"
+  config_context = module.eks.cluster_arn
+}
+endsnippet

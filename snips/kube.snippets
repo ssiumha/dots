@@ -163,3 +163,20 @@ spec:
   ports:
   - port: 80
 endsnippet
+
+snippet env_from_configmap "spec.containers.envFrom"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  labels:
+    app.kubernetes.io/name: app-name
+data:
+  APP_LOGGING: "INFO"
+  APP_NETWORK: "dev"
+---
+          envFrom:
+            - configMapRef:
+                name: app-config
+endsnippet

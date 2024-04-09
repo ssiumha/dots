@@ -1,0 +1,7 @@
+snippet validate_email ""
+# ref: https://html.spec.whatwg.org/multipage/input.html#email-state-(type=email)
+  validates :email,
+    format: { with: URI::MailTo::EMAIL_REGEXP },
+    presence: true,
+    uniqueness: { case_insensitive: true }
+endsnippet

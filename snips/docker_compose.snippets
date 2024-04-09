@@ -174,3 +174,8 @@ networks:
   docker-compose-default:
     external: true
 endsnippet
+
+snippet use_service "services.<name>.deploy; using replicas"
+    deploy:
+      replicas: ${COMPOSE_USE_SERVICE:-0}
+endsnippet

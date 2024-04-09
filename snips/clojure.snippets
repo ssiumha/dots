@@ -1,0 +1,25 @@
+snippet cons "create list [1 2]"
+(cons 2 (cons 1 nil))
+endsnippet
+
+snippet iterate "infinity sequence"
+(itrate inc 0)
+endsnippet
+
+snippet lambda "#"
+(map #(if (= % "check") 1 -1))
+endsnippet
+
+snippet thread_last "->>"
+(->> [1 2 3 4 5]
+     (map #(* % %))
+     (filter odd?)
+     (reduce +))
+endsnippet
+
+snippet file_names ""
+(require '[clojure.java.io :as io])
+(->> (io/file "./")
+     (.listFiles)
+     (map #(.getName %)))
+endsnippet

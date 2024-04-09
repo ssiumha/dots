@@ -1,3 +1,10 @@
+snippet config_default_locale "config/application.rb"
+    config.i18n.default_locale = :ko
+endsnippet
+
+snippet application_autoload_lib "config/application.rb"
+    config.autoload_lib ignore: %w[assets tasks]
+endsnippet
 
 snippet to_prepare "in config/initalizers"
 Rails.application.config.to_prepare do

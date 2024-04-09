@@ -1,0 +1,64 @@
+snippet cpu_usage ""
+#!/usr/bin/env gnuplot
+set title "CPU Usage Over Time"
+set xlabel "Time"
+set xdata time
+set xtics 30
+set timefmt "%H:%M:%S"
+set format x "%H:%M:%S"
+set ylabel "Usage (%)"
+set yrange [0:100]
+
+set key outside
+set grid
+
+set terminal png size 1024,600
+set output "cpu_usage.png"
+
+# 08:40:01        CPU      %usr     %nice      %sys   %iowait    %steal      %irq     %soft    %guest    %gnice     %idle
+# 08:40:06        all      0.93      0.00      0.38      0.00      0.03      0.00      0.03      0.00      0.00     98.64
+plot "cpu_usage.dat" using 1:3 title '%usr' with lines, \
+     "cpu_usage.dat" using 1:5 title '%sys' with lines, \
+     "cpu_usage.dat" using 1:6 title '%iowait' with lines
+endsnippet
+
+snippet using_argument "./block.plg foo/bar"
+#!/usr/bin/env gnuplot -c
+
+LogDir = ARG1 . "/"
+LogFile = LogDir . "log.txt"
+
+set terminal png size 1024,600
+
+set output LogDir . "cpu.png"
+plot LogFile using 1:3 title 'usr' with lines, \
+     LogFile using 1:5 title 'sys' with lines
+
+set output LogDir . "mem.png"
+plot LogFile using 1:3 title 'usage' with lines
+
+system "open " . LogDir
+endsnippet
+
+snippet for ""
+LogDir = ARG1 . "/"
+LogFile = LogDir . "log.txt"
+
+set terminal png size 1024,600
+
+set output LogDir . "cpu.png"
+plot for [i=1:6] sprintf('< cat %s | grep node%d', LogFile, i) using 1:6 title sprintf('cpu Node%d', i) with lines
+
+set output LogDir . "mem.png"
+plot for [i=1:6] sprintf('< cat %s | grep node%d', LogFile, i) using 1:8 title sprintf('mem Node%d', i) with lines
+
+system "open " . LogDir
+endsnippet
+
+snippet terminal_dumb ""
+gnuplot <<-'EOF'
+  set terminal dumb
+  set title 'test'
+  plot '< for i in {1..10}; do echo $i $(echo $i+1 | bc); done' u 1:2 notitle w l
+EOF
+endsnippet

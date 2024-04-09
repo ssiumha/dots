@@ -1,3 +1,9 @@
 snippet encrypted_password "in devise"
   encrypted_password: <%= User.new.send :password_digest, 'password' %>
 endsnippet
+
+snippet fixtures_devise "test/fixtures/admins.yml"
+default:
+  email: test@example.com
+  encrypted_password: <%= Admin.new.send :password_digest, 'password' %>
+endsnippet

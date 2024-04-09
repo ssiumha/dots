@@ -1,0 +1,45 @@
+snippet main ""
+defn main(name=""):
+  say: $name
+endsnippet
+
+snippet assign_variable ""
+name =: 'World'
+endsnippet
+
+snippet eval_string ""
+say: "$name, $(43-1), $inc(41)"
+endsnippet
+
+snippet folded "multiline string"
+defn txt(): |
+  'Test... line 1
+  line 2 $name
+endsnippet
+
+snippet rand ""
+rand-nth
+endsnippet
+
+snippet read_stdin "*in* => LineNumberingPushbackReader"
+ys -C -e '(print (read *in*))'
+endsnippet
+
+snippet defn "defining function"
+defn how-far-away(n): abs(42 - n)
+endsnippet
+
+snippet call_functions "a b, c: d, e, f => a(b, c, d, e, f) => a b c d e f"
+map inc: range(1, 10)
+
+map inc:
+  range: 1, 10
+
+=>: map(inc, range(1, 10))
+
+->>: range(1, 10), map(inc)
+endsnippet
+
+snippet unnamed_function ""
+mapv \(inc %1): 1 .. 5
+endsnippet

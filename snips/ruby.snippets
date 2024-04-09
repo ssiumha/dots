@@ -9,15 +9,15 @@ snippet frozen "string literal"
 endsnippet
 
 snippet task "rake task"
-task ${1::task_name} do
+task ##{1::task_name} do
 end
 endsnippet
 
 snippet call_rails_task "rake using from rails"
 require 'rake'
-${1:AppName}::Application.load_tasks
+##{1:AppName}::Application.load_tasks
 
-Rake::Task[${2:task_name}].invoke
+Rake::Task[##{2:task_name}].invoke
 endsnippet
 
 snippet popen3 "call popen with env"
@@ -29,8 +29,8 @@ end
 endsnippet
 
 snippet instance_patch "extend monkey patch method"
-class << ${1:@instance}
-  def ${2:method_name}
+class << ##{1:@instance}
+  def ##{2:method_name}
   end
 end
 endsnippet
@@ -273,4 +273,34 @@ endsnippet
 
 snippet current_pid "special variable"
 $$
+endsnippet
+
+snippet watch_process "with listen"
+require 'listen'
+
+pid = nil
+
+trap(:INT) do
+  Process.kill(:INT, pid)
+  exit
+end
+
+Listen.to('./app') do |modified, added, removed|
+  Process.kill(:INT, pid) if (modified.count + added.count + removed.count).positive?
+end.start
+
+loop do
+  pid = Process.spawn('')
+
+  Process.wait(pid)
+  pid = nil
+
+  sleep 1
+end
+endsnippet
+
+snippet open3 ""
+require 'open3'
+stdout_str, stderr, status = Open3.capture3(%Q[cmd])
+stdout_str => String
 endsnippet

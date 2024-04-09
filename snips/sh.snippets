@@ -145,3 +145,52 @@ snippet kubectl_with_perl "run heredoc"
 kubectl exec -i -n ns deploy/app -- perl - <<-'EOF'
 EOF
 endsnippet
+
+snippet check_using_perl ""
+result=$(perl - <<-'EOF' $1 $2
+  ($ft, $_) = @ARGV;
+  @res = ();
+  // ...
+  print join " ", @res;
+EOF
+)
+endsnippet
+
+snippet sar "from sysstat"
+# https://www.tpc.org/tpcc/
+# https://www.baeldung.com/linux/sar-system-statistics
+#
+# /var/log/sysstat/sa00
+# sar -q 2 3     # Load Average
+# sar -n IP 2 3  # network
+# sar -b 2 3     # io
+# sar -S 2 3     # swap
+# sar -r 2 3     # memory
+# sar -P ALL 1 1 # cpu all
+# sar -P 0 2 3   # cpu
+/usr/bin/env -S S_COLORS=never sar -A -s 01:00 -e 02:00 | cat
+endsnippet
+
+snippet ksar "visual sar sysstat"
+# https://github.com/vlsi/ksar
+# java -jar ~/Downloads/ksar-5.2.4.jar
+endsnippet
+
+snippet check_kube_context ""
+if [ 'arn:aws:eks:ap-northeast-2:000000000000:cluster/tmp' != $(kubectl config current-context) ]; then
+  echo "denied context"
+  exit 1
+fi
+endsnippet
+
+snippet check_kube_rollout_complete "can using -f deploy.yaml"
+kubectl rollout status -n app-dev deploy/some-app
+endsnippet
+
+snippet echo_red "or \033. RGYBMCK"
+echo -e "\e[0;31m RED \e[0;m"
+endsnippet
+
+snippet echo_blink "or \e. recommend \033 in Makefile"
+echo -e "\033[0;31;5m RED \033[0;m"
+endsnippet
