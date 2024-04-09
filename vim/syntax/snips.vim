@@ -32,4 +32,4 @@ hi def link snipSnippetDocString      String
 hi def link snipSnippetDocContextString String
 hi def link snipSnippetOptionFlag     Special
 
-let b:current_syntax = "snippets"
+let b:current_syntax = "snips"
