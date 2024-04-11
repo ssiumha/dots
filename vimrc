@@ -56,13 +56,17 @@ set backspace=2 "indent,eol,start
 
 set timeoutlen=250
 
-set iskeyword+=\-
+set iskeyword+=\-,$
 
 set completeopt=menu,menuone,longest
+"set wildoptions+=fuzzy
+
+" terminal
+set scrollback=50000
 
 " netrw
 let g:netrw_fastbrowse = 2 " prevent reset cursor. but want refresh, need <c-l>
-let g:netrw_liststyle = 3 " tree mode
+"let g:netrw_liststyle = 3 " tree mode
 
 "----------------
 " file
