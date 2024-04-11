@@ -226,6 +226,7 @@ if [[ "$_ZSH_INIT_MINIMAL" != true ]]; then
   autoload -Uz compinit
   if [ ! -f "$ZSH_COMPDUMP" ] || [ $(find "$ZSH_COMPDUMP" -mtime +1 -print) ]; then
     echo 'compinit!'
+    rm -f "$ZSH_COMPDUMP"
     compinit -d "$ZSH_COMPDUMP"
   fi
   compinit -C -d "$ZSH_COMPDUMP"
