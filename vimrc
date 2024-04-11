@@ -242,6 +242,20 @@ Plug 'dense-analysis/ale'
 
 Plug 'neovim/nvim-lspconfig'
 
+Plug 'hrsh7th/nvim-cmp'
+Plug 'hrsh7th/cmp-nvim-lsp'
+Plug 'hrsh7th/cmp-buffer'
+" Plug 'hrsh7th/cmp-path'
+" Plug 'hrsh7th/cmp-cmdline'
+
+Plug 'dcampos/cmp-snippy'
+Plug 'dcampos/nvim-snippy'
+  imap <expr> <Tab> snippy#can_expand_or_advance() ? '<Plug>(snippy-expand-or-advance)' : '<Tab>'
+  imap <expr> <S-Tab> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<S-Tab>'
+  smap <expr> <Tab> snippy#can_jump(1) ? '<Plug>(snippy-next)' : '<Tab>'
+  smap <expr> <S-Tab> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<S-Tab>'
+  xmap <Tab> <Plug>(snippy-cut-text)
+
 " Lang
 Plug 'tpope/vim-rails'
 Plug 'hashivim/vim-terraform'
@@ -261,94 +275,23 @@ colorscheme jellybeans
 
 highlight TreesitterContext guibg=gray ctermbg=8
 
-"autocmd Filetype ruby setlocal omnifunc=v:lua.vim.lsp.omnifunc
-
-nnoremap <silent> gd    <cmd>lua vim.lsp.buf.declaration()<CR>
-nnoremap <silent> gi    <cmd>lua vim.lsp.buf.implementation()<CR>
-nnoremap <silent> <c-]> <cmd>lua vim.lsp.buf.definition()<CR>
-nnoremap <silent> K     <cmd>lua vim.lsp.buf.hover()<CR>
-
 autocmd FileType yaml
       \ setlocal nofoldenable foldmethod=expr foldexpr=nvim_treesitter#foldexpr()
 
 set runtimepath^=~/.cache/treesitter
 
-" https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md
-" TODO: brew install yaml-language-server
-" TODO: npm install -g dockerfile-language-server-nodejs @microsoft/compose-language-service bash-language-server
-" TODO: ast-grep? css json nginx? perl? postgres prisma rubocop? sorbat? sql stimulus_ls syntax_tree
-" TODO: html, htmx, terraform? tsserver, vue(or volar, vuels), ttags, typst?, unison(markdown), vimls,
 if has('nvim-0.7.0')
-lua << EOF
-  lspconfig = require'lspconfig'
-  lspconfig.bashls.setup{}
-  lspconfig.dockerls.setup{}
-  lspconfig.docker_compose_language_service.setup{}
-  lspconfig.ruby_ls.setup{}
-  lspconfig.yamlls.setup {
-    settings = {
-      yaml = {
-        schemas = {
-          -- TODO: use environment variable?
-          ["https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.29.2-standalone-strict/deployment.json"] = "deployment/**/deployment/*.yaml",
-          ["https://json.schemastore.org/github-workflow.json"] = ".github/workflows/*",
-        }
-      }
-    }
-  }
+  "autocmd Filetype ruby setlocal omnifunc=v:lua.vim.lsp.omnifunc
+  augroup user_lsp_config
+    autocmd!
 
-  require'nvim-treesitter.configs'.setup {
-    parser_install_dir = "~/.cache/treesitter",
-    ensure_installed = { 'ruby', 'yaml' },
-    auto_install = true,
-    -- highlight = { enable = true, additional_vim_regex_highlighting = false },
+    autocmd LspAttach * nnoremap <buffer> <silent> gd    <cmd>lua vim.lsp.buf.declaration()<CR>
+    autocmd LspAttach * nnoremap <buffer> <silent> gi    <cmd>lua vim.lsp.buf.implementation()<CR>
+    autocmd LspAttach * nnoremap <buffer> <silent> <c-]> <cmd>lua vim.lsp.buf.definition()<CR>
+    autocmd LspAttach * nnoremap <buffer> <silent> K     <cmd>lua vim.lsp.buf.hover()<CR>
+  augroup END
 
-    textobjects = {
-      select = {
-        enable = true,
-        lookahead = true,
-        keymaps = {
-          ['ib'] = '@block.inner',
-          ['ab'] = '@block.outer',
-          ['if'] = '@function.inner',
-          ['af'] = '@function.outer',
-          ['ip'] = '@parameter.inner',
-          ['ap'] = '@parameter.outer',
-        },
-        selection_modes = {
-          ['@block.outer'] = 'V',
-          ['@block.inner'] = 'V',
-          ['@function.outer'] = 'V',
-          ['@function.inner'] = 'V',
-        },
-      },
-      move = {
-        enable = true,
-        set_jumps = true,
-        goto_next_start = {
-          [']m'] = '@function.outer',
-        },
-        goto_next_end = {
-          [']M'] = '@function.outer',
-        },
-        goto_previous_start = {
-          ['[m'] = '@function.outer',
-        },
-        goto_previous_end = {
-          ['[M'] = '@function.outer',
-        },
-      },
-    },
-  }
-
-  require'treesitter-context'.setup{
-    enable = true,
-    line_numbers = true,
-    patterns = {
-      default = { 'class', 'function', 'method' }
-    }
-  }
-EOF
+  luafile $HOME/dotfiles/vimrc.lua
 endif
 
 "----------------
