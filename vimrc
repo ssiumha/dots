@@ -208,6 +208,14 @@ Plug 'nanotech/jellybeans.vim'
 Plug 'powerman/vim-plugin-AnsiEsc'
 Plug 'tpope/vim-commentary'
 
+" TODO: Remove
+Plug 'michaeljsmith/vim-indent-object'
+Plug 'jeetsukumaran/vim-indentwise'
+
+Plug 'jpalardy/vim-slime'
+  let g:slime_target = 'tmux'
+  let g:slime_paste_file = tempname()
+
 Plug 'nathanaelkane/vim-indent-guides'
   let g:indent_guides_enable_on_vim_startup = 1
   let g:indent_guides_indent_levels = 16
@@ -216,8 +224,9 @@ Plug 'nathanaelkane/vim-indent-guides'
   let g:indent_guides_auto_colors = 0
   "highlight IndentGuidesEven ctermbg=darkgray
 
-" TODO
-" https://github.com/hrsh7th/nvim-cmp
+Plug 'junegunn/vim-easy-align'
+  xmap <space>ga <Plug>(EasyAlign)
+  nmap <space>ga <Plug>(EasyAlign)
 
 Plug 'dense-analysis/ale'
   let g:ale_fixers = {
