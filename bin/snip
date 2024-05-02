@@ -6,6 +6,8 @@
 #   perl -e '$s=q(test code long ${0}); $s =~ s{\$\{(.+?)\}}{ (0+$1) * 99; eval($code) }ge; print $s;'
 #   fix space query
 #   while do continue
+#   autocomplete from fzf?
+#     join query + docker + kube etc..
 
 show_help() {
   echo "Usage: $0 <filetype>"
@@ -30,7 +32,9 @@ case $ft in
       *values.yaml       ) snips+=("helm.snips") ;;
       *docker-compose.y* ) snips+=("docker_compose.snips") ;;
       *compose.y*        ) snips+=("docker_compose.snips") ;;
+      *compose*/*        ) snips+=("docker_compose.snips") ;;
       *.github/workflows*) snips+=("github_workflow.snips") ;;
+      *.github/actions*  ) snips+=("github_action.snips") ;;
     esac ;;
   ruby)
     [[ $fp = *app* ]] && snips+=("rails.snips")
@@ -60,7 +64,7 @@ rg --with-filename --color=never '^snippet ' ${snips[@]} \
   | perl -ne 's/^(?<f>.+?):snippet (?<n>.+?) "(?<c>.*)"//; printf qq{%-30s\t\033[33m%-20s\033[0m\t%s\n}, $+{n}, $+{c}, $+{f}' \
   | sort \
   | fzf --delimiter "\t" --with-nth='1,2' --select-1 --height '~50%' \
-        --preview 'perl -ne "\$a=sprintf {1}; print if /^snippet \$a/../endsnippet/ and not /^snippet|endsnippet/" {3} \
+        --preview 'perl -ne "\$a=sprintf {1}; print if /^snippet \$a /../endsnippet/ and not /^snippet|endsnippet/" {3} \
           | bat --plain --color always --language ruby' \
         --preview-window 'bottom:nowrap' \
         --bind 'ctrl-e:become(nvim {3})' \
