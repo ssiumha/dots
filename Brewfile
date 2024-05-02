@@ -16,6 +16,8 @@ brew "tidy-html5"
 
 brew "trippy"
 
+brew "jnv"
+
 cask "orbstack"
 # cask "alacritty"
 cask "wezterm"
