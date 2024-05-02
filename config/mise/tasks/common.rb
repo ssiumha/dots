@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require 'io/console'
+require 'fileutils'
+
 module Cmd
   module_function
 
@@ -51,4 +54,52 @@ class String
     gsub(/\e\[\d+m/, '')
   end
   alias esc noop
+
+  def underscore = self.gsub(/([a-z0-9])([A-Z])/, '\1_\2').downcase
+end
+
+class Symbol
+  def underscore = self.to_s.underscore.to_sym
+end
+
+class Hash
+  def deep_transform_keys(&block)
+    result = {}
+    each do |key, value|
+      result[yield(key)] = (value in Hash) ? value.deep_transform_keys(&block) : value
+    end
+    result
+  end
+end
+
+module Token
+  def self.get(name)
+    token_path = File.join(Dir.home, ".cache/tokens/#{name}")
+
+    unless File.exist?(token_path)
+      print help(name)
+
+      token = STDIN.noecho(&:gets).chomp
+
+      if token.empty?
+        puts 'Invalid API Token'
+        exit 1
+      end
+
+      FileUtils.mkdir_p(File.dirname(token_path))
+      File.write(token_path, token)
+    end
+
+    File.read(token_path)
+  end
+
+  def self.help(name)
+    case name.to_sym
+    when :todoist
+      <<~EOF.chomp
+        Get API Token from https://app.todoist.com/app/settings/integrations/developer
+        >
+      EOF
+    end
+  end
 end
