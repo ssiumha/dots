@@ -9,6 +9,13 @@ snippet table "empty table"
 |  |  |  |
 endsnippet
 
+snippet table_align ""
+|L  | C |  R|
+|:--|:--:|--:|
+|   |   |  |
+|   |   |  |
+endsnippet
+
 snippet footnote "footnote"
 text[^1]
 
@@ -31,7 +38,6 @@ snippet template_article ""
 # 내용
 
 # 마치며
-
 endsnippet
 
 snippet template_domain ""
@@ -70,4 +76,29 @@ e.g. 엔터티, 값 객체, 애그리게이트, 도메인 서비스 등 정의
 == 용어 사전
 == Q&A
 == 부록
+endsnippet
+
+snippet template_report ""
+== TL;DR
+== Abstract
+== Motivation
+== Change
+== Problem
+== Solution
+== Expectation
+endsnippet
+
+snippet template_research ""
+= 서론
+== 개요
+== 사용 이유
+= 주요 구성 요소
+== 주요 기능과 구성 요소 설명
+= 실제 사용 사례
+== 실제 적용 예시
+= 장점과 단점
+= 비교 분석
+= 발전 방향
+= 결론
+== 분석의 요약
 endsnippet

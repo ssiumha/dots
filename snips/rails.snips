@@ -11,3 +11,7 @@ Turbo::StreamsChannel.broadcast_update_to(Post.last, :comments,
   locals: {}
 )
 endsnippet
+
+snippet devise_timeout "config/initializers/devise.rb"
+config.timeout_in = 3.hours
+endsnippet

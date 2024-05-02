@@ -1,0 +1,17 @@
+snippet node_runs ""
+runs:
+  using: 'node20'
+  main: 'main.js'
+  post: 'post.js'
+endsnippet
+
+snippet composite_runs "action_path: action.yml location"
+runs:
+  using: 'composite'
+  steps:
+    - shell: bash
+      run: ${{ github.action_path }}/test/script.sh
+    - shell: perl {0}
+      run: |
+        print %ENV
+endsnippet

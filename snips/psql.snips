@@ -1,0 +1,11 @@
+snippet show_databases ""
+\l
+endsnippet
+
+snippet show_tables ""
+\d
+endsnippet
+
+snippet use_databases "or -d dbname"
+\c dbname
+endsnippet

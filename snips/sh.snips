@@ -194,3 +194,7 @@ endsnippet
 snippet echo_blink "or \e. recommend \033 in Makefile"
 echo -e "\033[0;31;5m RED \033[0;m"
 endsnippet
+
+snippet gh_pr_comment ""
+gh pr comment ${PR_NUMBER} --body-file comment.md
+endsnippet

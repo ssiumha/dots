@@ -304,3 +304,20 @@ require 'open3'
 stdout_str, stderr, status = Open3.capture3(%Q[cmd])
 stdout_str => String
 endsnippet
+
+snippet fzf ""
+open("|fzf", "w+") do
+  _1.puts items
+  return _1.read.chomp
+end
+endsnippet
+
+snippet net_http_get ""
+require 'net/http'
+
+Net::HTTP.get(URI('https://example.com/api/v1/tasks'), { 'Authorization':  "Bearer #{token}" })
+endsnippet
+
+snippet net_http_post ""
+Net::HTTP.post(_uri, data, headers).body
+endsnippet

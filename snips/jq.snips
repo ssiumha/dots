@@ -1,0 +1,7 @@
+snippet reduce "EXP as $var (INIT; UPDATE)"
+reduce .[] as $i ([]; . + [$i])
+endsnippet
+
+snippet check_type "number, string, null, ..."
+type == "object"
+endsnippet

@@ -8,7 +8,6 @@ snippet topology_zone "topologySpreadConstraints"
         app.kubernetes.io/instance: appname
 endsnippet
 
-
 snippet resources "resources template"
   resources:
     requests:
@@ -18,4 +17,8 @@ snippet resources "resources template"
     limits:
       memory: 512Mi
       ephemeral-storage: "100Mi"
+endsnippet
+
+snippet meta_redirect "html only; "
+<meta http-equiv="refresh" content="0; url=https://example.com/">
 endsnippet

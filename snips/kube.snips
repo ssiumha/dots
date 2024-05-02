@@ -180,3 +180,76 @@ data:
             - configMapRef:
                 name: app-config
 endsnippet
+
+snippet base_configmap ""
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: default
+data:
+  config.yaml: |
+    key:
+      - value
+endsnippet
+
+snippet mount_configmap ""
+spec:
+  containers:
+    - volumeMounts:
+      - name: app-config-volume
+        mountPath: /app/config.yaml
+        subPath: config.yaml
+  volumes:
+    - name: app-config-volume
+      configMap:
+        name: app-config
+endsnippet
+
+snippet base_service ""
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-name
+  namespace: app
+spec:
+  # clusterIP: 172.20.100.1 # if need static ip
+  ports:
+    - port: 3000
+      protocol: TCP
+      targetPort: 3000
+      name: http
+    - port: 4000
+      protocol: UDP
+      targetPort: 4000
+      name: udp
+  selector:
+    app: app-name
+    instance: app-instance
+endsnippet
+
+snippet base_ingress "with basic-auth"
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app-ingress
+  namespace: app
+  annotations:
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: basic-auth
+spec:
+  ingressClassName: ingress-nginx
+  tls:
+    - { hosts: ["app.example.com"], secretName: "wildcard-tls" }
+  rules:
+    - host: app.example.com
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: app-service
+                port:
+                  number: 3000
+endsnippet

@@ -126,7 +126,7 @@ version: "3.9"
 services:
   mysql:
     image: mysql:8.0
-    container_name: \${COMPOSE_PROJECT_NAME}-mysql
+    container_name: ${COMPOSE_PROJECT_NAME}-mysql
     healthcheck:
       test: ['CMD', 'mysqladmin' ,'ping', '-h', 'localhost']
       interval: 5s
@@ -141,7 +141,7 @@ services:
 
   redis:
     image: bitnami/redis:6.2.7
-    container_name: \${COMPOSE_PROJECT_NAME}-redis
+    container_name: ${COMPOSE_PROJECT_NAME}-redis
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
@@ -157,9 +157,9 @@ services:
 
   elasticsearch:
     image: bitnami/elasticsearch:7.17.7
-    container_name: \${COMPOSE_PROJECT_NAME}-elasticsearch
+    container_name: ${COMPOSE_PROJECT_NAME}-elasticsearch
     healthcheck:
-      test: ['CMD', 'elasticsearch-cli', 'ping']
+      test: curl --fail 'localhost:9200/_cluster/health' || exit 1
       interval: 5s
       timeout: 5s
       retries: 10
@@ -178,4 +178,24 @@ endsnippet
 snippet use_service "services.<name>.deploy; using replicas"
     deploy:
       replicas: ${COMPOSE_USE_SERVICE:-0}
+endsnippet
+
+snippet orb_local "orb domain"
+    labels:
+      - dev.orbstack.domains=service.project.orb.local
+endsnippet
+
+snippet orb_local_multiple "orb domain"
+    labels:
+      - dev.orbstack.domains=foo.local,bar.local
+endsnippet
+
+snippet orb_local_wildcard "orb domain"
+    labels:
+      - dev.orbstack.domains=*.foo.local
+endsnippet
+
+snippet orb_local_port "default: auto detect"
+    labels:
+      - dev.orbstack.http-port=8080
 endsnippet
