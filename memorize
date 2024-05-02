@@ -35,6 +35,8 @@ ssh-keygen -t ed25519 -C "user@example.com"
 ssh-keygen -f ~/.ssh/id_ed25519 -y  ## public key
 date +"%Y-%m-%dT%H:%M:%S%z"  ## iso-8610 in BSD
 
+join -a 1 -a 2 -e "-" -o '0,1.2,2.2' /tmp/before.txt /tmp/after.txt  ## key,name file outer join
+
 openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out cert.crt -keyout cert.key
 openssl rand -hex 16  ## generate random password
 
@@ -81,6 +83,8 @@ bundle config build.iconv --with-iconv-dir=$(brew --prefix libiconv)
 bundle config build.nokogiri --with-iconv-dir=$(brew --prefix libiconv)
 brew install libpq  ## install postgres library
 gem bump -v pre
+
+ruby -rlisten -e 'Listen.to("./"){ %x{} if _1.count>0 }.then{ _1.start; _1.only // }; sleep'
 
 ruby -r sequel -r irb -e 'DB = Sequel.connect(ENV[:DB_URL.to_s]); IRB.start'
 ruby -r sequel -r irb -e 'DB = Sequel.sqlite("x.db"); puts "ex: DB.tables\nex: DB[:user].where(name: :abc)"; IRB.start'  ## require `gem install sqlite3 sequel`
@@ -161,6 +165,13 @@ docker run --rm -it --network bridge mysql mysqlsh root@host.docker.internal:330
 
 docker run --rm -it ubuntu cat /proc/sys/kernel/random/uuid | tr -d '-' | base64 | cut -b 1-22  ## generate uuid 22 char
 
+docker run --rm -it ruby:slim bash  ## ~200MB
+docker run --rm -it ruby:3-alpine sh  ## ~90MB
+
+docker run -it --rm -e LOKI_ADDR=http://host.docker.internal:9000 grafana/logcli:2.8.11 -- query '{app!=""}'
+docker run -it --rm -e LOKI_ADDR=http://host.docker.internal:9000 grafana/logcli:2.8.11 query --from '2024-04-01T16:00:00+09:00' --to '2024-04-01T16:30:00+09:00' '{app!=""}' --limit 50000 --output raw
+
+
 # terraform
 terraform plan -out plan.out | tee plan.std.out
 terraform apply plan.out   ## or TF_LOG=DEBUG or TF_LOG=TRACE
@@ -191,11 +202,16 @@ kubectl get node --sort-by='.metadata.creationTimestamp'
 kubectl get nodes -o custom-columns='NAME:.metadata.name,STATUS:.status.conditions[-1:].type,ZONE:.metadata.labels.topology\.kubernetes\.io/zone,NODE_GROUP:.metadata.labels.eks\.amazonaws\.com/nodegroup' | v -
 NS=apps envsubst < service.yml | kubectl apply -f -
 kubectl auth can-i "*" "*"  ## 권한 체크
+kubectl api-resources --verbs=list  ## all resources
 docker run -it --rm -v "$HOME/.kube:/.kube" bitnami/kubectl version
 export EKS_ENDPOINT=
 export EKS_TOKEN=
 docker run --rm -e EKS_SERVER=$(aws eks describe-cluster --name $EKS_CLUSTER | jq -r '.cluster.endpoint') -e EKS_TOKEN=$(aws --region ap-northeast-2 eks get-token --cluster-name $EKS_CLUSTER | jq -r '.status.token') bitnami/kubectl --server $EKS_SERVER --token $EKS_TOKEN --insecure-skip-tls-verify version
+
 kubectl run mysql-console --restart=Never -i --tty --attach --rm --image mysql --command -- bash
+kubectl run psql-console --restart=Never -i --tty --attach --rm --image postgres --command -- bash
+kubectl run ubuntu-console --restart=Never -i --tty --attach --rm --image ubuntu --command -- bash
+
 kubectl wait --timeout 10m --for=condition=Ready -f pod.yaml
 v ~/.local/state/k9s/screen-dumps/  ## k9s log
 
@@ -219,6 +235,7 @@ perl -MTime::Piece -e 'print localtime->ymd;' ## print datetime ymd
 
 # jq
 | jq 'with_entries(select([.key] | inside(["abi", "bytecode", "contractName"])))'  ## select specific keys in json
+| jq -r 'paths(scalars) as $p | [($p|map(tostring)|join(".")), getpath($p)] | join(": ")'  ## json flatten
 
 # curl
 curl --header "Host: test.example.com" http://aws-domain.elb.amazonaws.com  ## DNS 설정 없이 ingress 테스트할 때 사용
@@ -306,3 +323,6 @@ ss  ## alternative netstat
 # open
 open -na RubyMine.app --args .
 open -na WebStorm.app --args .
+
+# mac
+sudo defaults write /Library/Preferences/FeatureFlags/Domain/UIKit.plist redesigned_text_cursor -dict-add Enabled -bool NO  ## disable input source switch popup
