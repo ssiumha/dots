@@ -9,3 +9,4 @@ aliases:
   wf: '!gh browse $(git ls-files | fzf)'
 http_unix_socket:
 browser:
+version: "1"
