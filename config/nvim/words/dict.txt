@@ -5,6 +5,7 @@ authorization
 authorized_keys
 automatically
 available
+briefly
 certificate
 configuration
 dependency
@@ -22,6 +23,7 @@ parameter
 parenthesis
 populate
 production
+sanitize
 substitute
 supervisor
 throttle
