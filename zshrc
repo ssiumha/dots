@@ -72,7 +72,7 @@ export AWS_CLI_AUTO_PROMPT=on-partial
 
 
 ################################
-# Alias
+# Alias (Basic)
 ################################
 alias mv="mv -i"
 alias cp="cp -i"
@@ -81,34 +81,6 @@ alias g="git"
 
 alias -g ...=../..
 alias -g ....=../../..
-
-if command -v nvim &>/dev/null; then
-  alias v="nvim"
-  export EDITOR="nvim"
-else
-  alias v="vim"
-  export EDITOR="vim"
-fi
-
-if command -v lsd &>/dev/null; then
-  alias l="lsd -Ah"
-  alias la="lsd -Ah"
-  alias ll="lsd -Alh"
-  alias lla="lsd -lAh"
-  alias lt="l -Ah --tree"
-elif command -v exa &>/dev/null; then
-  alias l="exa -s type"
-  alias la="exa -s type -a"
-  alias ll="exa -s type -l"
-  alias llg="exa -s type -l --git"
-  alias lla="exa -s type -la"
-  alias lt="exa -s type --tree -l"
-else
-  alias l="ls -Ah"
-  alias la="ls -Ah"
-  alias ll="ls -lAh"
-  alias lla="ls -lAh"
-fi
 
 alias k="kubectl"
 ksw() {
@@ -174,6 +146,38 @@ if command -v zoxide &>/dev/null; then
   eval "$(zoxide init zsh --no-cmd)"
   alias z=__zoxide_z
   alias zz=__zoxide_zi
+fi
+
+################################
+# Alias (with mise)
+################################
+
+if command -v nvim &>/dev/null || mise ls neovim &>/dev/null; then
+  alias v="nvim"
+  export EDITOR="nvim"
+else
+  alias v="vim"
+  export EDITOR="vim"
+fi
+
+if command -v lsd &>/dev/null || mise ls lsd &>/dev/null; then
+  alias l="lsd -Ah"
+  alias la="lsd -Ah"
+  alias ll="lsd -Alh"
+  alias lla="lsd -lAh"
+  alias lt="l -Ah --tree"
+elif command -v exa &>/dev/null; then
+  alias l="exa -s type"
+  alias la="exa -s type -a"
+  alias ll="exa -s type -l"
+  alias llg="exa -s type -l --git"
+  alias lla="exa -s type -la"
+  alias lt="exa -s type --tree -l"
+else
+  alias l="ls -Ah"
+  alias la="ls -Ah"
+  alias ll="ls -lAh"
+  alias lla="ls -lAh"
 fi
 
 ################################
