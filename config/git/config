@@ -20,7 +20,7 @@
   colorMoved = default
   algorithm = histogram
 [merge]
-  conflictstyle = zdiff3
+  ; conflictstyle = zdiff3
 ; [url "git@github.com:"]
 ; 	insteadOf = https://github.com/
 [alias]
