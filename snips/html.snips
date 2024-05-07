@@ -1,0 +1,9 @@
+snippet dialog_form "method dialog"
+<dialog open>
+  <p>will close its current dialog when submitted</p>
+
+  <form method="dialog">
+    <button>OK</button>
+  </form>
+</dialog>
+endsnippet
