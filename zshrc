@@ -26,8 +26,28 @@ setopt pushdminus         # can use -, $OLDPWD, when pushed
 ################################
 # Path
 ################################
-echo $PATH | grep -q "$HOME/.local/bin" && : || export PATH="$HOME/.local/bin:$PATH"
-echo $PATH | grep -q "$HOME/dotfiles/bin" && : || export PATH="$HOME/dotfiles/bin:$PATH"
+case $OSTYPE in
+  darwin*)
+    export path=(
+      # <- mise shims
+      "$HOME/dotfiles/bin"
+      "$HOME/.local/bin"
+      "/opt/homebrew/bin"
+      "/opt/homebrew/sbin"
+      "/usr/local/bin"
+      "/usr/bin"
+      "/bin"
+      "/usr/sbin"
+      "/sbin"
+      "/Library/Apple/usr/bin"
+      "$HOME/.orbstack/bin"
+    )
+    ;;
+  *)
+    echo $PATH | grep -q "$HOME/.local/bin" && : || export PATH="$HOME/.local/bin:$PATH"
+    echo $PATH | grep -q "$HOME/dotfiles/bin" && : || export PATH="$HOME/dotfiles/bin:$PATH"
+    ;;
+esac
 
 ################################
 # Env
