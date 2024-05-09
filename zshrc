@@ -234,6 +234,9 @@ then
   zinit snippet 'https://github.com/junegunn/fzf/blob/master/shell/completion.zsh'
   zinit light chitoku-k/fzf-zsh-completions
 
+  zinit ice from"gh" as"program" pick"bin/*"
+  zinit light reegnz/jq-zsh-plugin
+
   zinit snippet 'https://github.com/git/git/blob/master/contrib/completion/git-prompt.sh'
 else
   command -v git &>/dev/null \
@@ -417,7 +420,16 @@ _fzf_my_completion_hook() {
   prefix=$1
   lbuf=$2
 
-  if [[ "$prefix" == "|" ]]; then
+  if [[ "$prefix" == "jq" ]]; then
+    local query ret
+    query=$(jq-repl -- $(perl -pe 's/ *\| *jq$//' <<<"$LBUFFER"))
+    ret=$?
+    if [ -n "$query" ]; then
+      [[ -z "$JQ_REPL_ARGS" ]] || LBUFFER="${LBUFFER} ${JQ_REPL_ARGS}"
+      LBUFFER="${LBUFFER} '$query'"
+    fi
+    return ret
+  elif [[ "$prefix" == "|" ]]; then
     prefix="" eval _fzf_pipe_complete ${(q)lbuf}
   elif [[ "$prefix" == "?" ]]; then
     prefix="" eval _fzf_pane_complete ${(q)lbuf}
