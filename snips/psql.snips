@@ -9,3 +9,7 @@ endsnippet
 snippet use_databases "or -d dbname"
 \c dbname
 endsnippet
+
+snippet alter_auto_increment ""
+ALTER SEQUENCE table_id_seq RESTART WITH 100000;
+endsnippet

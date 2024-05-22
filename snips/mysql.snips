@@ -1,0 +1,7 @@
+snippet innodb_engine_status "kill lock process"
+show engine innodb status \G;
+endsnippet
+
+snippet max_connections "show max connections"
+show variables like 'max_connections';
+endsnippet

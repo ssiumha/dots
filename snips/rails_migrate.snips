@@ -9,3 +9,7 @@ endsnippet
 snippet t_unique "unique code"
       t.string :product_id, null: false, index: { unique: true }
 endsnippet
+
+snippet longblob "4GB"
+      t.binary :data, null: false, size: :long
+endsnippet

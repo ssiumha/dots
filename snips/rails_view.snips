@@ -1,3 +1,11 @@
+snippet keep_parameters "sticky parameters"
+url_for(request.parameters.merge(page: 1)
+endsnippet
+
+snippet keep_parameters_only_query "{ page: 1}"
+request.query_parameters.merge(page: 1)
+endsnippet
+
 snippet turbo_frame "simple sample"
 <turbo-frame id="comments">
 </turbo-frame>
@@ -56,4 +64,10 @@ export default class extends Controller {
     clearInterval(this.timer)
   }
 }
+endsnippet
+
+snippet errors_messages_for ""
+<% @article.errors.full_messages_for(:title).each do |message| %>
+  <span><%= message %></span>
+<% end %>
 endsnippet

@@ -15,3 +15,7 @@ endsnippet
 snippet devise_timeout "config/initializers/devise.rb"
 config.timeout_in = 3.hours
 endsnippet
+
+snippet url_helpers ""
+Rails.application.routes.url_helpers.root_path
+endsnippet

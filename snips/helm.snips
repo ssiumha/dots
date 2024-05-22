@@ -1,3 +1,7 @@
+snippet kube_service_url ""
+service_name.namespace.svc.cluster.local
+endsnippet
+
 snippet topology_zone "topologySpreadConstraints"
   topologySpreadConstraints:
   - maxSkew: 1
@@ -19,6 +23,19 @@ snippet resources "resources template"
       ephemeral-storage: "100Mi"
 endsnippet
 
-snippet meta_redirect "html only; "
-<meta http-equiv="refresh" content="0; url=https://example.com/">
+snippet bitnami_postgresql "bitnami/postgresql"
+# https://artifacthub.io/packages/helm/bitnami/postgresql/15.4.0
+auth:
+  username: postgres
+  password: password
+
+primary:
+  extendedConfiguration: |
+    max_connections=1024
+
+  persistence:
+    size: 100Gi
+
+readReplicas:
+  replicaCount: 0
 endsnippet

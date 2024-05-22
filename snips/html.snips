@@ -7,3 +7,7 @@ snippet dialog_form "method dialog"
   </form>
 </dialog>
 endsnippet
+
+snippet meta_redirect "html only; "
+<meta http-equiv="refresh" content="0; url=https://example.com/">
+endsnippet

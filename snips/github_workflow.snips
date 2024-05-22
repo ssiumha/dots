@@ -67,6 +67,14 @@ snippet step_gh_diff_files "jobs.job.steps[n]"
           gh pr diff ${PR_NUMBER} --name-only
 endsnippet
 
+snippet trigger_complete_another_workflow "on:"
+on:
+  workflow_run:
+    workflows: [Workflow Name]
+    types:
+      - completed
+endsnippet
+
 snippet check_gh_using_perl ""
 perl <<-'EOF'
   $_ = `gh api "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}" -q '.title'`;
