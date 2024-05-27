@@ -78,8 +78,10 @@ bundle config set --local jobs 4
 bundle config set --local retry 3
 bundle config set --local clean true
 bundle config build.pg --with-pg-config=$(brew --prefix libpq)/bin/pg_config
-bundle config build.mysql2 --with-mysql-dir=$(brew --prefix mysql)
+bundle config build.mysql2 --with-mysql-dir=$(brew --prefix mysql-client)
 bundle config build.iconv --with-iconv-dir=$(brew --prefix libiconv)
+bundle config build.iconv --with-cflags="-Wno-incompatible-function-pointer-types"
+bundle config build.nio4r --with-cflags="-Wno-incompatible-function-pointer-types"
 bundle config build.nokogiri --with-iconv-dir=$(brew --prefix libiconv)
 brew install libpq  ## install postgres library
 gem bump -v pre
@@ -236,6 +238,8 @@ perl -MTime::Piece -e 'print localtime->ymd;' ## print datetime ymd
 # jq
 | jq 'with_entries(select([.key] | inside(["abi", "bytecode", "contractName"])))'  ## select specific keys in json
 | jq -r 'paths(scalars) as $p | [($p|map(tostring)|join(".")), getpath($p)] | join(": ")'  ## json flatten
+| jq '.bundles[] | select(.ramSizeInGb >= 8 and .ramSizeInGb < 12)'
+| jq '.blueprints[] | select(.name | test("Ubuntu"))'
 
 # curl
 curl --header "Host: test.example.com" http://aws-domain.elb.amazonaws.com  ## DNS 설정 없이 ingress 테스트할 때 사용
@@ -272,6 +276,7 @@ git diff node1.yaml | perl -pe 's/node1/node2/' | git apply -  ## git diff apply
 
 git remote add up git@github.com:$OWNER/$REPO.git
 git rev-parse --show-toplevel  ## git root path
+git rebase -r --exec "git commit --amend --no-edit --reset-author" HEAD~3  ## reset author
 
 # gh
 gh pr list --web ## open pull request github
@@ -323,6 +328,7 @@ ss  ## alternative netstat
 # open
 open -na RubyMine.app --args .
 open -na WebStorm.app --args .
+open -na 'Visual Studio Code' .
 
 # mac
 sudo defaults write /Library/Preferences/FeatureFlags/Domain/UIKit.plist redesigned_text_cursor -dict-add Enabled -bool NO  ## disable input source switch popup
