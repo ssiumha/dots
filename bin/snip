@@ -35,6 +35,8 @@ case $ft in
       *compose*/*        ) snips+=("docker_compose.snips") ;;
       *.github/workflows*) snips+=("github_workflow.snips") ;;
       *.github/actions*  ) snips+=("github_action.snips") ;;
+      *)
+        snips+=("docker_compose.snips") ;;
     esac ;;
   ruby)
     [[ $fp = *app* ]] && snips+=("rails.snips")
@@ -49,6 +51,7 @@ case $ft in
   eruby.yaml)
     case $fp in
       *test/fixtures/*) snips+=("rails_fixture.snips") ;;
+      *spec/fixtures/*) snips+=("rails_fixture.snips") ;;
     esac ;;
   eruby)
     case $fp in
