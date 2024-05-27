@@ -19,3 +19,21 @@ endsnippet
 snippet url_helpers ""
 Rails.application.routes.url_helpers.root_path
 endsnippet
+
+snippet validator_date ""
+class DateValidator < ActiveModel::EachValidator
+  def validate_each(record, attribute, value)
+    begin
+      DateTime.parse(value)
+    rescue ArgumentError, TypeError
+      record.errors.add(attribute, (options[:message] || "Invalid date format'"), value:)
+    end
+  end
+end
+endsnippet
+
+snippet reset_pk_sequence "in psql?"
+ActiveRecord::Base.connection.tables.each do |t|
+  ActiveRecord::Base.connection.reset_pk_sequence!(t)
+end
+endsnippet

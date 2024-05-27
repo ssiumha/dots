@@ -11,3 +11,13 @@ endsnippet
 snippet meta_redirect "html only; "
 <meta http-equiv="refresh" content="0; url=https://example.com/">
 endsnippet
+
+snippet autocomplete_with_datalist ""
+<input list="languages" type="search" name="languages">
+
+<datalist id="languages">
+  <option value="Ruby">
+  <option value="JavaScript">
+  <option value="Rust">
+</datalist>
+endsnippet

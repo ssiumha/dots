@@ -1,3 +1,10 @@
+snippet command_environment "can use: mysql -e"
+USER=root
+MYSQL_HOST=db.example.com
+MYSQL_PORT=3306
+MYSQL_PWD=password
+endsnippet
+
 snippet innodb_engine_status "kill lock process"
 show engine innodb status \G;
 endsnippet

@@ -1,3 +1,11 @@
+snippet command_environment "can use: psql -c"
+PGUSER=root
+PGHOST=db.example.com
+PGPORT=5432
+PGPASSWORD=password
+PGDATABASE=dbname
+endsnippet
+
 snippet show_databases ""
 \l
 endsnippet

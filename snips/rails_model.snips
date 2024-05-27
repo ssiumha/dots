@@ -5,3 +5,13 @@ snippet validate_email ""
     presence: true,
     uniqueness: { case_insensitive: true }
 endsnippet
+
+snippet store_accessor "with metadata"
+  store_accessor :metadata, :logged_in_at
+  before_validation { self.logged_in_at = (logged_in_at.presence || DateTime.now) }
+  validates :logged_in_at, presence: true
+endsnippet
+
+snippet store_accessor_with_type ""
+  def logged_in_at = read_store_attribute(:metadata, :logged_in_at).try(:to_datetime) rescue nil
+endsnippet

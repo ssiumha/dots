@@ -1,10 +1,10 @@
 snippet simple_info ""
 
 == EC2
-           | CPU | Memory | price/day
-m5.large   | 2   | 8 GB   | $ 2.304
-m5.xlarge  | 4   | 16 GB  | $ 4.608
-m5.2xlarge | 8   | 32 GB  | $ 9.216
+           | CPU | Memory | price/day | price/month
+m5.large   | 2   | 8 GB   | $ 2.304   | $ 69.120
+m5.xlarge  | 4   | 16 GB  | $ 4.608   | $ 138.240
+m5.2xlarge | 8   | 32 GB  | $ 9.216   | $ 276.480
 
 == EKS
     | price/day

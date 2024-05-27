@@ -1,0 +1,15 @@
+snippet media_screen_query ""
+@media only screen and (max-width: 600px) {} /* Extra small, phones */
+@media only screen and (min-width: 600px) {} /* Small, portrait tablets, large phones */
+@media only screen and (min-width: 768px) {} /* Medium, tabels */
+@media only screen and (min-width: 992px) {} /* Large, desktops */
+@media only screen and (min-width: 1200px) {} /* Extra large, desktops */
+endsnippet
+
+snippet media_screen_query_with_tailwind ""
+@media (max-width: 640px) { .sm\:mt-1 { margin-top: 0.25rem; } }
+@media (min-width: 768px) { .md\:mt-1 { margin-top: 0.25rem; } }
+@media (min-width: 1024px) { .lg\:mt-1 { margin-top: 0.25rem; } }
+@media (min-width: 1280px) { .xl\:mt-1 { margin-top: 0.25rem; } }
+@media (min-width: 1536px) { .2xl\:mt-1 { margin-top: 0.25rem; } }
+endsnippet
