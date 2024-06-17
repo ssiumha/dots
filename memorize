@@ -84,7 +84,7 @@ bundle config build.iconv --with-cflags="-Wno-incompatible-function-pointer-type
 bundle config build.nio4r --with-cflags="-Wno-incompatible-function-pointer-types"
 bundle config build.nokogiri --with-iconv-dir=$(brew --prefix libiconv)
 brew install libpq  ## install postgres library
-gem bump -v pre
+gem bump -v pre  ## gem install gem-release
 
 ruby -rlisten -e 'Listen.to("./"){ %x{} if _1.count>0 }.then{ _1.start; _1.only // }; sleep'
 
@@ -253,6 +253,8 @@ curl 'https://ipinfo.io/4.4.4.4'  ## check ip info
 
 # git
 git log --patch -S ${QUERY}  ## history search
+git log --since="2024-01-01" --until="2024-12-31"  ## filter daterange
+git log --since="2 weeks ago"  ## filter daterange
 git commit –allow-empty -m ""
 git fetch --tags  ## fetch all tags
 git fetch origin tag ${TAG} --no-tags ## fetch single tag
