@@ -200,6 +200,30 @@ snippet orb_local_port "default: auto detect"
       - dev.orbstack.http-port=8080
 endsnippet
 
+snippet services_certbot_and_nginx ""
+services:
+  nginx:
+    image: nginx:latest
+    restart: always
+    network_mode: host
+    volumes:
+      - ${PWD}/nginx.conf:/etc/nginx/conf.d/nginx.conf
+      - ${PWD}/certbot/conf:/etc/nginx/ssl
+      - ${PWD}/certbot/conf:/etc/letsencrypt
+      - ${PWD}/certbot/data:/var/www/certbot
+    ports:
+      - 80:80
+      - 443:443
+
+#  certbot:
+#    image: certbot/certbot:latest
+#    command: certonly --webroot --webroot-path=/var/www/certbot --email devops@example.com --agree-tos --no-eff-email -d web.example.com
+#    volumes:
+#      - ${PWD}/certbot/conf:/etc/letsencrypt
+#      - ${PWD}/certbot/logs:/var/log/letsencrypt
+#      - ${PWD}/certbot/data:/var/www/certbot
+endsnippet
+
 snippet service_postgres "base postgres"
   postgres:
     image: postgres:16.0

@@ -253,3 +253,10 @@ spec:
                 port:
                   number: 3000
 endsnippet
+
+snippet volume_from_pvc ""
+      volumes:
+        - name: app-volume
+          persistentVolumeClaim:
+            claimName: app-pvc
+endsnippet

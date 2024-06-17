@@ -1,0 +1,8 @@
+snippet hashmap_with_default ""
+use std::collections::HashMap;
+
+let solar_distance = HashMap::from([
+  ("Mercury", 0.4),
+  ("Venus", 0.7),
+]);
+endsnippet

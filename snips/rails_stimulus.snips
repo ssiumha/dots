@@ -1,0 +1,19 @@
+snippet trix_editor_insert_attachment "not working when read.. backup"
+  connect () {
+    this.#trixEditor().addEventListener('trix-file-accept', (event) => {
+      event.preventDefault();
+
+      if (...) {
+        const attachment = new Trix.Attachment({
+          content: '<iframe width="560" height="315" src="https://www.youtube.com/embed/example"></iframe>',
+          contentType: 'text/html'
+        });
+        this.#trixEditor().editor.insertAttachment(attachment)
+      }
+    }
+  }
+
+  #trixEditor() {
+    return this.element.querySelector('trix-editor')
+  }
+endsnippet
