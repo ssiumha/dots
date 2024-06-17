@@ -23,6 +23,10 @@
   ; conflictstyle = zdiff3
 ; [url "git@github.com:"]
 ; 	insteadOf = https://github.com/
+[pretty]
+  basic = format:"%C(green)%h %C(reset)%ad %C(blue)%an %C(reset)%s %C(yellow)(%ar)"
+[format]
+  pretty = basic
 [alias]
   d = diff
   ds = diff --staged
