@@ -13,6 +13,7 @@
 -g=!.terraform/
 -g=!node_modules/
 -g=!vendor/
+-g=!.bundle/ruby
 
 -g=!.git/
 -g=!.svn/
