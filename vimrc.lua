@@ -31,13 +31,15 @@ cmp.setup({
 
 -- echo nvim_get_runtime_file('parser', v:true)
 lspconfig = require'lspconfig'
+lspconfig.stimulus_ls.setup{}
+lspconfig.tailwindcss.setup{}
 lspconfig.tsserver.setup{}
 lspconfig.bashls.setup{}
 lspconfig.dockerls.setup{}
 lspconfig.docker_compose_language_service.setup{}
-lspconfig.ruby_ls.setup{
-  capabilities = capabilities
-}
+-- lspconfig.ruby_ls.setup{
+--   capabilities = capabilities
+-- }
 lspconfig.pyright.setup {
   analysis = {
     autoSearchPaths = true,
@@ -45,6 +47,7 @@ lspconfig.pyright.setup {
     useLibraryCodeForTypes = true
   }
 }
+lspconfig.jsonls.setup {}
 lspconfig.yamlls.setup {
   settings = {
     yaml = {
@@ -53,6 +56,7 @@ lspconfig.yamlls.setup {
         ["https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.29.2-standalone-strict/deployment.json"] = "deployment/**/deployment/*.yaml",
         ["https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.29.2-standalone-strict/statefulset.json"] = "deployment/**/statefulset/*.yaml",
         ["https://json.schemastore.org/github-workflow.json"] = ".github/workflows/*",
+        ["https://json.schemastore.org/github-action.json"] = ".github/actions/*",
       }
     }
   }
@@ -62,7 +66,11 @@ require'nvim-treesitter.configs'.setup {
   parser_install_dir = "~/.cache/treesitter",
   ensure_installed = { 'ruby', 'yaml' },
   auto_install = true,
-  -- highlight = { enable = true, additional_vim_regex_highlighting = false },
+  highlight = {
+    enable = true,
+    additional_vim_regex_highlighting = true,
+    disable = { 'embedded_template' }
+  },
 
   textobjects = {
     select = {

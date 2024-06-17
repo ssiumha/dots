@@ -59,10 +59,15 @@ set timeoutlen=250
 set iskeyword+=\-,$
 
 set completeopt=menu,menuone,longest
+set wildignorecase
 "set wildoptions+=fuzzy
 
 " terminal
-set scrollback=50000
+
+if has('nvim')
+  set scrollback=50000
+  set laststatus=3 " global status line
+endif
 
 " netrw
 let g:netrw_fastbrowse = 2 " prevent reset cursor. but want refresh, need <c-l>
@@ -79,7 +84,7 @@ let &directory = expand('$HOME/.cache/vim/swap')
 
 " TODO: UpdateRemotePlugin
 " TODO: gem install neovim --bindir ~/.local/bin
-let g:ruby_host_prog = '$HOME/.local/bin/neovim-ruby-host'
+" let g:ruby_host_prog = '$HOME/.local/bin/neovim-ruby-host'
 
 set runtimepath^=~/dotfiles/vim
 
@@ -126,7 +131,12 @@ Plug 'junegunn/fzf.vim'
   imap <c-x><c-f> <plug>(fzf-complete-path)
   imap <c-x><c-l> <plug>(fzf-complete-line)
 
+Plug 'ibhagwan/fzf-lua'
+
 Plug 'voldikss/vim-floaterm'
+  let g:floaterm_width = 0.95
+  let g:floaterm_height = 0.8
+
   command! -nargs=* -complete=customlist,floaterm#cmdline#complete -bang -range MySnip  call s:mysnip()
   nnoremap <space>f <esc>:MySnip<cr>
 
@@ -207,10 +217,7 @@ Plug 'nanotech/jellybeans.vim'
 " Utils
 Plug 'powerman/vim-plugin-AnsiEsc'
 Plug 'tpope/vim-commentary'
-
-" TODO: Remove
 Plug 'michaeljsmith/vim-indent-object'
-Plug 'jeetsukumaran/vim-indentwise'
 
 Plug 'jpalardy/vim-slime'
   let g:slime_target = 'tmux'
@@ -236,6 +243,7 @@ Plug 'dense-analysis/ale'
   \}
   " \   '*': ['remove_trailing_lines', 'trim_whitespace'],
 
+  " let g:ale_disable_lsp = 1
   let g:ale_linters_ignore = {'typescript': ['deno']}
   let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
   let g:ale_sign_error = '✘'
@@ -272,6 +280,30 @@ Plug 'dcampos/nvim-snippy'
 " Lang
 Plug 'tpope/vim-rails'
 Plug 'hashivim/vim-terraform'
+Plug 'elixir-editors/vim-elixir'
+
+Plug 'fifi2/gtd.vim'
+  let g:gtd#dir = '~/gtd'
+  let g:gtd#default_action = 'inbox'
+  let g:gtd#tag_lines_count = 10
+  let g:gtd#review = [
+        \ { 'formula': '!inbox', 'title': 'INBOX' },
+        \ { 'formula': '!todo -#calendar', 'title': 'TODO' },
+        \ { 'formula': '!project', 'title': 'PROJECTS' },
+        \ { 'formula': '!delegated', 'title': 'DELEGATED' },
+        \ { 'formula': '!waiting', 'title': 'WAITING' },
+        \ { 'formula': '!holding', 'title': 'HOLDING' },
+        \ { 'formula': '!pr', 'title': 'PULL_REQUEST' },
+        \ { 'formula': '!someday', 'title': 'SOMEDAY' },
+        \ { 'formula': '!meeting_note', 'title': 'MEETING_NOTE' }
+        \ ]
+        " \ { 'formula': '!todo #calendar:mon', 'title': 'MONDAY' },
+        " \ { 'formula': '!todo #calendar:tue', 'title': 'TUESDAY' },
+        " \ { 'formula': '!todo #calendar:wed', 'title': 'WEDNESDAY' },
+        " \ { 'formula': '!todo #calendar:thu', 'title': 'THURSDAY' },
+        " \ { 'formula': '!todo #calendar:fri', 'title': 'FRIDAY' },
+        " \ { 'formula': '!todo #calendar:sat', 'title': 'SATURDAY' },
+        " \ { 'formula': '!todo #calendar:sun', 'title': 'SUNDAY' },
 
 if has('nvim-0.7.0')
   Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
@@ -353,6 +385,8 @@ augroup filetype_all
 
   autocmd StdinReadPost * :AnsiEsc
   autocmd StdinReadPost * setlocal nowrap buftype=nofile
+
+  autocmd FileType qf nnoremap <buffer> q :cclose<cr>
 augroup END
 
 "----------------
