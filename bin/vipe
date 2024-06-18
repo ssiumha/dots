@@ -1,0 +1,19 @@
+#!/bin/bash
+
+show_help() {
+  echo "Usage: vipe <command>"
+  echo "Pipe the output of a command to vi and then back to the command"
+  echo "Example:"
+  echo "  echo 'hello' | vipe 's/hello/hi/'"
+  echo "  ls | vipe 'v/test/d'"
+  echo "  | vipe '%norm A test'"
+}
+
+if [ -z "$1" ]; then
+  show_help
+  exit 1
+fi
+
+# TODO?: multiple commands
+command=$(echo "$*")
+vim -es +"norm gg" +"$command" +%p +q! /dev/stdin
