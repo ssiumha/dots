@@ -295,7 +295,7 @@ Plug 'fifi2/gtd.vim'
         \ { 'formula': '!holding', 'title': 'HOLDING' },
         \ { 'formula': '!pr', 'title': 'PULL_REQUEST' },
         \ { 'formula': '!someday', 'title': 'SOMEDAY' },
-        \ { 'formula': '!meeting_note', 'title': 'MEETING_NOTE' }
+        \ { 'formula': '!meeting', 'title': 'MEETING' }
         \ ]
         " \ { 'formula': '!todo #calendar:mon', 'title': 'MONDAY' },
         " \ { 'formula': '!todo #calendar:tue', 'title': 'TUESDAY' },
