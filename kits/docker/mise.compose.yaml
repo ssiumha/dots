@@ -1,4 +1,4 @@
-# docker compose -f ~/dotfiles/tools/docker/mise.compose.yaml -p $(basename $PWD) run -it --rm --build app
+# docker compose -f ~/dotfiles/kits/docker/mise.compose.yaml -p $(basename $PWD) run -it --rm --build app
 services:
   app:
     network_mode: host
