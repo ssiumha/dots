@@ -21,3 +21,14 @@ endsnippet
 snippet alter_auto_increment ""
 ALTER SEQUENCE table_id_seq RESTART WITH 100000;
 endsnippet
+
+snippet create_database_if_not_exists ""
+SELECT 'CREATE DATABASE testdb'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'testdb')\gexec
+endsnippet
+
+snippet create_database_with_user ""
+psql \
+  -c "CREATE USER ${USER_NAME} WITH PASSWORD '${USER_PASSWORD}';" \
+  -c "CREATE DATABASE ${DATABASE_NAME} WITH OWNER = '${USER_NAME}' ENCODING = 'UTF8';"
+endsnippet

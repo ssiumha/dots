@@ -46,12 +46,12 @@ spec:
             matchLabels:
               app: api
       containers:
-        - env:
-          - name: DATABASE_URL
-            value: 'postgres://user:password@postgresql/dev'
+        - name: api
           image: 000000000000.dkr.ecr.ap-northeast-2.amazonaws.com/app:latest
           imagePullPolicy: Always
-          name: api
+          env:
+            - name: DATABASE_URL
+              value: 'postgres://user:password@postgresql/dev'
           ports:
             - containerPort: 8080
               name: http
@@ -259,4 +259,22 @@ snippet volume_from_pvc ""
         - name: app-volume
           persistentVolumeClaim:
             claimName: app-pvc
+endsnippet
+
+snippet cluster_dns "cluster.local"
+<service>.<namespace>.svc.cluster.local
+<pod>.<namespace>.pod.cluster.local
+endsnippet
+
+snippet startupProbe ""
+          startupProbe:
+            exec:
+              command:
+                - "/bin/bash"
+                - "-c"
+                - "..."
+            failureThreshold: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
 endsnippet
