@@ -62,7 +62,8 @@ rg --color=never -l ${SEARCH} | xargs perl -i -pe 's/${SEARCH}/xxx/g'  ## find a
 rg --color=never -l ${SEARCH} | while read -r line; do echo $line; done;  ## loop search files
 vim -Nens +'g/namespace/norm nciwname' +wq file.txt  ## all replace ;; # e: ExMode / s: Silent / n: No Swap. memory only / N: nocompatible
 vim -Nens +'bufdo g/namespace/norm nciwname' +wqa file.txt file2.txt  ## multiple all replace
-ls | vim -e -s +%s/s/k/ +%p -cq! /dev/stdin  ## +wq!, ZZ 로 저장후 종료 ;; + : cmd ;; - : normal
+| vim -e -s +%s/s/k/ +%p -cq! /dev/stdin  ## +wq!, ZZ 로 저장후 종료 ;; + : cmd ;; - : normal
+| vim -es +'norm dw' +%p +q! /dev/stdin
 
 
 # ruby
@@ -221,6 +222,7 @@ v ~/.local/state/k9s/screen-dumps/  ## k9s log
 helm show values --version ${VER} -n ${NS} ${CHART}
 helm get values ${RELEASE_NAME}  ## helm으로 반영된 values.yaml 파일 가져오기
 helm ls -a -n ${NS}  ## 특정 네임스페이스의 헬름 차트 인스턴스 목록 띄우기. -A 로 전체 목록
+helm diff upgrade ${NAME} ${CHART_REPO} --values=values.yaml --debug --allow-unreleased  ## 반영될 maniftest 확인
 
 # perl
 perl -MIO::Socket::INET -e '$sock=IO::Socket::INET->new(PeerAddr=>"google.com",PeerPort=>"80",Proto=>"tcp"); print $sock "GET / HTTP/1.0\nHost: google.com\n\n"; print while <$sock>'
