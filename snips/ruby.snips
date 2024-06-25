@@ -321,3 +321,25 @@ endsnippet
 snippet net_http_post ""
 Net::HTTP.post(_uri, data, headers).body
 endsnippet
+
+snippet rspec_base "Arrange, Act, Assert"
+describe '어떤 클래스 등' do
+  describe '어떤 처리, #method...' do
+    let(:user) { create :user }
+
+    context 'XX인 경우' do
+      before do
+        travel_to '2000-01-01 09:00'.in_time_zone
+      end
+      after { travel_back }
+
+      it 'AAA 상태가 된다' do
+        expect { action! }.to \
+          change { user.count }.from(0).to(1)
+
+        expect(value).to eq 500
+      end
+    end
+  end
+end
+endsnippet

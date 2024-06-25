@@ -1,0 +1,47 @@
+# vim: ft=snips
+
+snippet help ""
+# m h dom mon dow   command
+# dow = day of week, 0 = Sunday
+# syntax:
+#   range = 0-6
+#   list = 0,1,2,3,4,5,6
+#   step = */2
+#   wildcard = *
+endsnippet
+
+snippet using_with_mise ""
+PATH=$HOME/.local/bin:$PATH
+0 * * * * mise x ruby@3.3 -- /path/to/script
+endsnippet
+
+snippet cronenv "need `mkdir ~/logs`"
+# in macos output :
+#
+#   SHELL=/bin/bash
+#   PATH=/usr/bin:/bin
+#   LOGNAME=username
+#   USER=username
+#   HOME=/Users/username
+#   SHLVL=0
+#   PWD=/Users/username
+#   OLDPWD=/Users/username
+#   _=/usr/bin/printenv
+#
+* * * * * printenv > $HOME/logs/cronenv
+endsnippet
+
+snippet shell_env ""
+SHELL=/bin/zsh
+PATH=$PATH
+
+* * * * * printenv
+endsnippet
+
+snippet hourly ""
+0 * * * * echo 123
+endsnippet
+
+snippet hourly_rsync ""
+0 * * * * rsync -avz /path/to/source /path/to/destination
+endsnippet
