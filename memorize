@@ -47,6 +47,7 @@ for i in {0..6}; do tmux send-keys -t $(tmux split-window -d -P -F "#{pane_id}" 
 tmux capture-pane -J -p -S - -t $TMUX_PANE > /tmp/pane.log  ## tmux save to logs ;; -S - : from start ;; -p : to stdout ;; -J : wrapped lines join ;; -t : target. %123
 
 | cut -c-$COLUMNS
+| while read -r line; do echo $line; done
 
 systemctl --type=service --state=active
 systemctl --type=service --state=running
