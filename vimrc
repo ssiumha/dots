@@ -390,13 +390,19 @@ augroup filetype_all
 augroup END
 
 "----------------
-" ideavimrc
+" variant
 "----------------
-if has('ide')
+if has('ide') "ideavimrc
   set noexpandtab
 
   inoremap <c-p> <c-o>:action CodeCompletion<cr>
   inoremap <c-n> <c-o>:action CodeCompletion<cr>
 
   nnoremap <space>r :action RunClass<cr>
+endif
+
+if exists('g:neovide')
+  let g:neovide_transparency = 0.8
+
+  autocmd VimEnter * execute 'cd ~/gtd' | GtdReview
 endif
