@@ -402,7 +402,12 @@ if has('ide') "ideavimrc
 endif
 
 if exists('g:neovide')
-  let g:neovide_transparency = 0.8
+  let g:neovide_transparency = 0.9
+  nnoremap <D-v> "+p
+  inoremap <D-v> <c-r>+
+  tnoremap <D-v> <c-r>+
 
-  autocmd VimEnter * execute 'cd ~/gtd' | GtdReview
+  autocmd VimEnter * if argc() == 0
+        \| exe 'cd ' . g:gtd#dir | exe 'GtdReview'
+        \| endif
 endif
