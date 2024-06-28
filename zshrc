@@ -415,39 +415,47 @@ _fzf_pane_complete() {
   )
 }
 
+_fzf_jq_repl_complete() {
+  local query ret
+  query=$(jq-repl -- $(perl -pe 's/ *\| *jq$//' <<<"$LBUFFER"))
+  ret=$?
+
+  if [ $ret -eq 130 ]; then # Ignore SIGINT
+    return 0
+  fi
+
+  if [ -n "$query" ]; then
+    [[ -z "$JQ_REPL_ARGS" ]] || LBUFFER="${LBUFFER} ${JQ_REPL_ARGS}"
+    LBUFFER="${LBUFFER} '$query'"
+  fi
+
+  return ret
+}
+
+# if return 0 -> hook success, ignore
+# if return 1 -> hook fail. run default fzf completion
 _fzf_my_completion_hook() {
   local prefix lbuf
   prefix=$1
   lbuf=$2
 
-  if [[ "$prefix" == "jq" ]]; then
-    local query ret
-    query=$(jq-repl -- $(perl -pe 's/ *\| *jq$//' <<<"$LBUFFER"))
-    ret=$?
-    if [ -n "$query" ]; then
-      [[ -z "$JQ_REPL_ARGS" ]] || LBUFFER="${LBUFFER} ${JQ_REPL_ARGS}"
-      LBUFFER="${LBUFFER} '$query'"
-    fi
-    return ret
-  elif [[ "$prefix" == "|" ]]; then
-    prefix="" eval _fzf_pipe_complete ${(q)lbuf}
-  elif [[ "$prefix" == "?" ]]; then
-    prefix="" eval _fzf_pane_complete ${(q)lbuf}
-  elif [[ "$prefix" == "\$(" ]]; then
-    prefix="" eval _fzf_sub_complete ${(q)lbuf}
-  elif [[ "$prefix" == .. ]]; then
-    prefix="" eval _fzf_command_complete_rise_dir ${(q)lbuf}
-  elif [[ "$prefix" == :* ]]; then
-    # TODO: typing -> :g -> c-f 동작이 불편, : 말고 다른 단어가 필요. gst+c-f?
-    #    - :l + c-f => current ls
-    if eval "type _fzf_command_complete_${prefix#*:} > /dev/null"; then
-      prefix="" eval _fzf_command_complete_${prefix#*:} ${(q)lbuf}
-    else
-      return 1
-    fi
-  else
-    return 1 # default fail
-  fi
+  case $prefix in
+    "|"   ) prefix="" eval _fzf_pipe_complete ${(q)lbuf} ;;
+    "?"   ) prefix="" eval _fzf_pane_complete ${(q)lbuf} ;;
+    '$('  ) prefix="" eval _fzf_sub_complete ${(q)lbuf} ;;
+    '..'  ) prefix="" eval _fzf_command_complete_rise_dir ${(q)lbuf} ;;
+    'jq'  ) _fzf_jq_repl_complete; return $? ;;
+    :*    )
+      # TODO: :g -> c-f 동작이 불편, 다른 트리거로 변경 _ls? @g?
+      if eval "type _fzf_command_complete_${prefix#*:} > /dev/null"; then
+        prefix="" eval _fzf_command_complete_${prefix#*:} ${(q)lbuf}
+      else
+        return 1
+      fi
+    ;;
+
+    *) return 1
+  esac
 }
 
 #### overwrite completion
