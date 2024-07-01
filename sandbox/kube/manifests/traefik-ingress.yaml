@@ -1,0 +1,30 @@
+# k3d cluster edit mycluster --port-add "9999:80@loadbalancer"
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: default-rewrite
+  namespace: k3d-local
+spec:
+  replacePathRegex:
+    regex: ^/([^/]*)/(.*)
+    replacement: "/$2"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress
+  namespace: k3d-local
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+    traefik.ingress.kubernetes.io/router.middlewares: k3d-local-default-rewrite@kubernetescrd
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /kafka
+        pathType: Prefix
+        backend: { service: { name: kafka, port: { number: 9092 } } }
+      - path: /postgres
+        pathType: Prefix
+        backend: { service: { name: postgres, port: { number: 5432 } } }

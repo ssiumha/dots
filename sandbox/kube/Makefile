@@ -25,6 +25,9 @@ create-cluster: ## Create a k3d cluster
 		echo "Cluster `mycluster` already exists"; \
 	fi
 
+cluster-port-add: ## k3d cluster port-add
+	k3d cluster edit mycluster --port-add "9999:80@loadbalancer"
+
 connect-postgres: ## Connect to the postgres database
 	kubectl run postgres-client --rm -it --restart='Never' \
 		-n ${_NAMESPACE} --image postgres:16 \
