@@ -71,3 +71,9 @@ snippet errors_messages_for ""
   <span><%= message %></span>
 <% end %>
 endsnippet
+
+snippet content_for ""
+<%= content_for :head do %>
+  <meta name="turbo-cache-control" content="no-cache">
+<% end %>
+endsnippet

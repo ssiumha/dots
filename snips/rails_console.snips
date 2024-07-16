@@ -1,0 +1,3 @@
+snippet helper_in_console ""
+helper.sanitize
+endsnippet

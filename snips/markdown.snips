@@ -27,7 +27,7 @@ snippet github_note "NOTE, TIP, IMPORTANT, WARNING, CAUTION"
 > Messages..
 endsnippet
 
-snippet template_article ""
+snippet skeleton_article ""
 # 서두
 - 무엇에 대한 기사인가
 - 읽는 대상은 누구인가
@@ -40,7 +40,7 @@ snippet template_article ""
 # 마치며
 endsnippet
 
-snippet template_domain ""
+snippet skeleton_domain ""
 == 개요
 본 정의서의 목적과 범위에 대한 설명
 == 도메인 개요
@@ -63,7 +63,7 @@ e.g. 주문 프로세스, 결제 프로세스
 e.g. 관련 문서, 용어집, 참고 자료 등
 endsnippet
 
-snippet template_ddd "domain driven"
+snippet skeleton_ddd "domain driven"
 == 도메인 개요
 == 핵심 도메인
 == 서브 도메인
@@ -78,7 +78,7 @@ e.g. 엔터티, 값 객체, 애그리게이트, 도메인 서비스 등 정의
 == 부록
 endsnippet
 
-snippet template_report ""
+snippet skeleton_report ""
 == TL;DR
 == Abstract
 == Motivation
@@ -88,7 +88,7 @@ snippet template_report ""
 == Expectation
 endsnippet
 
-snippet template_research ""
+snippet skeleton_research ""
 = 서론
 == 개요
 == 사용 이유
@@ -103,7 +103,7 @@ snippet template_research ""
 == 분석의 요약
 endsnippet
 
-snippet template_dev_doc ""
+snippet skeleton_dev_doc ""
 = 문제
 어떤 문제를 마주했는지
 = 문제 재현
@@ -116,10 +116,49 @@ snippet template_dev_doc ""
 그 과정에서 자기가 모르던 개념을 검색하고 찾아보며 알게 된 내용
 endsnippet
 
-snippet fault_operation "장애 발생 플로우, 공유"
+snippet skeleton_fault_operation "장애 발생 플로우, 공유"
 = 사고발생 상황
 = 실사용자 영향
 = 중간 과정
 = 완료 상황
 = 복구 처리
+endsnippet
+
+snippet skeleton_feature_architecture "기능 개발시 아키텍처 설계"
+# 개요
+
+# 문제사항 정의
+- 어떤 문제가 있는가
+- 이 작업을 왜 하는가
+
+# 목표
+- 결과물
+- 성과측정 목표
+
+# 기존 기능, 기존
+- AS-IS
+
+# 해결방안
+- TO-BE
+- 어떻게
+- 선택지
+
+# 타임라인
+endsnippet
+
+snippet skeleton_feature_simple ""
+# 개요
+## 배경
+## 관련 문서
+
+# TO-BE
+# AS-IS
+# HOW-TO
+endsnippet
+
+snippet skeleton_feature_compare "기능의 비교"
+# 비슷한 기능, 패턴화된 기능 케이스 수집
+# 기능 리스팅
+- 수집한 각각의 장점을 먼저 리스팅
+- 현재 사용하는 기능의 단점과 함께 리스팅 정리
 endsnippet

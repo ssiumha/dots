@@ -1,0 +1,3 @@
+snippet docker_host_url ""
+host.docker.internal
+endsnippet

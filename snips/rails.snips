@@ -37,3 +37,23 @@ ActiveRecord::Base.connection.tables.each do |t|
   ActiveRecord::Base.connection.reset_pk_sequence!(t)
 end
 endsnippet
+
+snippet sub_path_component ""
+  # https://github.com/rails/rails/blob/v7.1.3.4/actionview/lib/action_view/view_paths.rb#L73-L77
+  #
+  # class ApplicationController
+  #  `<%= render 'icon', name: 'code' %>`
+  #
+  # scan:
+  #  - views/users/components/_icon.html.erb
+  #  - views/users/_icon.html.erb
+  #  - views/_icon.html.erb
+  #
+  def self.inherited(subclass)
+    super
+
+    subclass.define_singleton_method(:local_prefixes) do
+      [File.join(controller_path, 'components'), controller_path, 'components']
+    end
+  end
+endsnippet

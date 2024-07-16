@@ -1,0 +1,10 @@
+snippet base_template ""
+[env]
+APP_ENV = "local"
+
+[tools]
+ruby = "latest"
+
+[tasks."run"]
+run = "bundle exec ruby app.rb"
+endsnippet

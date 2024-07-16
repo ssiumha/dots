@@ -1,0 +1,9 @@
+snippet frontend_checklist ""
+https://frontendchecklist.io/
+https://github.com/thedaviddias/Front-End-Checklist
+https://github.com/parksb/Front-End-Performance-Checklist
+endsnippet
+
+snippet kafka_cluster_compose "bitnami"
+https://github.com/bitnami/containers/blob/main/bitnami/kafka/docker-compose-cluster.yml
+endsnippet

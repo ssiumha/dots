@@ -1,3 +1,7 @@
-snippet base_dir_on_script
+snippet base_dir_on_script ""
 let s:base_dir = expand('<sfile>:h:h')
+endsnippet
+
+snippet popup_create ""
+call popup_create('test', { 'line': 'cursor+1', 'col': 'cursor', 'moved': 'any' })
 endsnippet

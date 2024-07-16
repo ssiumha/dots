@@ -198,3 +198,35 @@ endsnippet
 snippet gh_pr_comment ""
 gh pr comment ${PR_NUMBER} --body-file comment.md
 endsnippet
+
+snippet set_e "if return code is not 0, exit"
+#!/usr/bin/env bash
+set -e
+endsnippet
+
+snippet set_pipefail "if pipe fail, exit"
+#!/usr/bin/env bash
+set -o pipefail
+endsnippet
+
+snippet set_strict ""
+#!/usr/bin/env bash
+set -euxo pipefail
+
+# -e: errexit. exit on error
+# -u: nounset. exit on undefined variable
+# -x: xtrace. print command
+# -o pipefail: exit on pipe fail
+endsnippet
+
+snippet docker_run_httpbin "testing connect"
+docker run --rm -d -p 8000:80 kennethreitz/httpbin
+endsnippet
+
+snippet docker_run_whoami "testing connect"
+docker run --rm -d -p 8000:80 traefik/whoami
+endsnippet
+
+snippet docker_run_json_server "testing connect"
+docker run --rm -d -p 3000:3000 typicode/json-server --watch db.json
+endsnippet

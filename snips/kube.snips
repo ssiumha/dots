@@ -278,3 +278,15 @@ snippet startupProbe ""
             successThreshold: 1
             timeoutSeconds: 3
 endsnippet
+
+snippet labels ".metadata"
+metadata:
+  labels:
+    app.kubernetes.io/name: my-app
+    app.kubernetes.io/instance: my-app-1234
+    app.kubernetes.io/version: "1.0"
+    app.kubernetes.io/component: front-end
+    app.kubernetes.io/part-of: my-app-suite
+    app.kubernetes.io/managed-by: helm
+    app.kubernetes.io/created-by: my-team
+endsnippet
