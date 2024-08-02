@@ -26,6 +26,10 @@ snips+=("$ft.snips")
 case $ft in
   typescript) snips+=("javascript.snips") ;;
   zsh) snips+=("sh.snips") ;;
+  toml)
+    case $fp in
+      *mise.toml) snips+=("mise.snips") ;;
+    esac ;;
   yaml)
     case $fp in
       *deployment/*      ) snips+=("kube.snips") ;;
