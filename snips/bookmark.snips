@@ -7,3 +7,7 @@ endsnippet
 snippet kafka_cluster_compose "bitnami"
 https://github.com/bitnami/containers/blob/main/bitnami/kafka/docker-compose-cluster.yml
 endsnippet
+
+snippet network_speed ""
+https://fast.com
+endsnippet

@@ -343,3 +343,14 @@ describe '어떤 클래스 등' do
   end
 end
 endsnippet
+
+snippet yard_return_example ""
+# @return [Hash, nil] user info
+# @example
+#   {
+#     name: 'John',
+#     age: 20
+#   }
+# @example Not found user
+#   nil
+endsnippet

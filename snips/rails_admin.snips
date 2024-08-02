@@ -30,3 +30,34 @@ ActiveAdmin.register Book do
   end
 end
 endsnippet
+
+snippet default_show ""
+  show do
+    default_main_content
+
+    attributes_table do
+      row(:title) { book.title }
+    end
+  end
+endsnippet
+
+snippet controller_method ""
+  controller do
+    def collection = Book.all
+  end
+
+  show do
+    table do |tbl|
+      tbl.thead.tr do |tr|
+        controller.header_names.map { tr.th _1 }
+      end
+      tbl.tbody do |tbody|
+        collection.each do |book|
+          tbody.tr do |tr|
+            tr.td book.title
+          end
+        end
+      end
+    end
+  end
+endsnippet
