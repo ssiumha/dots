@@ -5,3 +5,7 @@ endsnippet
 snippet check_type "number, string, null, ..."
 type == "object"
 endsnippet
+
+snippet delete_using_input_json_arguments ""
+cat /tmp/nodes.json | jq --arg NEEDLE "{{ template "node.fullname" . }}" 'del(.[] | select( . | contains($NEEDLE) ))' > /tmp/nodes-new.json
+endsnippet

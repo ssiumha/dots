@@ -40,3 +40,10 @@ endsnippet
 snippet remote_all_local_storage "remove all local storage"
 Object.keys(localStorage).forEach(k => { localStorage.removeItem(k)})
 endsnippet
+
+snippet inspect_object ""
+console.log({
+  className: obj.constructor.name,
+  keys: Object.keys(obj)
+})
+endsnippet

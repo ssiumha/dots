@@ -230,3 +230,14 @@ endsnippet
 snippet docker_run_json_server "testing connect"
 docker run --rm -d -p 3000:3000 typicode/json-server --watch db.json
 endsnippet
+
+snippet send_dev_tcp "with file descriptor"
+exec 3<>/dev/tcp/example.com/80
+echo -e "GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n" >&3
+cat <&3
+exec 3>&-
+endsnippet
+
+snippet check_stat ""
+stat -c %a:%U:%G /etc
+endsnippet

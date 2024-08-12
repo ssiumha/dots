@@ -1,0 +1,7 @@
+snippet get_pod_accounts "pod_name namespace account"
+kubectl get pods -A -o=jsonpath='{range.items[*]}{.metadata.name}{"\t"}{.metadata.namespace}{"\t"}{.spec.serviceAccountName}{"\n"}{end}' | column -t\t
+endsnippet
+
+snippet run_pod_with_service_account "can use kubectl as permitted by role-binding"
+kubectl run -it --rm --image ubuntu --overrides='{ "spec": { "serviceAccountName":"awesome-service-account" } }' ubuntu
+endsnippet
