@@ -32,6 +32,7 @@ case $OSTYPE in
       # <- mise shims
       "$HOME/dotfiles/bin"
       "$HOME/.local/bin"
+      "$HOME/.local/share/krew/bin"
       "/opt/homebrew/bin"
       "/opt/homebrew/sbin"
       "/usr/local/bin"
@@ -71,6 +72,7 @@ export RIPGREP_CONFIG_PATH="$XDG_CONFIG_HOME/ripgrep/ripgreprc"
 export K9SCONFIG="$XDG_CONFIG_HOME/k9s"
 
 export DENO_INSTALL_ROOT="$XDG_CACHE_HOME/deno"
+export KREW_ROOT="$XDG_DATA_HOME/krew"
 
 [[ "$TERM_PROGRAM" = "vscode" ]] && export EDITOR="code --wait"
 
@@ -108,6 +110,12 @@ ksw() {
     | perl -nale 'next if $.==1; s/^(.)\s+([^\s]+).+$/$1 $2/; print' \
     | fzf | cut -c3- | xargs -I% kubectl config use-context %
 }
+
+################################
+# Alias (Docker)
+################################
+
+alias doggo="docker run --rm ghcr.io/mr-karan/doggo:latest"
 
 ################################
 # Prompt
@@ -445,6 +453,7 @@ _fzf_my_completion_hook() {
     '$('  ) prefix="" eval _fzf_sub_complete ${(q)lbuf} ;;
     '..'  ) prefix="" eval _fzf_command_complete_rise_dir ${(q)lbuf} ;;
     'jq'  ) _fzf_jq_repl_complete; return $? ;;
+    # 'grep') _fzf_grep_repl_complete; return $? ;; # TODO
     :*    )
       # TODO: :g -> c-f 동작이 불편, 다른 트리거로 변경 _ls? @g?
       if eval "type _fzf_command_complete_${prefix#*:} > /dev/null"; then
