@@ -62,6 +62,23 @@ task 'install:config' do
   end
 end
 
+desc 'remove symlinked configs'
+task 'uninstall:config' do
+  Dir.glob('config/*').each do |config_path|
+    name = File.basename(config_path)
+    dest_path = File.join(DOT_CONFIG, name)
+
+    pname = name.ljust(10)
+
+    if File.symlink? dest_path
+      FileUtils.rm dest_path
+      puts "#{pname} : removed"
+    else
+      puts "#{pname} : not linked"
+    end
+  end
+end
+
 desc 'init brew'
 task 'install:brew' do
   next if OS_TYPE != :osx
