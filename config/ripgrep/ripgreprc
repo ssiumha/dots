@@ -1,5 +1,4 @@
 --smart-case
---color=always
 
 # usecase: `rg -tweb xxx`
 --type-add=web:*.{html,css,js}*
