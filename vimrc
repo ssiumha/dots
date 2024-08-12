@@ -62,6 +62,10 @@ set completeopt=menu,menuone,longest
 set wildignorecase
 "set wildoptions+=fuzzy
 
+set cursorcolumn
+
+set spell spellfile=$HOME/dotfiles/vim/spell/en.utf-8.add
+
 " terminal
 
 if has('nvim')
@@ -269,6 +273,7 @@ Plug 'hrsh7th/cmp-buffer'
 " Plug 'hrsh7th/cmp-path'
 " Plug 'hrsh7th/cmp-cmdline'
 
+if has('nvim')
 Plug 'dcampos/cmp-snippy'
 Plug 'dcampos/nvim-snippy'
   imap <expr> <Tab> snippy#can_expand_or_advance() ? '<Plug>(snippy-expand-or-advance)' : '<Tab>'
@@ -276,6 +281,7 @@ Plug 'dcampos/nvim-snippy'
   smap <expr> <Tab> snippy#can_jump(1) ? '<Plug>(snippy-next)' : '<Tab>'
   smap <expr> <S-Tab> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<S-Tab>'
   xmap <Tab> <Plug>(snippy-cut-text)
+endif
 
 " Lang
 Plug 'tpope/vim-rails'
@@ -289,10 +295,7 @@ Plug 'fifi2/gtd.vim'
   let g:gtd#review = [
         \ { 'formula': '!inbox', 'title': 'INBOX' },
         \ { 'formula': '!todo -#calendar', 'title': 'TODO' },
-        \ { 'formula': '!project', 'title': 'PROJECTS' },
-        \ { 'formula': '!delegated', 'title': 'DELEGATED' },
         \ { 'formula': '!waiting', 'title': 'WAITING' },
-        \ { 'formula': '!holding', 'title': 'HOLDING' },
         \ { 'formula': '!pr', 'title': 'PULL_REQUEST' },
         \ { 'formula': '!someday', 'title': 'SOMEDAY' },
         \ { 'formula': '!meeting', 'title': 'MEETING' }
@@ -410,4 +413,21 @@ if exists('g:neovide')
   autocmd VimEnter * if argc() == 0
         \| exe 'cd ' . g:gtd#dir | exe 'GtdReview'
         \| endif
+endif
+
+if has('gui_macvim')
+  set guifont=Menlo:h14
+  autocmd VimEnter * if argc() == 0
+        \| exe 'cd ' . g:gtd#dir | exe 'GtdReview'
+        \| endif
+
+  " :h macvim-prefs
+  "
+  "   MMLoginShellArgument =
+  "   defaults read org.vim.MacVim
+  "   defaults write org.vim.MacVim MMTranslateCtrlClick 0
+  "   defaults delete org.vim.MacVim
+  "
+  " let &shellcmdflag=-l\ -c
+  " not working MISE_CACHE_PATH
 endif
