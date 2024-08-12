@@ -1,0 +1,14 @@
+services:
+  nexus:
+    image: sonatype/nexus3
+    restart: always
+    ports:
+      - '8081:8081'
+    volumes:
+      - nexus-data:/nexus-data
+    labels:
+      - dev.orbstack.domains=nexus.sandbox.orb.local
+
+volumes:
+  nexus-data:
+    driver: local
