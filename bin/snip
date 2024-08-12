@@ -39,6 +39,7 @@ case $ft in
       *compose*/*        ) snips+=("docker_compose.snips") ;;
       *.github/workflows*) snips+=("github_workflow.snips") ;;
       *.github/actions*  ) snips+=("github_action.snips") ;;
+      *helmfile.d/*      ) snips+=("helmfile.snips") ;;
       *)
         snips+=("docker_compose.snips") ;;
     esac ;;
