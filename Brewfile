@@ -11,6 +11,8 @@ brew "tmux"
 brew "universal-ctags"
 brew "sqlite"
 
+cask "openlens"
+
 brew "mysql"
 brew "tidy-html5"
 
