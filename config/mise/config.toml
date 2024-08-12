@@ -4,15 +4,16 @@
 
 [tools]
 # tool
+usage = "latest"
 neovim = 'latest'
 fzf = 'latest'
 ripgrep = 'latest'
 delta = 'latest'
-zellij = 'latest'
+# zellij = 'latest'
 # difftastic = 'latest'
 zoxide = 'latest'
 fd = 'latest'
-# bat = 'latest'
+bat = 'latest'
 dust = 'latest'
 # yq, jq, rg, fd??
 
@@ -22,6 +23,7 @@ nova = '3.6.4'
 awscli = 'latest'
 github-cli = 'latest'
 kubectl = 'latest'
+krew = 'latest'
 helm = 'latest'
 k9s = 'latest'
 # telepresence = 'latest'
@@ -45,6 +47,18 @@ node = '22'
 "npm:stimulus-language-server" = "latest"
 "npm:@tailwindcss/language-server" = "latest"
 
+# go = "latest"
+# "go:github.com/mr-karan/doggo/cmd/doggo" = "latest"
+# "go:github.com/DarthSim/hivemind" = "latest"
+# "go:github.com/DarthSim/overmind/v2" = "latest"
+
+# rust = "latest"
+# "cargo:dog" = "latest"
+
+# pip install --user pipx
+# pipx = "latest"
+# "pipx:kaskade" = "latest"
+
 [alias.ruby]
 dotfiles = '3.3.0'
 
@@ -52,6 +66,7 @@ dotfiles = '3.3.0'
 # my_custom_node = '20'
 
 [plugins]
+usage = "https://github.com/jdx/mise-usage.git"
 
 [tasks."yarn:latest"]
 description = 'set yarn version to latest'
