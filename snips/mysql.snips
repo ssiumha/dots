@@ -12,3 +12,7 @@ endsnippet
 snippet max_connections "show max connections"
 show variables like 'max_connections';
 endsnippet
+
+snippet show_table_status "row count, avg length etc"
+show table status like 'table_name';
+endsnippet

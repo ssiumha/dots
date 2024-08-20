@@ -1,0 +1,14 @@
+snippet default "help"
+desc 'default'
+task :default do
+  sh 'rake -T'
+end
+endsnippet
+
+snippet mise_bang "with chmod +x"
+#!/usr/bin/env -S ${HOME}/mise x ruby@3 -- rake -f
+endsnippet
+
+snippet cd_rakefile_dir ""
+  Dir.chdir File.dirname(__FILE__)
+endsnippet
