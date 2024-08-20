@@ -26,6 +26,8 @@ security add-generic-password -a $LOGNAME -T "" -U -s 'test-pass' -w 'PASS'  ## 
 security find-generic-password -a $LOGNAME -s 'test-pass' -w  ## Get password from keychain
 security delete-generic-password -a $LOGNAME -s 'test-pass'  ## Delete password from keychain
 
+system_profiler SPBluetoothDataType | yq '.Bluetooth.Connected.HHKB-Studio1.["Battery Level"]'
+
 
 # bash
 echo '\033[31mRed!\033[0m'  ## color 30~ KRGY BMCW; 1:bold 5:blink 7:invt
@@ -67,6 +69,8 @@ vim -Nens +'bufdo g/namespace/norm nciwname' +wqa file.txt file2.txt  ## multipl
 | vim -e -s +%s/s/k/ +%p -cq! /dev/stdin  ## +wq!, ZZ 로 저장후 종료 ;; + : cmd ;; - : normal
 | vim -es +'norm dw' +%p +q! /dev/stdin
 
+env $(cat .env | xargs) envsubst < <(echo 'x: ${A}')  ## envsubst with .env file
+echo 'cat <<EOF' > tmp.sh && cat x.yaml >> tmp.sh && echo 'EOF' >> tmp.sh && bash tmp.sh > res.yaml && rm tmp.sh  ## primitive envsubst
 
 # ruby
 ruby -Itest test/**
@@ -180,6 +184,10 @@ docker run -it --rm -e LOKI_ADDR=http://host.docker.internal:9000 grafana/logcli
 
 docker run --rm -it --network my-networtk sauljabin/kaskade:latest consumer -b my-kafka:9092 -t my-topic  ## kafka tui
 
+docker run -it --net host nicolaka/netshoot  ## network swiss-army knife
+
+echo 'docker.io' | docker-credential-osxkeychain get
+
 
 # terraform
 terraform plan -out plan.out | tee plan.std.out
@@ -230,6 +238,9 @@ kubectl resource-capacity --util --pods
 kubectl ktop  ## resource check
 v ~/.local/state/k9s/screen-dumps/  ## k9s log
 
+htpasswd -c auth username && kubectl create secret generic basic-auth --from-file=auth  ## create basic auth secret. https://kubernetes.github.io/ingress-nginx/examples/auth/basic/
+htpasswd -nB username
+
 # helm
 helm show values --version ${VER} -n ${NS} ${CHART}
 helm get values ${RELEASE_NAME}  ## helm으로 반영된 values.yaml 파일 가져오기
@@ -248,6 +259,13 @@ fd -tf . 'app/views' -x perl -i -pe 's/_admin_path/_path/g' ## bulk replace file
 
 perl -MTime::Piece -e 'print localtime->datetime;' ## print datetime iso8601
 perl -MTime::Piece -e 'print localtime->ymd;' ## print datetime ymd
+
+perl -MJSON::PP -e 'print decode_json( qq({ "name": "123" }) )->{ name };'
+perl -MJSON::PP -e 'print encode_json( { name => 123 } );'
+perl -MYAML::PP -e 'print YAML::PP->new->load_string("test: 123")->{test};'
+
+perl -e 'for my $dir (@INC) { opendir(DIR, $dir) or next; while (my $file = readdir(DIR)) { print "$dir/$file\n" if $file =~ /\.pm$/; } closedir(DIR); }'  ## print all perl modules
+
 
 # jq
 | jq 'with_entries(select([.key] | inside(["abi", "bytecode", "contractName"])))'  ## select specific keys in json
