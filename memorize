@@ -7,6 +7,9 @@ v ~/dotfiles/config/nvim/words
 v ~/dotfiles/config/mise/config.toml
 v $(mise config | grep '.mise.toml' | awk '{print $1}' | perl -pe 's/~/$ENV{"HOME"}/')  ## open near mise config
 
+# open macos
+open /Applications
+
 # bookmark
 open -a 'Google Chrome.app' https://lzone.de/cheat-sheet  ## cheatsheet Redis, MySQL, ElasticSearch...
 open -a 'Google Chrome.app' https://docs.github.com/en/actions/creating-actions/creating-a-composite-action ## github workflow composite action
