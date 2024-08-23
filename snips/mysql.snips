@@ -16,3 +16,8 @@ endsnippet
 snippet show_table_status "row count, avg length etc"
 show table status like 'table_name';
 endsnippet
+
+snippet describe_table ""
+describe `table_name`;
+show create table `table_name`;
+endsnippet

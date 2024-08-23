@@ -12,3 +12,7 @@ endsnippet
 snippet cd_rakefile_dir ""
   Dir.chdir File.dirname(__FILE__)
 endsnippet
+
+snippet invoke_task "run with dependencies and only once"
+Rake::Task[:build].invoke
+endsnippet

@@ -10,10 +10,11 @@ snippet help ""
 #   wildcard = *
 endsnippet
 
-snippet using_with_mise ""
-PATH=$HOME/.local/bin:$PATH
-0 * * * * mise x ruby@3.3 -- /path/to/script
-endsnippet
+# does not work when using $PATH variable
+#snippet using_with_mise ""
+#PATH=$HOME/.local/bin:$PATH
+#0 * * * * mise x ruby@3.3 -- /path/to/script
+#endsnippet
 
 snippet cronenv "need `mkdir ~/logs`"
 # in macos output :
