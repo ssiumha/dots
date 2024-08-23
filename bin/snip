@@ -40,6 +40,7 @@ case $ft in
       *.github/workflows*) snips+=("github_workflow.snips") ;;
       *.github/actions*  ) snips+=("github_action.snips") ;;
       *helmfile.d/*      ) snips+=("helmfile.snips") ;;
+      */templates/*      ) snips+=("helm_chart.snips") ;;
       *)
         snips+=("docker_compose.snips") ;;
     esac ;;
@@ -52,6 +53,8 @@ case $ft in
       *config/*         ) snips+=("rails_config.snips") ;;
       *db/migrate/*     ) snips+=("rails_migrate.snips") ;;
       *test/*           ) snips+=("rails_minitest.snips") ;;
+      *Rakefile         ) snips+=("rake.snips") ;;
+      *Vagrantfile      ) snips+=("vagrant.snips") ;;
     esac ;;
   eruby.yaml)
     case $fp in
