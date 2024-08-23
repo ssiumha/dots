@@ -27,6 +27,15 @@ cask "openvpn-connect"
 cask "ngrok"
 cask "raycast"
 
+
+tap "FelixKratz/formulae"
+cask "sketchybar" # with `brew services start sketchybar`
+cask "font-hack-nerd-font"
+
+# brew "m-cli"
+
+# cask "dbeaver-community"
+
 ## AI
 # cask "deepl"
 # cask "cursor"
