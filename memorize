@@ -41,6 +41,8 @@ ssh-keygen -t ed25519 -C "user@example.com"
 ssh-keygen -f ~/.ssh/id_ed25519 -y  ## public key
 date +"%Y-%m-%dT%H:%M:%S%z"  ## iso-8610 in BSD
 
+ssh -L 8080:localhost:80 user@remote -N ## local port forward. curl localhost:8080 -> localhost:80 in remote
+
 join -a 1 -a 2 -e "-" -o '0,1.2,2.2' /tmp/before.txt /tmp/after.txt  ## key,name file outer join
 
 openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out cert.crt -keyout cert.key
@@ -187,7 +189,7 @@ docker run -it --rm -e LOKI_ADDR=http://host.docker.internal:9000 grafana/logcli
 
 docker run --rm -it --network my-networtk sauljabin/kaskade:latest consumer -b my-kafka:9092 -t my-topic  ## kafka tui
 
-docker run -it --net host nicolaka/netshoot  ## network swiss-army knife
+docker run --rm -it --net host nicolaka/netshoot  ## network swiss-army knife
 
 echo 'docker.io' | docker-credential-osxkeychain get
 
