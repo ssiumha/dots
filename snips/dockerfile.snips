@@ -96,3 +96,14 @@ EOF
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 endsnippet
+
+snippet go_build "go build"
+FROM golang:1.23 as builder
+WORKDIR /build
+COPY . .
+RUN CGO_ENABLED=0 go build -o /build/app
+
+FROM alpine:3.20
+COPY --from=builder /build/app /app/app
+CMD ["/app/app"]
+endsnippet

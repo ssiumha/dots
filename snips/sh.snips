@@ -259,3 +259,43 @@ while [[ "$#" -gt 0 ]]; do
   esac
 done
 endsnippet
+
+snippet update_apt_sources ""
+cat <<-EOF > '/etc/apt/auth.conf.d/myauth.conf'
+  machine nexus.example.com login dev password 1234
+EOF
+
+cat <<-EOF > '/etc/apt/sources.list'
+  deb https://nexus.example.com/repository/ubuntu-jammy/ubuntu/ jammy main restricted
+  deb-src https://nexus.example.com/repository/ubuntu-jammy/ubuntu/ jammy main restricted
+
+  deb https://nexus.example.com/repository/ubuntu-jammy/ubuntu/ jammy-updates main restricted
+  deb-src https://nexus.example.com/repository/ubuntu-jammy/ubuntu/ jammy-updates main restricted
+
+  deb https://nexus.example.com/repository/ubuntu-jammy/ubuntu/ jammy universe
+  deb-src https://nexus.example.com/repository/ubuntu-jammy/ubuntu/ jammy universe
+
+  deb https://nexus.example.com/repository/ubuntu-jammy/ubuntu/ jammy-updates universe
+  deb-src https://nexus.example.com/repository/ubuntu-jammy/ubuntu/ jammy-updates universe
+
+  deb https://nexus.example.com/repository/ubuntu-jammy/ubuntu/ jammy multiverse
+  deb-src https://nexus.example.com/repository/ubuntu-jammy/ubuntu/ jammy multiverse
+
+  deb https://nexus.example.com/repository/ubuntu-jammy/ubuntu/ jammy-updates multiverse
+  deb-src https://nexus.example.com/repository/ubuntu-jammy/ubuntu/ jammy-updates multiverse
+
+  deb https://nexus.example.com/repository/ubuntu-jammy/ubuntu/ jammy-backports main restricted universe multiverse
+  deb-src https://nexus.example.com/repository/ubuntu-jammy/ubuntu/ jammy-backports main restricted universe multiverse
+
+  deb https://nexus.example.com/repository/ubuntu-jammy/ubuntu/ jammy-security main restricted
+  deb-src https://nexus.example.com/repository/ubuntu-jammy/ubuntu/ jammy-security main restricted
+
+  deb https://nexus.example.com/repository/ubuntu-jammy/ubuntu/ jammy-security universe
+  deb-src https://nexus.example.com/repository/ubuntu-jammy/ubuntu/ jammy-security universe
+
+  deb https://nexus.example.com/repository/ubuntu-jammy/ubuntu/ jammy-security multiverse
+  deb-src https://nexus.example.com/repository/ubuntu-jammy/ubuntu/ jammy-security multiverse
+EOF
+
+apt-get update
+endsnippet

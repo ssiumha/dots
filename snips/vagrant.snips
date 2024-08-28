@@ -25,3 +25,9 @@ Vagrant.configure("2") do |config|
   end
 end
 endsnippet
+
+snippet named_provision "can call in shell : `vagrant provision --provision-with name`"
+config.vm.provision 'name', type: 'shell', inline: <<~SHELL
+  echo "Hello, World!"
+SHELL
+endsnippet
