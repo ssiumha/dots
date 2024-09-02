@@ -1,0 +1,90 @@
+#!/bin/bash
+
+kube_context=
+db_host=
+db_user=
+db_pw=
+
+while [[ "$#" -gt 0 ]]; do
+  case "$1" in
+    -h) db_host="$2"; shift 2 ;;
+    -u) db_user="$2"; shift 2 ;;
+    -p) db_pw="$2"; shift 2 ;;
+    -c) kube_context="$2"; shift 2 ;;
+    *) echo "Unknown parameter passed: $1"; exit 1 ;;
+  esac
+done
+
+_kubectl() {
+  kubectl --context=${kube_context} "$@"
+}
+
+_kubectl run --restart=Never --image='mysql:8.0' mysql-client -- tail -f /dev/null
+
+until [[ $(_kubectl get pod "mysql-client" -o jsonpath='{.status.phase}') == "Running" ]]; do
+  printf "."
+  sleep 1
+done
+
+_kubectl exec -it mysql-client -- \
+  mysql -h ${db_host} -u ${db_user} -p${db_pw} \
+  -e '
+    SELECT
+      SUM(data_length + index_length) / (1024 * 1024 * 1024) AS `Total Size (GB)`
+    FROM
+      information_schema.tables
+    ;
+  '\
+  -e '
+    SELECT
+        table_schema AS `Database`,
+        IFNULL(SUM(data_length) / (1024 * 1024 * 1024), 0) AS `total_gb`,
+        IFNULL(SUM(index_length) / (1024 * 1024 * 1024), 0) AS `index_gb`,
+        IFNULL(SUM(data_length + index_length) / (1024 * 1024 * 1024), 0) AS `total_gb`
+    FROM
+        information_schema.tables
+    WHERE
+        table_schema LIKE "%"
+    GROUP BY
+        table_schema
+    ORDER BY
+        total_gb DESC;
+  ' \
+  -e '
+    SELECT *
+    FROM (
+      SELECT
+        table_schema AS `Database`,
+        table_name AS `Table`,
+        FORMAT(table_rows, 0) AS `Rows`,
+        ROUND(((data_length + index_length) / 1024 / 1024 / 1024), 2) AS `total_gb`
+      FROM
+          information_schema.tables
+      WHERE
+          table_schema LIKE "%"
+          AND table_schema NOT IN ("information_schema", "performance_schema", "mysql", "sys")
+      ORDER BY
+      --    (data_length + index_length) DESC
+        table_schema, table_name
+      -- LIMIT 20
+    ) AS `sub`
+    -- WHERE `sub`.`total_gb` > 1
+    ;
+  ' \
+  -e '
+    SELECT
+      table_schema AS `Database`,
+      FORMAT(SUM(table_rows), 0) AS `Rows`,
+      ROUND(SUM(((data_length + index_length) / 1024 / 1024 / 1024)), 2) AS `Size(GB)`
+    FROM
+        information_schema.tables
+    GROUP BY
+        table_schema
+    ORDER BY
+       table_schema
+        -- (data_length + index_length) DESC
+    LIMIT 20
+    ;
+  '
+
+# _kubectl delete pod mysql-client
