@@ -247,49 +247,49 @@ Plug 'junegunn/vim-easy-align'
   xmap <space>ga <Plug>(LiveEasyAlign)
   nmap <space>ga <Plug>(LiveEasyAlign)
 
-Plug 'dense-analysis/ale'
-  let g:ale_fixers = {
-  \   'yaml': ['yamllint'],
-  \   'javascript': ['eslint'],
-  \   'typescript': ['eslint'],
-  \}
-  " \   '*': ['remove_trailing_lines', 'trim_whitespace'],
+" Plug 'dense-analysis/ale'
+"   let g:ale_fixers = {
+"   \   'yaml': ['yamllint'],
+"   \   'javascript': ['eslint'],
+"   \   'typescript': ['eslint'],
+"   \}
+"   " \   '*': ['remove_trailing_lines', 'trim_whitespace'],
 
-  " let g:ale_disable_lsp = 1
-  let g:ale_linters_ignore = {'typescript': ['deno']}
-  let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
-  let g:ale_sign_error = '✘'
-  let g:ale_sign_warning = '⚠'
-  let g:ale_lint_on_text_changed = 'never'
+"   " let g:ale_disable_lsp = 1
+"   let g:ale_linters_ignore = {'typescript': ['deno']}
+"   let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
+"   let g:ale_sign_error = '✘'
+"   let g:ale_sign_warning = '⚠'
+"   let g:ale_lint_on_text_changed = 'never'
 
-  let g:ale_completion_enabled = 1
-  set omnifunc=ale#completion#OmniFunc
+"   let g:ale_completion_enabled = 1
+"   set omnifunc=ale#completion#OmniFunc
 
-  " getline(1, '$')
-  " TODO
-  function! FzfVimOmniComplete(...)
-    return fzf#vim#complete(s:extend({
-          \ 'prefix': '^.*$',
-          \ 'source': ale#completion#OmniFunc(1, '')}, get(a:000, 0, fzf#wrap())))
-  endfunction
+"   " getline(1, '$')
+"   " TODO
+"   function! FzfVimOmniComplete(...)
+"     return fzf#vim#complete(s:extend({
+"           \ 'prefix': '^.*$',
+"           \ 'source': ale#completion#OmniFunc(1, '')}, get(a:000, 0, fzf#wrap())))
+"   endfunction
 
 Plug 'neovim/nvim-lspconfig'
 
-Plug 'hrsh7th/nvim-cmp'
-Plug 'hrsh7th/cmp-nvim-lsp'
-Plug 'hrsh7th/cmp-buffer'
+" Plug 'hrsh7th/nvim-cmp'
+" Plug 'hrsh7th/cmp-nvim-lsp'
+" Plug 'hrsh7th/cmp-buffer'
 " Plug 'hrsh7th/cmp-path'
 " Plug 'hrsh7th/cmp-cmdline'
 
-if has('nvim')
-Plug 'dcampos/cmp-snippy'
-Plug 'dcampos/nvim-snippy'
-  imap <expr> <Tab> snippy#can_expand_or_advance() ? '<Plug>(snippy-expand-or-advance)' : '<Tab>'
-  imap <expr> <S-Tab> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<S-Tab>'
-  smap <expr> <Tab> snippy#can_jump(1) ? '<Plug>(snippy-next)' : '<Tab>'
-  smap <expr> <S-Tab> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<S-Tab>'
-  xmap <Tab> <Plug>(snippy-cut-text)
-endif
+" if has('nvim')
+" Plug 'dcampos/cmp-snippy'
+" Plug 'dcampos/nvim-snippy'
+"   imap <expr> <Tab> snippy#can_expand_or_advance() ? '<Plug>(snippy-expand-or-advance)' : '<Tab>'
+"   imap <expr> <S-Tab> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<S-Tab>'
+"   smap <expr> <Tab> snippy#can_jump(1) ? '<Plug>(snippy-next)' : '<Tab>'
+"   smap <expr> <S-Tab> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<S-Tab>'
+"   xmap <Tab> <Plug>(snippy-cut-text)
+" endif
 
 " Lang
 Plug 'tpope/vim-rails', { 'for': 'ruby' }
