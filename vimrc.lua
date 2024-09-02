@@ -31,36 +31,37 @@ cmp.setup({
 
 -- echo nvim_get_runtime_file('parser', v:true)
 lspconfig = require'lspconfig'
-lspconfig.stimulus_ls.setup{}
-lspconfig.tailwindcss.setup{}
-lspconfig.tsserver.setup{}
-lspconfig.bashls.setup{}
-lspconfig.dockerls.setup{}
-lspconfig.docker_compose_language_service.setup{}
--- lspconfig.ruby_ls.setup{
---   capabilities = capabilities
+-- lspconfig.stimulus_ls.setup{}
+-- lspconfig.tailwindcss.setup{}
+-- lspconfig.tsserver.setup{}
+-- lspconfig.bashls.setup{}
+-- lspconfig.dockerls.setup{}
+-- lspconfig.docker_compose_language_service.setup{}
+-- -- lspconfig.typos_lsp.setup{}
+-- -- lspconfig.ruby_ls.setup{
+-- --   capabilities = capabilities
+-- -- }
+-- lspconfig.pyright.setup {
+--   analysis = {
+--     autoSearchPaths = true,
+--     diagnosticMode = "openFilesOnly",
+--     useLibraryCodeForTypes = true
+--   }
 -- }
-lspconfig.pyright.setup {
-  analysis = {
-    autoSearchPaths = true,
-    diagnosticMode = "openFilesOnly",
-    useLibraryCodeForTypes = true
-  }
-}
-lspconfig.jsonls.setup {}
-lspconfig.yamlls.setup {
-  settings = {
-    yaml = {
-      schemas = {
-        -- TODO: use environment variable?
-        ["https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.29.2-standalone-strict/deployment.json"] = "deployment/**/deployment/*.yaml",
-        ["https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.29.2-standalone-strict/statefulset.json"] = "deployment/**/statefulset/*.yaml",
-        ["https://json.schemastore.org/github-workflow.json"] = ".github/workflows/*",
-        ["https://json.schemastore.org/github-action.json"] = ".github/actions/*",
-      }
-    }
-  }
-}
+-- lspconfig.jsonls.setup {}
+-- lspconfig.yamlls.setup {
+--   settings = {
+--     yaml = {
+--       schemas = {
+--         -- TODO: use environment variable?
+--         ["https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.29.2-standalone-strict/deployment.json"] = "deployment/**/deployment/*.yaml",
+--         ["https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.29.2-standalone-strict/statefulset.json"] = "deployment/**/statefulset/*.yaml",
+--         ["https://json.schemastore.org/github-workflow.json"] = ".github/workflows/*",
+--         ["https://json.schemastore.org/github-action.json"] = ".github/actions/*",
+--       }
+--     }
+--   }
+-- }
 
 require'nvim-treesitter.configs'.setup {
   parser_install_dir = "~/.cache/treesitter",
@@ -112,3 +113,62 @@ require'treesitter-context'.setup{
     default = { 'class', 'function', 'method' }
   }
 }
+
+----------------------------------
+-- HiPhish/rainbow-delimiters.nvim
+----------------------------------
+local rainbow_delimiters = require 'rainbow-delimiters'
+
+---@type rainbow_delimiters.config
+vim.g.rainbow_delimiters = {
+  strategy = {
+    [''] = rainbow_delimiters.strategy['global'],
+    vim = rainbow_delimiters.strategy['local'],
+  },
+  query = {
+    [''] = 'rainbow-delimiters',
+    lua = 'rainbow-blocks',
+  },
+  priority = {
+    [''] = 110,
+    lua = 210,
+  },
+  highlight = {
+    'RainbowDelimiterRed',
+    'RainbowDelimiterYellow',
+    'RainbowDelimiterBlue',
+    'RainbowDelimiterOrange',
+    'RainbowDelimiterGreen',
+    'RainbowDelimiterViolet',
+    'RainbowDelimiterCyan',
+  },
+}
+
+--------------------------------------
+-- lukas-reineke/indent-blankline.nvim
+--------------------------------------
+-- local highlight = {
+--     "RainbowRed",
+--     "RainbowYellow",
+--     "RainbowBlue",
+--     "RainbowOrange",
+--     "RainbowGreen",
+--     "RainbowViolet",
+--     "RainbowCyan",
+-- }
+
+-- local hooks = require "ibl.hooks"
+-- hooks.register(hooks.type.HIGHLIGHT_SETUP, function()
+--     vim.api.nvim_set_hl(0, "RainbowRed",    { bg = "#E06C75" })
+--     vim.api.nvim_set_hl(0, "RainbowYellow", { bg = "#E5C07B" })
+--     vim.api.nvim_set_hl(0, "RainbowBlue",   { bg = "#61AFEF" })
+--     vim.api.nvim_set_hl(0, "RainbowOrange", { bg = "#D19A66" })
+--     vim.api.nvim_set_hl(0, "RainbowGreen",  { bg = "#98C379" })
+--     vim.api.nvim_set_hl(0, "RainbowViolet", { bg = "#C678DD" })
+--     vim.api.nvim_set_hl(0, "RainbowCyan",   { bg = "#56B6C2" })
+-- end)
+-- require("ibl").setup {
+--     indent = { char = "" },
+--     whitespace = { highlight = highlight, remove_blankline_trail = true },
+--     scope = { highlight = highlight, enabled = true, char = "▎", show_exact_scope = true },
+-- }

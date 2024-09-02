@@ -64,7 +64,9 @@ set wildignorecase
 
 set cursorcolumn
 
-set spell spellfile=$HOME/dotfiles/vim/spell/en.utf-8.add
+"set spell spellfile=$HOME/dotfiles/vim/spell/en.utf-8.add
+highlight SpellBad cterm=underline ctermbg=88 gui=underline guibg=#902020 guisp=NvimLightRed
+
 
 " terminal
 
@@ -227,6 +229,12 @@ Plug 'jpalardy/vim-slime'
   let g:slime_target = 'tmux'
   let g:slime_paste_file = tempname()
 
+if has('nvim')
+Plug 'lukas-reineke/indent-blankline.nvim'
+Plug 'HiPhish/rainbow-delimiters.nvim'
+endif
+
+" else " TODO
 Plug 'nathanaelkane/vim-indent-guides'
   let g:indent_guides_enable_on_vim_startup = 1
   let g:indent_guides_indent_levels = 16
@@ -236,8 +244,8 @@ Plug 'nathanaelkane/vim-indent-guides'
   "highlight IndentGuidesEven ctermbg=darkgray
 
 Plug 'junegunn/vim-easy-align'
-  xmap <space>ga <Plug>(EasyAlign)
-  nmap <space>ga <Plug>(EasyAlign)
+  xmap <space>ga <Plug>(LiveEasyAlign)
+  nmap <space>ga <Plug>(LiveEasyAlign)
 
 Plug 'dense-analysis/ale'
   let g:ale_fixers = {
@@ -284,12 +292,12 @@ Plug 'dcampos/nvim-snippy'
 endif
 
 " Lang
-Plug 'tpope/vim-rails'
-Plug 'hashivim/vim-terraform'
-Plug 'elixir-editors/vim-elixir'
+Plug 'tpope/vim-rails', { 'for': 'ruby' }
+Plug 'hashivim/vim-terraform', { 'for': 'terraform' }
+Plug 'elixir-editors/vim-elixir', { 'for': 'elixir' }
 
 Plug 'fifi2/gtd.vim'
-  let g:gtd#dir = '~/gtd'
+  let g:gtd#dir = '~/docs/gtd'
   let g:gtd#default_action = 'inbox'
   let g:gtd#tag_lines_count = 10
   let g:gtd#review = [
@@ -307,6 +315,14 @@ Plug 'fifi2/gtd.vim'
         " \ { 'formula': '!todo #calendar:fri', 'title': 'FRIDAY' },
         " \ { 'formula': '!todo #calendar:sat', 'title': 'SATURDAY' },
         " \ { 'formula': '!todo #calendar:sun', 'title': 'SUNDAY' },
+        "
+Plug 'vimwiki/vimwiki'
+  let g:vimwiki_list = [
+        \ {'path': '~/docs/vimwiki', 'syntax': 'markdown', 'ext': '.md'}
+        \ ]
+  nnoremap <space>ww :VimwikiIndex<cr>
+  autocmd FileType vimwiki nnoremap <buffer> t :VimwikiTabnewLink<cr>
+
 
 if has('nvim-0.7.0')
   Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
@@ -350,7 +366,6 @@ func! s:stripAnsiColorCode()
 endfunc
 command! AnsiStrip :call s:stripAnsiColorCode()
 
-
 "----------------
 " methods
 "----------------
@@ -365,6 +380,11 @@ func! s:removeTrailingWhitespace()
   let @/ = l:old_search
 endfunc
 command! TraillingWhitespace :call s:removeTrailingWhitespace()
+
+command! EchoSyntax
+      \ for id in synstack(line('.'), col('.'))
+      \| echomsg synIDattr(id, 'name')
+      \| endfor
 
 func! s:ensureParentDirectory()
   let l:dir = expand('<afile>:p:h')
@@ -417,6 +437,8 @@ endif
 
 if has('gui_macvim')
   set guifont=Menlo:h14
+  set nospell nowrap concealcursor=n
+
   autocmd VimEnter * if argc() == 0
         \| exe 'cd ' . g:gtd#dir | exe 'GtdReview'
         \| endif
