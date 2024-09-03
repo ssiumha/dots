@@ -32,7 +32,7 @@ task 'install:all' => ['install:base', 'install:config', 'install:brew', 'instal
 end
 
 desc 'install zshrc, vimrc'
-task 'install:base' do
+task 'install:rc' do
   File.write(DOT_ZSHRC, "source #{DOT_DIR}/zshrc").tap { puts 'created .zshrc' } unless File.exist?(DOT_ZSHRC)
   File.write(DOT_VIMRC, "source #{DOT_DIR}/vimrc").tap { puts 'created .vimrc' } unless File.exist?(DOT_VIMRC)
 
