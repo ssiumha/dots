@@ -190,6 +190,7 @@ docker run -it --rm -e LOKI_ADDR=http://host.docker.internal:9000 grafana/logcli
 docker run --rm -it --network my-networtk sauljabin/kaskade:latest consumer -b my-kafka:9092 -t my-topic  ## kafka tui
 
 docker run --rm -it --net host nicolaka/netshoot  ## network swiss-army knife
+docker run --rm -it roninrb/ronin ronin http --shell https://example.com  ## network swiss-army knife for ruby
 
 echo 'docker.io' | docker-credential-osxkeychain get
 
