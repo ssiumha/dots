@@ -21,14 +21,15 @@ fi
 ft=$1
 fp=$2
 snips=("all.snips")
-snips+=("$ft.snips")
+[ -r "$ft.snips" ] && snips+=("$ft.snips")
 
 case $ft in
   typescript) snips+=("javascript.snips") ;;
   zsh) snips+=("sh.snips") ;;
   toml)
     case $fp in
-      *mise.toml) snips+=("mise.snips") ;;
+      *mise.toml       ) snips+=("mise.snips") ;;
+      *mise/config.toml) snips+=("mise.snips") ;;
     esac ;;
   yaml)
     case $fp in
