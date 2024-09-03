@@ -437,10 +437,10 @@ endif
 
 if has('gui_macvim')
   set guifont=Menlo:h14
-  set nospell nowrap concealcursor=n
+  set nospell nowrap concealcursor=
 
   autocmd VimEnter * if argc() == 0
-        \| exe 'cd ' . g:gtd#dir | exe 'GtdReview'
+        \| exe 'cd ~/docs' | edit index.md
         \| endif
 
   " :h macvim-prefs
