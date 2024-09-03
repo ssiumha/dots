@@ -18,6 +18,8 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
+cd $HOME/dotfiles/snips
+
 ft=$1
 fp=$2
 snips=("all.snips")
@@ -67,8 +69,6 @@ case $ft in
       *app/views/*) snips+=("rails_view.snips") ;;
     esac ;;
 esac
-
-cd $HOME/dotfiles/snips
 
 tmpfile=$(mktemp)
 
