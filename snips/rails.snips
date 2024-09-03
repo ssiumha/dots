@@ -62,3 +62,7 @@ snippet config_for "get config/some.yml"
 SOME_CONFIG = Rails.application.config_for(:some)
 SOME_CONFIG['key']
 endsnippet
+
+snippet db_dump "rails way"
+bin/rails db < path_to_your_dump_file.sql
+endsnippet

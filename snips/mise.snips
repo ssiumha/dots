@@ -8,3 +8,32 @@ ruby = "latest"
 [tasks."run"]
 run = "bundle exec ruby app.rb"
 endsnippet
+
+snippet use_python "with virtualenv"
+[tools]
+python = { version="3.12.0", virtualenv=".venv" }
+
+# OR
+# .python-version is `3.12.0-ci`
+[tools]
+python.version="{{ exec(command='cat .python-version') | split(pat='-') | first }}"
+python.virtualenv="{{env.HOME}}/.cache/venv/{{ exec(command='cat .python-version') }}"
+endsnippet
+
+snippet use_lsp ""
+[tools]
+node = '22'
+"npm:yaml-language-server" = "latest"
+"npm:stimulus-language-server" = "latest"
+"npm:@tailwindcss/language-server" = "latest"
+endsnippet
+
+snippet use_pipx ""
+pipx = "latest"
+"pipx:kaskade" = "latest"
+endsnippet
+
+snippet use_alias "can use like ruby@dotfiles"
+[alias.ruby]
+dotfiles = '3.3.0'
+endsnippet

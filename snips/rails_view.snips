@@ -77,3 +77,16 @@ snippet content_for ""
   <meta name="turbo-cache-control" content="no-cache">
 <% end %>
 endsnippet
+
+snippet strict_locals ">= 7.1"
+<%# locals: (address:, mobile: 1234567890) -%>
+endsnippet
+
+snippet disable_locals ">= 7.1"
+<%# locals: () %>
+endsnippet
+
+snippet tag_attributes ""
+<div <%= tag.attributes 'data-user-id': user_name, data: { color: } %> >
+</div>
+endsnippet

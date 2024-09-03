@@ -20,6 +20,10 @@ const getTimeString = () => {
 }
 endsnippet
 
+snippet get_iso_date "like 2024-01-01 09:00:00"
+new Date().toLocaleString('sv-SE') // or lt
+endsnippet
+
 snippet for_between "0 -> 9"
 for (let i = 0; i < 10; i++) {
 }

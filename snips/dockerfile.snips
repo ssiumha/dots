@@ -107,3 +107,23 @@ FROM alpine:3.20
 COPY --from=builder /build/app /app/app
 CMD ["/app/app"]
 endsnippet
+
+snippet node_build "node build"
+FROM node:20.15-alpine as build
+
+WORKDIR /app
+
+COPY package.json yarn.lock ./
+
+RUN yarn install --frozen-lockfile
+
+COPY . .
+
+COPY --chmod=500 <<EOF /docker-entrypoint.sh
+#!/bin/sh
+set -e
+yarn start
+EOF
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
+endsnippet

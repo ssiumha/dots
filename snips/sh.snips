@@ -43,6 +43,12 @@ if [ -f "${A}" ]; then
 fi
 endsnippet
 
+snippet if_empty_directory ""
+if [ -z "$(ls -A /path/to/dir)" ]; then
+  echo "empty"
+fi
+endsnippet
+
 snippet source_location "get directory path"
 script_dir=$(dirname $(realpath "$0"))
 endsnippet
