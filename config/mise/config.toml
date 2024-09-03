@@ -1,73 +1,63 @@
-# env_path
-
 [env]
 
 [tools]
-# tool
 usage = "latest"
-neovim = 'latest'
-fzf = 'latest'
-ripgrep = 'latest'
-delta = 'latest'
-# zellij = 'latest'
-# difftastic = 'latest'
-zoxide = 'latest'
-fd = 'latest'
-bat = 'latest'
-dust = 'latest'
-# yq, jq, rg, fd??
+neovim = "latest"
+fzf = "latest"
+ripgrep = "latest"
+delta = "latest"
+zoxide = "latest"
+fd = "latest"
+bat = "latest"
+dust = "latest"
+jq = "latest"
+just = "latest"
+# dasel = "latest"
 
-# devops
-terraform = '1.1.8'
-nova = '3.6.4'
-awscli = 'latest'
-github-cli = 'latest'
-kubectl = 'latest'
-krew = 'latest'
-helm = 'latest'
-k9s = 'latest'
-# telepresence = 'latest'
-# pre-commit = 'latest'
+ruby = ["system", "3.3.0"]
 
-# lang
-# python = { version="3.12.0", virtualenv=".venv" }
-# python.version="{{ exec(command='cat .python-version') | split(pat='-') | first }}"
-# python.virtualenv="{{env.HOME}}/.cache/venv/{{ exec(command='cat .python-version') }}"
-
-ruby = ['system', '3.3.0']
-# bun = '1.0.20'
-# java = 'openjdk-21'
-python = "3.12.0"
-
-yamllint = "1.33.0"
-tflint = "0.50.2"
-
-node = '22'
-"npm:yaml-language-server" = "latest"
-"npm:stimulus-language-server" = "latest"
-"npm:@tailwindcss/language-server" = "latest"
-
-# go = "latest"
-# "go:github.com/mr-karan/doggo/cmd/doggo" = "latest"
-# "go:github.com/DarthSim/hivemind" = "latest"
-# "go:github.com/DarthSim/overmind/v2" = "latest"
-
-# rust = "latest"
-# "cargo:dog" = "latest"
-
-# pip install --user pipx
-# pipx = "latest"
-# "pipx:kaskade" = "latest"
-
-[alias.ruby]
-dotfiles = '3.3.0'
-
-# [alias.yarn]
-# my_custom_node = '20'
+"ubi:DarthSim/overmind" = "latest"
+"ubi:DarthSim/hivemind" = "latest"
+"ubi:mr-karan/doggo" = "latest"
 
 [plugins]
 usage = "https://github.com/jdx/mise-usage.git"
 
 [tasks."yarn:latest"]
-description = 'set yarn version to latest'
+description = "set yarn version to latest"
 run = "yarn set version latest"
+
+[tasks."setup:devops"]
+description = "setup devops tools"
+run = """
+#!/usr/bin/env bash
+mise use -C $HOME --yes \
+    terraform \
+    nova \
+    kubectl \
+    awscli \
+    github-cli \
+    krew \
+    helm \
+    k9s \
+    cargo:kdash
+"""
+
+[tasks."setup:ruby"]
+description = "setup ruby depdenencies"
+run = """
+#!/usr/bin/env bash
+case ${OSTYPE}
+in
+    darwin*)
+        brew install openssl readline zlib
+        ;;
+    *)
+        sudo apt-get install -y libssl-dev libreadline-dev zlib1g-dev
+        ;;
+esac
+"""
+
+[tasks."docker"]
+description = "start mise docker"
+run = "docker run -it jdxcode/mise"
