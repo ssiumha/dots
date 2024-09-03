@@ -181,7 +181,7 @@ Plug 'itchyny/lightline.vim'
   let g:lightline.active = {
         \ 'left': [ [ 'mode', 'paste' ],
         \           [ 'readonly', 'filename', 'modified' ],
-        \           [ 'treesitter' ] ],
+        \           [] ],
         \ 'right': [ [ 'lineinfo' ],
         \            [ 'percent' ],
         \            [ 'fileformat', 'fileencoding', 'filetype' ] ] }
