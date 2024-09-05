@@ -342,20 +342,19 @@ highlight TreesitterContext guibg=gray ctermbg=8
 autocmd FileType yaml
       \ setlocal nofoldenable foldmethod=expr foldexpr=nvim_treesitter#foldexpr()
 
-set runtimepath^=~/.cache/treesitter
-
 if has('nvim-0.7.0')
+  lua require 'vimrc'
+
   "autocmd Filetype ruby setlocal omnifunc=v:lua.vim.lsp.omnifunc
   augroup user_lsp_config
     autocmd!
 
-    autocmd LspAttach * nnoremap <buffer> <silent> gd    <cmd>lua vim.lsp.buf.declaration()<CR>
-    autocmd LspAttach * nnoremap <buffer> <silent> gi    <cmd>lua vim.lsp.buf.implementation()<CR>
-    autocmd LspAttach * nnoremap <buffer> <silent> <c-]> <cmd>lua vim.lsp.buf.definition()<CR>
-    autocmd LspAttach * nnoremap <buffer> <silent> K     <cmd>lua vim.lsp.buf.hover()<CR>
+    autocmd LspAttach * nnoremap <buffer> <silent> gd        <cmd>lua vim.lsp.buf.declaration()<CR>
+    autocmd LspAttach * nnoremap <buffer> <silent> gi        <cmd>lua vim.lsp.buf.implementation()<CR>
+    autocmd LspAttach * nnoremap <buffer> <silent> <c-]>     <cmd>lua vim.lsp.buf.definition()<CR>
+    autocmd LspAttach * nnoremap <buffer> <silent> K         <cmd>lua vim.lsp.buf.hover()<CR>
+    autocmd LspAttach * nnoremap <buffer> <silent> <space>la <cmd>lua vim.lsp.buf.code_action()<CR>
   augroup END
-
-  luafile $HOME/dotfiles/vimrc.lua
 endif
 
 "----------------

@@ -31,9 +31,13 @@
 
 -- echo nvim_get_runtime_file('parser', v:true)
 lspconfig = require'lspconfig'
+
+if os.getenv("DOTS_LSP_WEB") then
 -- lspconfig.stimulus_ls.setup{}
--- lspconfig.tailwindcss.setup{}
--- lspconfig.tsserver.setup{}
+  lspconfig.tailwindcss.setup{}
+  lspconfig.tsserver.setup{}
+end
+
 -- lspconfig.bashls.setup{}
 -- lspconfig.dockerls.setup{}
 -- lspconfig.docker_compose_language_service.setup{}
@@ -63,6 +67,7 @@ lspconfig = require'lspconfig'
 --   }
 -- }
 
+vim.opt.rtp:append("~/.cache/treesitter")
 require'nvim-treesitter.configs'.setup {
   parser_install_dir = "~/.cache/treesitter",
   ensure_installed = { 'ruby', 'yaml' },
