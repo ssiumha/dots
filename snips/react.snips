@@ -1,0 +1,42 @@
+snippet dialog_modal ""
+const MyModal = () => {
+  const dialogRef = React.useRef<HTMLDialogElement>(null);
+
+  const [popStateHandling, setPopStateHandling] = React.useState(false);
+  const showModal = () => { setPopStateHandling(true) }
+  const onCloseModal = () => { setPopStateHandling(false) }
+
+  useEffect(() => {
+    if (popStateHandling === false) {
+      return;
+    }
+
+    const handlePopState = () => {
+      if (dialogRef.current?.open) {
+        dialogRef.current?.close();
+      }
+      setPopStateHandling(false);
+    }
+
+    history.pushState(null, '', window.location.href);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    }
+  }, [popStateHandling]);
+
+  return (
+    <>
+      <button onClick={showModal}>open</button>
+      <dialog
+        ref={dialogRef}
+        onClose={onCloseModal}
+        onMouseDown={event => event.target === dialogRef.current && dialogRef.current?.close()} // close when click outside
+        className="fixed rounded-2xl backdrop:bg-black backdrop:bg-opacity-50"
+      >
+      </dialog>
+    </>
+  );
+}
+endsnippet

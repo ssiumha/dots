@@ -21,3 +21,25 @@ snippet autocomplete_with_datalist ""
   <option value="Rust">
 </datalist>
 endsnippet
+
+snippet dialog_modal "close when click background"
+<dialog class="p-0 fixed rounded-2xl backdrop:bg-black" onmousedown="event.target === this && this.close()">
+  <div class="w-full h-full">
+  </div>
+</dialog>
+endsnippet
+
+snippet svg_base ""
+<!--
+0,0   : left top
+M x,y : move to x, y
+l x,y : line to relative x, y
+V y   : vertical line to y
+z     : close path
+--!>
+<svg className="w-14 h-14 pl-2 pt-1 text-white" fill="white" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <path fill="currentColor" stroke="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14,10 l-6,4 V6 l6,4 z"></path>
+
+  <rect x="0" y="0" width="50" height="50" fill="red" />
+</svg>
+endsnippet

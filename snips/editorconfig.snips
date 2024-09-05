@@ -1,0 +1,10 @@
+snippet base ""
+[*]
+indent_size = 4
+indent_style = tab
+endsnippet
+
+snippet specific_extension ""
+[*.{js,py}]
+charset = utf-8
+endsnippet
