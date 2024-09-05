@@ -64,7 +64,7 @@ set wildignorecase
 
 set cursorcolumn
 
-"set spell spellfile=$HOME/dotfiles/vim/spell/en.utf-8.add
+"set spell spellfile=$HOME/dots/vim/spell/en.utf-8.add
 highlight SpellBad cterm=underline ctermbg=88 gui=underline guibg=#902020 guisp=NvimLightRed
 
 
@@ -92,19 +92,19 @@ let &directory = expand('$HOME/.cache/vim/swap')
 " TODO: gem install neovim --bindir ~/.local/bin
 " let g:ruby_host_prog = '$HOME/.local/bin/neovim-ruby-host'
 
-set runtimepath^=~/dotfiles/vim
+set runtimepath^=~/dots/vim
 
 "----------------
 " complete
 "----------------
-set dictionary+=$HOME/dotfiles/config/nvim/words/dict.txt
+set dictionary+=$HOME/dots/config/nvim/words/dict.txt
 set dictionary+=$HOME/.firm/dict.txt
 iab destory destroy
 iab functino function
 iab lien line
 iab exmaple example
 
-autocmd FileType * execute 'setlocal dict+=$HOME/dotfiles/config/nvim/words/'.&filetype.'.txt'
+autocmd FileType * execute 'setlocal dict+=$HOME/dots/config/nvim/words/'.&filetype.'.txt'
 
 "----------------
 " plug
@@ -151,7 +151,7 @@ Plug 'voldikss/vim-floaterm'
       let [shell, shellslash, shellcmdflag, shellxquote] = floaterm#util#use_sh_or_cmd()
 
       let s:mysnip_tempfile = tempname()
-      let newcmd = [&shell, &shellcmdflag, '$HOME/dotfiles/bin/snip ' . &filetype . ' "' . expand('%:p') . '" > ' . s:mysnip_tempfile]
+      let newcmd = [&shell, &shellcmdflag, '$HOME/dots/bin/snip ' . &filetype . ' "' . expand('%:p') . '" > ' . s:mysnip_tempfile]
       let jobopts = { 'on_exit': funcref('s:mysnip_on_exit') }
       let config = {}
       let bufnr = floaterm#terminal#open(-1, newcmd, jobopts, config)

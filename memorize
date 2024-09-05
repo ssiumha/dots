@@ -1,10 +1,10 @@
 # vim:ft=zsh wrap
 
 # memorize
-v ~/dotfiles/memorize
-v ~/dotfiles/snips
-v ~/dotfiles/config/nvim/words
-v ~/dotfiles/config/mise/config.toml
+v ~/dots/memorize
+v ~/dots/snips
+v ~/dots/config/nvim/words
+v ~/dots/config/mise/config.toml
 v $(mise config | grep '.mise.toml' | awk '{print $1}' | perl -pe 's/~/$ENV{"HOME"}/')  ## open near mise config
 
 # open macos
@@ -81,7 +81,7 @@ echo 'cat <<EOF' > tmp.sh && cat x.yaml >> tmp.sh && echo 'EOF' >> tmp.sh && bas
 ruby -Itest test/**
 bundle exec rails
 bundle exec sidekiq
-bundle exec ruby -Itest ${TEST}
+bundle exec ruby -Itest ${TEST}  ## ruby test
 bundle config set --local path .bundle  ## 사용할 .bundle 경로 지정
 bundle config set --local path vendor/bundle
 bundle config set --local cache_path vendor/bundle/cache

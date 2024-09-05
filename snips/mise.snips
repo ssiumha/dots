@@ -33,7 +33,7 @@ pipx = "latest"
 "pipx:kaskade" = "latest"
 endsnippet
 
-snippet use_alias "can use like ruby@dotfiles"
+snippet use_alias "can use like ruby@dots"
 [alias.ruby]
-dotfiles = '3.3.0'
+dots = '3.3.0'
 endsnippet

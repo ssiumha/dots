@@ -1,11 +1,11 @@
 #!/bin/bash
 
-docker buildx build -f ${HOME}/dotfiles/Dockerfile -t dotker:latest ${HOME}/dotfiles
+docker buildx build -f ${HOME}/dots/Dockerfile -t dotker:latest ${HOME}/dots
 
 docker run \
   -it \
   --network host \
-  -v ${HOME}/dotfiles:/root/dotfiles \
+  -v ${HOME}/dots:/root/dots \
   -v ${HOME}/repos:/volumes/repos \
   -v ${HOME}/.config:/root/.config \
   -v ${HOME}/.cache/dotker/local:/root/.local \

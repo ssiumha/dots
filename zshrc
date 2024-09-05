@@ -30,7 +30,7 @@ case $OSTYPE in
   darwin*)
     export path=(
       # <- mise shims
-      "$HOME/dotfiles/bin"
+      "$HOME/dots/bin"
       "$HOME/.local/bin"
       "$HOME/.local/share/krew/bin"
       "/opt/homebrew/bin"
@@ -46,7 +46,7 @@ case $OSTYPE in
     ;;
   *)
     echo $PATH | grep -q "$HOME/.local/bin" && : || export PATH="$HOME/.local/bin:$PATH"
-    echo $PATH | grep -q "$HOME/dotfiles/bin" && : || export PATH="$HOME/dotfiles/bin:$PATH"
+    echo $PATH | grep -q "$HOME/dots/bin" && : || export PATH="$HOME/dots/bin:$PATH"
     ;;
 esac
 
@@ -340,7 +340,7 @@ bindkey '^R' _fzf_select_history_widget
 #### memorize
 _fzf_default_completion() {
   BUFFER="$(
-    cat ~/dotfiles/memorize |
+    cat ~/dots/memorize |
       perl -ne 'print if !/^(#|$)/' |
       perl -pe 's/(## .+)/\e[0;32m\1\e[0m/' |
       fzf --preview='echo {} | perl -pe "s/^(.+)\s*(## .+)/\\2\n\\1/; s/;;/\n##/g;"' \
@@ -361,7 +361,7 @@ export fzf_default_completion=_fzf_default_completion
 _fzf_pipe_complete_post() { perl -pe 's/## .+?$//' }
 _fzf_pipe_complete() {
   _fzf_complete -m --scheme=history --preview 'echo {} | perl -pe "s/^(.+)(\s+## .+)/\\2\n\\1/"' --preview-window down:3:wrap --min-height 15 -- "$@" < <(
-    cat ~/dotfiles/memorize |
+    cat ~/dots/memorize |
       perl -ne 'print if !/^(#|$)/ && /^\|/' |
       perl -pe 's/(## .+)/\e[0;32m\1\e[0m/'
   )
@@ -371,7 +371,7 @@ _fzf_pipe_complete() {
 _fzf_sub_complete_post() { perl -pe 's/## .+?$//' }
 _fzf_sub_complete() {
   _fzf_complete -m --scheme=history --preview 'echo {} | perl -pe "s/^(.+)(\s+## .+)/\\2\n\\1/"' --preview-window down:3:wrap --min-height 15 -- "$@" < <(
-    cat ~/dotfiles/memorize |
+    cat ~/dots/memorize |
       perl -ne 'print if !/^(#|$)/ && /^\$\(/' |
       perl -pe 's/(## .+)/\e[0;32m\1\e[0m/'
   )

@@ -42,7 +42,7 @@ export PROMPT='%F{blue}%n%f> %F{yellow}%~%f %F{red}%#%f '
 EOF
 
 VOLUME /root/.local
-VOLUME /root/dotfiles
+VOLUME /root/dots
 VOLUME /volumes
 VOLUME /cache
 

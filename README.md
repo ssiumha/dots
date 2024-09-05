@@ -1,4 +1,4 @@
-# dotfiles
+# dots
 
 ## Install
 

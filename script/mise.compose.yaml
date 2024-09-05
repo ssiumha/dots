@@ -1,4 +1,4 @@
-# docker compose -f ~/dotfiles/kits/docker/mise.compose.yaml -p $(basename $PWD) run -it --rm --build app
+# docker compose -f ~/dots/kits/docker/mise.compose.yaml -p $(basename $PWD) run -it --rm --build app
 services:
   app:
     network_mode: host
@@ -48,4 +48,4 @@ services:
     volumes:
       - ${PWD}:/app
       - ${HOME}/.bundle/config:/root/.bundle/config
-      - ${HOME}/.cache/dotfiles/docker/local:/root/.local
+      - ${HOME}/.cache/dots/docker/local:/root/.local
