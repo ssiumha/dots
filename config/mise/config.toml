@@ -58,6 +58,15 @@ in
 esac
 """
 
+[tasks."lsp:web"]
+description = "setup LSP web frontent"
+run = """
+mise use --yes \
+  npm:@tailwindcss/language-server \
+  npm:typescript-language-server
+mise set DOTS_LSP_WEB=1
+"""
+
 [tasks."docker"]
 description = "start mise docker"
 run = "docker run -it jdxcode/mise"
