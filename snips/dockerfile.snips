@@ -1,5 +1,39 @@
 snippet mount_cache "cache specific target path"
+# id: default is target path
+# sharing: locked, private, shared(default. working concurrently)
 RUN --mount=type=cache,id=gem,sharing=locked,target=/gem bundle install
+endsnippet
+
+snippet mount_cache_yarn "cache yarn berry"
+RUN --mount=type=cache,sharing=locked,target=/root/.yarn yarn install --immutable
+endsnippet
+
+snippet mount_cache_go ""
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go build -o /app/hello
+endsnippet
+
+snippet mount_cache_apt ""
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt,sharing=locked \
+  apt update && apt-get --no-install-recommends install -y gcc
+endsnippet
+
+snippet mount_cache_python ""
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r requirements.txt
+endsnippet
+
+snippet mount_cache_ruby ""
+RUN --mount=type=cache,target=/root/.gem \
+    bundle install
+endsnippet
+
+snippet mount_cache_rust ""
+RUN --mount=type=cache,target=/app/target/ \
+    --mount=type=cache,target=/usr/local/cargo/git/db \
+    --mount=type=cache,target=/usr/local/cargo/registry/ \
+    cargo build
 endsnippet
 
 snippet install_apt "apt-get install"
@@ -87,11 +121,22 @@ RUN chmod +x /app/entrypoint.sh
 ENTRYPOINT ["/app/entrypoint.sh"]
 endsnippet
 
-snippet copy_entrypoint "with nextjs"
+snippet copy_entrypoint_nextjs "with nextjs"
 COPY --chmod=500 <<EOF /docker-entrypoint.sh
 #!/bin/sh
 yarn prisma migrate dev
 yarn dev
+EOF
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
+endsnippet
+
+snippet copy_entrypoint "from cmd"
+COPY --chmod=500 <<EOF /docker-entrypoint.sh
+#!/bin/sh
+set -e
+
+exec "\$@"
 EOF
 
 ENTRYPOINT ["/docker-entrypoint.sh"]

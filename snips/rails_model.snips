@@ -15,3 +15,7 @@ endsnippet
 snippet store_accessor_with_type ""
   def logged_in_at = read_store_attribute(:metadata, :logged_in_at).try(:to_datetime) rescue nil
 endsnippet
+
+snippet normalizes "field normalize"
+  normalizes :email, with: -> email { email.downcase }
+endsnippet

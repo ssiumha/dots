@@ -290,3 +290,9 @@ metadata:
     app.kubernetes.io/managed-by: helm
     app.kubernetes.io/created-by: my-team
 endsnippet
+
+snippet ingress_body_size "upload file size limit"
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+endsnippet

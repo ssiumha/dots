@@ -1,3 +1,18 @@
+snippet monthly_pricing "roughly"
+EBS gp3          | $91  /TB
+EBS gp2          | $114 /TB
+RDS Storage      | $120 /TB
+RDS db.r5.large  | $408 /ea
+RDS db.t3.medium | $72  /ea
+RDS backup       | $23  /TB
+S3               | $23  /TB
+S3 tag           | $1   /100만tag
+ECR              | $100 /TB
+EKS              | $58  /ea
+EC2 m5.xlarge    | $138 /ea
+EC2 m5.large     | $69  /ea
+endsnippet
+
 snippet simple_info ""
 
 == EC2
@@ -14,9 +29,21 @@ EKS | $ 2.400
     | 1 GB/month | 100 GB/month
 gp3 | $ 0.080    | $ 8.000
 
+== S3
+         | 1 GB/month | 100 GB/month
+standard | $ 0.023    | $ 2.300
+
 == 나라장터
 
         | CPU        | Memory | price/once
 2024-04 | 2 (16core) | 128 GB | KRW 25,000,000
 
+endsnippet
+
+snippet cli_lightsail_put_public_ports "overwrite all"
+aws lightsail put-instance-public-ports \
+  --instance-name=app \
+  --port-infos \
+    fromPort=22,toPort=22,protocol=tcp,cidrs=192.168.0.1/24,cidr_list_aliases=lightsail-connect \
+    fromPort=80,toPort=80,protocol=tcp
 endsnippet

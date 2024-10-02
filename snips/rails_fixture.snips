@@ -7,3 +7,7 @@ default:
   email: test@example.com
   encrypted_password: <%= Admin.new.send :password_digest, 'password' %>
 endsnippet
+
+snippet get_hash_id "reference another fixture id"
+  id: <%= ActiveRecord::FixtureSet.identify(:admin) %>
+endsnippet

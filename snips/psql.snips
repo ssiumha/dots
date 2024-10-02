@@ -32,3 +32,27 @@ psql \
   -c "CREATE USER ${USER_NAME} WITH PASSWORD '${USER_PASSWORD}';" \
   -c "CREATE DATABASE ${DATABASE_NAME} WITH OWNER = '${USER_NAME}' ENCODING = 'UTF8';"
 endsnippet
+
+snippet describe_table ""
+\d+ table_name
+endsnippet
+
+snippet get_size_by_columns ""
+SELECT pg_column_size(data) FROM active_storage_db_files;
+endsnippet
+
+snippet show_timeouts ""
+# query running time
+show statement_timeout;
+
+# not working transaction time
+show idle_in_transaction_session_timeout;
+
+# try locking time
+show lock_timeout;
+
+# tcp
+show tcp_keepalives_idle;
+show tcp_keepalives_interval;
+show tcp_keepalives_count;
+endsnippet

@@ -69,3 +69,67 @@ provider "kubernetes" {
   config_context = module.eks.cluster_arn
 }
 endsnippet
+
+snippet base_output "outputs.tf"
+output "private_subnets" {
+  description = "private subnets of the VPC"
+  value       = module.vpc.private_subnets
+}
+endsnippet
+
+snippet base_variable "variables.tf"
+# can use var.region
+variable "region" {
+  default = "ap-northeast-2"
+}
+endsnippet
+
+snippet base_providers "providers.tf"
+terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+      version = "~> 5"
+    }
+  }
+}
+
+provider "aws" {
+  region  = var.region
+}
+endsnippet
+
+snippet base_vpc_module ""
+data "aws_availability_zones" "available" {
+}
+
+locals {
+  terraform_env = "dev"
+
+  # use ap-northeast-2a, ap-northeast-2b
+  availability_zone_names = slice(data.aws_availability_zones.available.names, 0, 2)
+}
+
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "5.13.0"
+
+  name = "dev"
+  cidr = "10.0.0.0/16"
+
+  azs             = local.availability_zone_names
+  private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
+  public_subnets  = ["10.0.101.0/24", "10.0.102.0/24"]
+
+  enable_nat_gateway = true
+
+  manage_default_network_acl    = false
+  manage_default_route_table    = false
+  manage_default_security_group = false
+
+  tags = {
+    Terraform = "true"
+    Environment = local.terraform_env
+  }
+}
+endsnippet

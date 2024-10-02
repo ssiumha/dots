@@ -1,0 +1,12 @@
+snippet prevent_access_when_specific_domain ""
+  constraints(->(request) { request.domain.exclude?('service.com') }) do
+    devise_for :admin_users, ActiveAdmin::Devise.config
+    ActiveAdmin.routes(self)
+  end
+endsnippet
+
+snippet admin_authenticate_path ""
+  authenticate :admin_user, ->(u) { u.present? } do
+    mount Sidekiq::Web => '/admin/sidekiq'
+  end
+endsnippet

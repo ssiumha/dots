@@ -1,3 +1,13 @@
 snippet docker_host_url ""
 host.docker.internal
 endsnippet
+
+snippet docker_ip "need ports or --publish"
+DOCKER_IP=$(docker inspect -f "{{ .NetworkSettings.Gateway }}" "${MYSQL_DOCKER_NAME}")
+DOCKER_PORT=$(docker inspect -f "{{(index (index .NetworkSettings.Ports \"3306/tcp\") 0).HostPort}}" "${MYSQL_DOCKER_NAME}")
+endsnippet
+
+snippet docker_ip_jq "need ports or --publish"
+docker inspect compose-mysql | \
+  jq -r ".[] | .NetworkSettings | [ .Networks.compose_network.Gateway, .Ports.\"${target_port}/tcp\"[0].HostPort ] | join(\":\")"
+endsnippet

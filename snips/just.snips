@@ -1,0 +1,38 @@
+snippet default ""
+[private]
+default:
+  @just --choose
+  # @just --list
+endsnippet
+
+snippet set_positional_arguments ""
+# = global
+# set positional-arguments
+
+[positional-arguments]
+@foo bar:
+  echo $0
+  echo $1
+
+# just foo hello => "foo\nhello"
+endsnippet
+
+snippet arguments ""
+git *args:
+  @git {{args}}
+
+echo arg:
+  @echo "{{arg}}"
+
+[export]
+foo arg:
+  echo "$arg"
+endsnippet
+
+snippet scriptable "can use state"
+foo:
+  #!/usr/bin/env bash
+  set -euxo pipefail
+  x=hello
+  echo $x
+endsnippet

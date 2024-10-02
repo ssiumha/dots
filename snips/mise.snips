@@ -37,3 +37,36 @@ snippet use_alias "can use like ruby@dots"
 [alias.ruby]
 dots = '3.3.0'
 endsnippet
+
+snippet task_run ""
+[tasks."run"]
+env = { APP_ENV = "local" }
+description = "Run the app"
+run = "bundle exec ruby app.rb"
+alias = "r"
+dir = "{{cwd}}"
+
+# = run multiple
+# run = [
+#   "cargo test",
+#   "./scripts/test-e2e.sh",
+# ]
+
+# = run script
+# run = """
+# #!/usr/bin/env bash
+# ruby --version
+# """
+
+# = run file
+# run = "app.rb"
+endsnippet
+
+snippet task_watch_build "run if sources is newer than mycli"
+[tasks."build"]
+run = "cargo build"
+sources = ["Cargo.toml", "src/**/*.rs"]
+outputs = ["target/debug/mycli"]
+
+# run: `mise watch -t build`
+endsnippet

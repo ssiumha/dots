@@ -20,3 +20,10 @@ snippet after_initialize "in config/initalizers"
 Rails.application.config.after_initialize do
 end
 endsnippet
+
+snippet broadcast_logger "write stdout and file"
+config.logger = ActiveSupport::BroadcastLogger.new(
+  ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new($stdout,              formatter: Logger::Formatter.new)),
+  ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new("log/production.log", formatter: Logger::Formatter.new))
+)
+endsnippet

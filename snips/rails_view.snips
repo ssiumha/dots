@@ -90,3 +90,17 @@ snippet tag_attributes ""
 <div <%= tag.attributes 'data-user-id': user_name, data: { color: } %> >
 </div>
 endsnippet
+
+snippet html_safe "apply html tag from string"
+<%= html_string.html_safe %>
+endsnippet
+
+snippet raw "apply html tag from string"
+<%= raw html_string %>
+endsnippet
+
+snippet open_blob_document ""
+<%= link_to rails_blob_path(attachment, disposition: :inline), target: '_blank', rel: 'noopener noreferrer' %>
+  <span><%= attachment.filename %></span>
+<% end %>
+endsnippet

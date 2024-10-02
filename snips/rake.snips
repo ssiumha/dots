@@ -16,3 +16,19 @@ endsnippet
 snippet invoke_task "run with dependencies and only once"
 Rake::Task[:build].invoke
 endsnippet
+
+snippet enhance "task hook"
+Rake.application.tasks.each do |task|
+  next if TARGET_TASKS.exclude? task.name
+
+  task.enhance do
+    at_exit do
+      on_exit_task task: task.deep_dup
+    end
+  end
+end
+
+def on_exit_task(task:)
+  puts "Complete Task: #{task.name}"
+end
+endsnippet

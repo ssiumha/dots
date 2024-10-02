@@ -66,3 +66,37 @@ endsnippet
 snippet db_dump "rails way"
 bin/rails db < path_to_your_dump_file.sql
 endsnippet
+
+snippet base_script "script/base"
+#!/usr/bin/env ruby
+require File.expand_path('../config/environment', File.dirname(__FILE__))
+
+abort "Usage: #{$0} <arg1> <arg2>" unless ARGV.length == 2
+
+arg1, arg2 = ARGV
+
+if process
+else
+  puts "Failed"
+  exit -1
+end
+endsnippet
+
+snippet current_set_block ""
+  Current.set(user: @user) do
+  end
+endsnippet
+
+snippet template_with_console "rails/generators"
+# ref: https://guides.rubyonrails.org/rails_application_templates.html#template-api
+
+require 'rails/generators'
+
+g = Rails::Generators::Base.new
+
+g.route "root to: 'people#index'"
+g.gem 'config'
+g.gem 'hashid-rails'
+g.gem 'marginalia'
+g.gem 'annotate'
+endsnippet

@@ -305,3 +305,12 @@ EOF
 
 apt-get update
 endsnippet
+
+snippet multiple_process_wait "overmind"
+#!/bin/bash
+
+process1 &
+process2 &
+
+wait
+endsnippet

@@ -1,0 +1,17 @@
+snippet github_action_runner ""
+# /etc/systemd/system/github-runner.service
+
+[Unit]
+Description=GitHub Actions Runner
+After=network.target
+
+[Service]
+WorkingDirectory=/home/ubuntu/actions-runner
+ExecStart=/home/ubuntu/actions-runner/run.sh
+User=ubuntu
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+endsnippet

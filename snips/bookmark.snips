@@ -11,3 +11,7 @@ endsnippet
 snippet network_speed ""
 https://fast.com
 endsnippet
+
+snippet testfile ""
+https://testfile.org/
+endsnippet

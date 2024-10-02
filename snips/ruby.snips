@@ -354,3 +354,35 @@ snippet yard_return_example ""
 # @example Not found user
 #   nil
 endsnippet
+
+
+snippet text_zip_with_base64 ""
+require 'zlib'
+require 'base64'
+Zlib::Deflate.deflate(text).then { Base64.encode64(_1) }
+endsnippet
+
+snippet text_unzip_with_base64 ""
+require 'zlib'
+require 'base64'
+Base64.decode64(text).then { Zlib::Inflate.inflate(_1) }
+endsnippet
+
+snippet csv ""
+require 'csv'
+
+file = CSV.generate do |csv|
+  csv << ['name', 'email']
+  csv << ['kim', 'kim@example.com']
+end
+
+File.write('/tmp/result.csv', file)
+endsnippet
+
+snippet awk ""
+ls | ruby -lane 'puts $F[1]'
+endsnippet
+
+snippet pipe "stdin"
+ls | ruby -e 'ARGF.each_line.map { ... }'
+endsnippet

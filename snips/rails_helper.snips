@@ -1,0 +1,10 @@
+snippet stimulus_helper ""
+  def stimulus_tag(controller, **options)
+    options[:data] ||= {}
+    options[:data][:controller] = controller
+
+    content_tag(:div, options) do
+      yield if block_given?
+    end
+  end
+endsnippet

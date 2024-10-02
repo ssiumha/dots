@@ -1,0 +1,6 @@
+snippet aws_localstack "need fix region"
+[profile localstack]
+region=us-east-1
+output=json
+endpoint_url = http://localhost:4566
+endsnippet

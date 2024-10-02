@@ -1,0 +1,22 @@
+snippet vim_autocmd ""
+vim.api.nvim_create_autocmd('BufReadPost', {
+  pattern = '*',
+  callback = function()
+  end
+})
+endsnippet
+
+snippet vim_current_bufnr ""
+vim.api.nvim_get_current_buf()
+endsnippet
+
+snippet vim_set_var "bufnr is 0, current buffer"
+vim.api.nvim_buf_set_var(bufnr, 'var_name', true)
+endsnippet
+
+snippet if ""
+if expression then
+elseif not expression2 then
+else
+end
+endsnippet

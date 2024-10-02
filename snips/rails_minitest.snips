@@ -38,3 +38,95 @@ class ContentImagesControllerTest < ActionDispatch::IntegrationTest
   end
 end
 endsnippet
+
+snippet system_test_form "login case"
+  test 'login' do
+    visit new_user_session_url
+
+    within '#new_user' do
+      find('#user_email').fill_in with: 'user@example.com'
+      find('#password_input').fill_in with: 'password'
+    end
+
+    click_button '로그인'
+  end
+endsnippet
+
+
+snippet system_test_capybara "to application_system_test_case.rb"
+Capybara.save_path = 'tmp/capybara'
+Capybara.register_driver :custom_chrome do |app|
+  options = ::Selenium::WebDriver::Chrome::Options.new
+
+  options.add_argument('--headless')
+  options.add_argument('--no-sandbox')
+  options.add_argument('--disable-gpu')
+  options.add_argument('--disable-dev-shm-usage')
+  options.add_argument('--verbose')
+  options.add_argument('--window-size=1200,800')
+
+  Capybara::Selenium::Driver.new(app, browser: :chrome, options: options)
+end
+
+Capybara.javascript_driver = :custom_chrome
+
+class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+  driven_by :custom_chrome, screen_size: [1400, 1400]
+
+  # driver = ENV['DRIVER'] ? ENV['DRIVER'].to_sym : :custom_chrome
+  # driven_by :selenium, using: driver, screen_size: [1400, 1400]
+
+  def supports_screenshot?
+    return false if ENV['CI'].present?
+
+    super
+  end
+end
+endsnippet
+
+snippet system_test_execute_javascript ""
+module SystemTestHelper
+  include ActionView::Helpers::JavaScriptHelper
+
+  def fill_editor(name, content)
+    execute_script <<~JS
+      const editor = document.querySelector("[name='#{name}']")
+      editor.value = "#{escape_javascript(content)}"
+    JS
+  end
+end
+endsnippet
+
+snippet parsed_cookies ""
+  def parsed_cookies
+    ActionDispatch::Cookies::CookieJar.build(request, cookies.to_hash)
+  end
+endsnippet
+
+snippet perform_all_jobs "can perform recursive jobs"
+    perform_enqueued_jobs do
+      TriggerJob.perform_later
+
+      assert_performed_jobs 3
+      assert_performed_with job: WorkJob
+    end
+endsnippet
+
+snippet check_mailer ""
+    mail = ActionMailer::Base.deliveries.last
+    assert_equal ['from@example.com'], mail.from
+    assert_equal ['to@example.com'], mail.to
+    assert_equal 'Test', mail.subject
+    assert_includes mail.body.to_s, 'Test Text'
+endsnippet
+
+snippet test_controller ""
+  test 'check get' do
+    sign_in @user
+
+    get search_path(q: 'test')
+
+    assert_select '.article-title', text: '테스트', count: 1
+    assert_match '테스트 제목', response.body
+  end
+endsnippet
