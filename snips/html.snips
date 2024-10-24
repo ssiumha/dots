@@ -23,6 +23,8 @@ snippet autocomplete_with_datalist ""
 endsnippet
 
 snippet dialog_modal "close when click background"
+<button onclick="document.querySelector('dialog').showModal()">open dialog</button>
+
 <dialog class="p-0 fixed rounded-2xl backdrop:bg-black" onmousedown="event.target === this && this.close()">
   <div class="w-full h-full">
   </div>
@@ -42,4 +44,12 @@ z     : close path
 
   <rect x="0" y="0" width="50" height="50" fill="red" />
 </svg>
+endsnippet
+
+snippet tailwind_children "awesome"
+<div class="flex gap-x-2 *:px-4 even:*:bg-gray-100">
+  <span>A</span>
+  <span>B</span>
+  <span>C</span>
+</div>
 endsnippet

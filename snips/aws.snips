@@ -1,8 +1,8 @@
-snippet monthly_pricing "roughly"
+snippet monthly_pricing "roughly. base 2024-10"
 EBS gp3          | $91  /TB
 EBS gp2          | $114 /TB
 RDS Storage      | $120 /TB
-RDS db.r5.large  | $408 /ea
+RDS db.r5.large  | $250 /ea
 RDS db.t3.medium | $72  /ea
 RDS backup       | $23  /TB
 S3               | $23  /TB
@@ -46,4 +46,18 @@ aws lightsail put-instance-public-ports \
   --port-infos \
     fromPort=22,toPort=22,protocol=tcp,cidrs=192.168.0.1/24,cidr_list_aliases=lightsail-connect \
     fromPort=80,toPort=80,protocol=tcp
+endsnippet
+
+snippet install_docker_on_amazon_linux_2023 ""
+sudo yum update -y
+sudo yum install docker -y
+sudo service docker start
+sudo usermod -aG docker ec2-user
+# reconnect
+docker run hello-world
+
+# compose
+sudo mkdir -p /usr/local/lib/docker/cli-plugins/
+sudo curl -SL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$(uname -m)" -o /usr/local/lib/docker/cli-plugins/docker-compose
+sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 endsnippet

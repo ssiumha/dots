@@ -5,3 +5,7 @@ endsnippet
 snippet popup_create ""
 call popup_create('test', { 'line': 'cursor+1', 'col': 'cursor', 'moved': 'any' })
 endsnippet
+
+snippet paste_redir_messages ""
+redir => output | silent messages | redir END | call setline(1, split(output, "\n"))
+endsnippet

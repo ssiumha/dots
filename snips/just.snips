@@ -17,6 +17,13 @@ snippet set_positional_arguments ""
 # just foo hello => "foo\nhello"
 endsnippet
 
+snippet set_dotenv ""
+set dotenv-load
+
+serve:
+  @echo $DATABASE_ADDRESS
+endsnippet
+
 snippet arguments ""
 git *args:
   @git {{args}}
@@ -36,3 +43,5 @@ foo:
   x=hello
   echo $x
 endsnippet
+
+

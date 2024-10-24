@@ -345,16 +345,28 @@ end
 endsnippet
 
 snippet yard_return_example ""
-# @return [Hash, nil] user info
+# @see http://example.com
+# @see SomeClass#method
+# @param name [String]
+# @param opts [Hash]
+# @option opts [String] :subject
+#
+# Method Descriptions
+# Default options are:
+#
 # @example
 #   {
 #     name: 'John',
 #     age: 20
 #   }
+#
 # @example Not found user
 #   nil
+#
+# @raise [ExceptionClass] description
+#
+# @return [Hash, nil] user info
 endsnippet
-
 
 snippet text_zip_with_base64 ""
 require 'zlib'
@@ -377,6 +389,17 @@ file = CSV.generate do |csv|
 end
 
 File.write('/tmp/result.csv', file)
+endsnippet
+
+snippet csv_read ""
+require 'csv'
+
+csv = CSV.read('users.csv', headers: true)
+
+# OR
+CSV.foreach('users.csv', headers: true, headers_converter: proc { _1.downcase }) do |row|
+  row['id']
+end
 endsnippet
 
 snippet awk ""

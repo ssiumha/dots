@@ -1,3 +1,37 @@
+snippet request_rails ""
+import { get, post, put, patch, destroy } from '@rails/request.js'
+
+const response = await post('/posts',
+  {
+    body: JSON.stringify({ name: 'Request.JS' }),
+    // contentType: 'application/json',
+    headers: {},
+    query: {}, // Object | FormData | URLSearchParams
+    responseKind: 'html', // turbo-stream | json | script
+  }
+)
+
+if (response.ok) {
+  const body = await response.text // html | json
+
+  response.statusCode
+  response.unauthenticated
+  response.headers
+}
+endsnippet
+
+snippet request_rails_interceptor ""
+import { RequestInterceptor } from '@rails/request.js'
+
+RequestInterceptor.register(async (request) => {
+  const token = await getSessionToken(window.app)
+  request.addHeader('Authorization', `Bearer ${token}`)
+})
+
+// Reset interceptor
+RequestInterceptor.reset()
+endsnippet
+
 snippet trix_editor_insert_attachment "not working when read.. backup"
   connect () {
     this.#trixEditor().addEventListener('trix-file-accept', (event) => {
@@ -15,5 +49,43 @@ snippet trix_editor_insert_attachment "not working when read.. backup"
 
   #trixEditor() {
     return this.element.querySelector('trix-editor')
+  }
+endsnippet
+
+snippet base_template ""
+import { Controller } from '@hotwired/stimulus'
+
+export default class extends Controller {
+  static targets = []
+  static values = {}
+
+  connect() {
+    console.log('Hello, Stimulus!')
+  }
+
+  disconnect() {
+    console.log('Goodbye, Stimulus!')
+  }
+}
+endsnippet
+
+snippet use_template ""
+  static tagets = ['template']
+
+  #addTemplate() {
+    const template = document.importNode(this.templateTarget.content, true);
+    template.value = '';
+    this.containerTarget.appendChild(template);
+  }
+endsnippet
+
+snippet use_classes ""
+  static classes = ["loading"]
+
+  // <form data-controller="search"
+  //       data-search-loading-class="bg-gray-500 animate-spinner cursor-busy">
+  loadResult() {
+    this.element.classList.add(this.loadingClass)
+    // ...
   }
 endsnippet

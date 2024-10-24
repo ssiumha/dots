@@ -61,3 +61,41 @@ snippet controller_method ""
     end
   end
 endsnippet
+
+snippet scoped_collection "filter collection"
+  controller do
+    def scoped_collection = case action_name
+                            when 'index' then super.select(super.column_names - %w[data])
+                            else super.select(super.column_names - %w[data])
+                            end
+  end
+endsnippet
+
+snippet remove_filter ""
+  preserve_default_filters!
+
+  remove_filter :user
+endsnippet
+
+snippet add_filter ""
+  filter :user_email_eq, as: :string, label: 'User Email'
+endsnippet
+
+snippet resource_class_filter_columns ""
+  index do
+    selectable_column
+    id_column
+    resource_class.content_columns
+                  .reject { |col| %w[created_at updated_at].include? col.name }
+                  .each { |col| column col.name }
+    actions
+  end
+endsnippet
+
+snippet csv ""
+  csv do
+    column :id
+    column :item_count do |user|
+    end
+  end
+endsnippet

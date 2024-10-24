@@ -19,3 +19,27 @@ endsnippet
 snippet normalizes "field normalize"
   normalizes :email, with: -> email { email.downcase }
 endsnippet
+
+snippet typed_store "more awesome store"
+# https://github.com/byroot/activerecord-typedstore
+class Shop < ActiveRecord::Base
+  typed_store :settings do |s|
+    s.boolean :public, default: false, null: false
+    s.string :email
+    s.datetime :publish_at
+    s.integer :age, null: false
+
+    # You can define array attributes like in rails 4 and postgres
+    s.string :tags, array: true, default: [], null: false
+
+    # In addition to prevent null values you can prevent blank values
+    s.string :title, blank: false, default: 'Title'
+
+    # If you don't want to enforce a datatype but still like to have default handling
+    s.any :source, blank: false, default: 'web'
+  end
+
+  # You can use any ActiveModel validator
+  validates :age, presence: true
+end
+endsnippet

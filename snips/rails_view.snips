@@ -104,3 +104,9 @@ snippet open_blob_document ""
   <span><%= attachment.filename %></span>
 <% end %>
 endsnippet
+
+snippet form_with_post "remote is default true"
+<%= form_with url: '/search', method: :get, data: { turbo: false } do |form| %>
+  <%= form.submit 'Search' %>
+<% end %>
+endsnippet

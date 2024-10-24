@@ -314,3 +314,152 @@ process2 &
 
 wait
 endsnippet
+
+snippet os_type "mac, darwin, linux"
+case $OSTYPE in
+  darwin*)
+  ;;
+  *)
+  ;;
+esac
+endsnippet
+
+snippet bin_kamal ""
+#!/usr/bin/env bash
+
+case $OSTYPE in
+  darwin*)
+    docker run -it --rm -v "${PWD}:/workdir" \
+      -v "/run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock" \
+      -e SSH_AUTH_SOCK="/run/host-services/ssh-auth.sock" \
+      -v /var/run/docker.sock:/var/run/docker.sock \
+      ghcr.io/basecamp/kamal:v2.1.1 $@
+  ;;
+  *)
+    docker run -it --rm -v "${PWD}:/workdir" \
+      -v "${SSH_AUTH_SOCK}:/ssh-agent" \
+      -v /var/run/docker.sock:/var/run/docker.sock \
+      -e "SSH_AUTH_SOCK=/ssh-agent" \
+      ghcr.io/basecamp/kamal:v2.1.1 $@
+  ;;
+esac
+endsnippet
+
+
+snippet fzf_actions "key bind, events"
+example:
+  --bind='ctrl-r:reload(date; ps -ef)'
+
+  --bind 'ctrl-d:change-prompt(Dir> )+reload(find * -type d)' \
+  --bind 'ctrl-f:change-prompt(Files> )+reload(find * -type f)'
+
+  RG_PREFIX="rg --column --line-number --no-heading --color=always --smart-case "
+  --bind 'start:reload:$RG_PREFIX {q}' \
+  --bind 'change:reload:sleep 0.1; $RG_PREFIX {q} || true' \
+  --bind 'enter:become(vim {1} +{2}' \
+  --bind 'alt-enter:unbind(change,alt-enter)+change-prompt(2. fzf> )+enable-search+clear-query'
+
+  --bind "ctrl-f:unbind(change,ctrl-f)+change-prompt(2. fzf> )+enable-search+rebind(ctrl-r)+transform-query(echo {q} > /tmp/rg-fzf-r; cat /tmp/rg-fzf-f)" \
+  --bind "ctrl-r:unbind(ctrl-r)+change-prompt(1. ripgrep> )+disable-search+reload($RG_PREFIX {q} || true)+rebind(change,ctrl-f)+transform-query(echo {q} > /tmp/rg-fzf-f; cat /tmp/rg-fzf-r)"
+
+  command='kubectl get pods' fzf \
+    --bind 'start:reload:$command' \
+    --bind 'enter:execute:kubectl exec -it --namespace {1} {2} -- bash'
+
+# actions: https://github.com/junegunn/fzf/blob/master/src/terminal.go
+ignore
+beginning-of-line
+abort
+accept
+accept-non-empty
+accept-or-print-query
+print-query
+refresh-preview
+replace-query
+backward-char
+backward-delete-char
+backward-delete-char/eof
+backward-word
+clear-screen
+delete-char
+delete-char/eof
+deselect
+end-of-line
+cancel
+clear-query
+clear-selection
+forward-char
+forward-word
+jump
+jump-accept
+kill-line
+kill-word
+unix-line-discard, line-discard
+unix-word-rubout, word-rubout
+yank
+backward-kill-word
+toggle-down
+toggle-up
+toggle-in
+toggle-out
+toggle-all
+toggle-search
+toggle-track
+toggle-track-current
+toggle-header
+toggle-wrap
+show-header
+hide-header
+track, track-current
+untrack-current
+select
+select-all
+deselect-all
+close
+toggle
+down
+up
+first, top
+last
+page-up
+page-down
+half-page-up
+half-page-down
+prev-history, previous-history
+next-history
+prev-selected
+next-selected
+show-preview
+hide-preview
+toggle-preview
+toggle-preview-wrap
+toggle-sort
+offset-up
+offset-down
+offset-middle
+preview-top
+preview-bottom
+preview-up
+preview-down
+preview-page-up
+preview-page-down
+preview-half-page-up
+preview-half-page-down
+enable-search
+disable-search
+put
+endsnippet
+
+snippet ctags_format ""
+<tagname> <filename> <excmd> <;> <kind> <additional fields>
+
+kind: 분류용 임의 문자열. Function, Variable, Class, Method 정도가 주로 사용됨
+excmd: regex or line number. vim ex 명령으로 실행됨
+additional fields: <field1>:<value1> <field2>:<value2> ...
+
+example)
+Application  application.rb /^  class Application < Rails::Application$/;"  c  class:MyApp
+configure    application.rb /^  def configure$/;"                         f  class:MyApp::Application
+initialize   application.rb /^  def initialize$/;"                        f  class:MyApp::Application
+MyApp        application.rb /^module MyApp$/;"                            m
+endsnippet

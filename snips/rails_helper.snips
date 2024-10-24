@@ -8,3 +8,21 @@ snippet stimulus_helper ""
     end
   end
 endsnippet
+
+snippet javascript_routes ""
+module ApplicationHelper
+  # with application.html.erb
+  # ```
+  #   <script type="text/javascript">
+  #     const Routes = <%= javascript_routes.to_json %>;
+  #   </script>
+  # ```
+  def javascript_routes
+    {
+      articles_path: articles_path,
+      about_path: about_path,
+    }
+  end
+end
+
+endsnippet

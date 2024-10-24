@@ -1,0 +1,9 @@
+snippet jwt ""
+import jwt from 'npm:jsonwebtoken'
+
+const token = jwt.sign({ uid: 123 }, 'secret_key')
+console.log(token)
+
+const payload = jwt.verify(token, 'secret_key')
+console.log(JSON.stringify(payload))
+endsnippet

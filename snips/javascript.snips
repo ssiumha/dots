@@ -51,3 +51,41 @@ console.log({
   keys: Object.keys(obj)
 })
 endsnippet
+
+snippet append_child "console"
+var script = document.createElement('script');
+script.src = 'https://example.com/main.js';
+document.head.appendChild(script);
+endsnippet
+
+snippet define_property "read only variable"
+# ref: defineProperties
+Object.defineProperty(window, 'API_KEY', {
+  value: 'KEY',
+  writable: false, # prevent modify
+  configurable: false, # prevent delete, redefine
+})
+endsnippet
+
+snippet get_location_hostname ""
+// https://example.com:1234/test/path
+window.location.hostname // example.com
+window.location.pathname // /test/path
+endsnippet
+
+snippet jsdoc "documentation"
+/**
+ * Represents a book.
+ * @see Paper for details
+ * @constructor
+ * @param {string} title - The title of the book.
+ * @param {string|number} [author] - optional param
+ * @param {Object} options
+ * @param {string} options.url
+ * @param {string} [options.method="GET"]
+ * @param {function(Error, string): void} callback
+ * @returns {{ a: string, b: number }} This is the result {@link BookResult}
+ */
+function Book(title, author) {
+}
+endsnippet

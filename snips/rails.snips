@@ -100,3 +100,17 @@ g.gem 'hashid-rails'
 g.gem 'marginalia'
 g.gem 'annotate'
 endsnippet
+
+snippet pattern_poros "Plain Old Ruby Objects"
+# app/poros
+# independent object from farmework, libraries
+endsnippet
+
+snippet warden_force_login ""
+# https://github.com/wardencommunity/warden/wiki/Authenticated-session-data
+warden.authenticated?(:user) && warden.logout(:user)
+warden.set_user(resource, scope: :user)
+warden.set_user(warden.user(:admin_user), scope: :remote_login) # cleanup when any logout
+
+redirect_to home_path
+endsnippet

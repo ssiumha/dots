@@ -20,3 +20,37 @@ elseif not expression2 then
 else
 end
 endsnippet
+
+snippet vim_fzf ""
+-- source	string	External command to generate input to fzf (e.g. find .)
+-- source	list	Vim list as input to fzf
+-- sink	string	Vim command to handle the selected item (e.g. e, tabe)
+-- sink	funcref	Function to be called with each selected item
+-- sinklist (or sink*)	funcref	Similar to sink, but takes the list of output lines at once
+-- exit	funcref	Function to be called with the exit status of fzf (e.g. 0, 1, 2, 130)
+-- options	string/list	Options to fzf
+-- dir	string	Working directory
+-- up/down/left/right	number/string	(Layout) Window position and size (e.g. 20, 50%)
+-- tmux	string	(Layout) --tmux options (e.g. 90%,70%)
+-- window (Vim 8 / Neovim)	string	(Layout) Command to open fzf window (e.g. vertical aboveleft 30new)
+-- window (Vim 8 / Neovim)	dict	(Layout) Popup window settings (e.g. {'width': 0.9, 'height': 0.6})
+vim.fn['fzf#run']({
+  source = { 'item1', 'item2', item3' },
+  window = { width = 0.9, height = 0.6 },
+  tmux = '90%,70%',
+  options = '--multi'
+  sink = function(selected)
+    -- selected is string
+    if commands[selected] then
+      commands[selected]()
+    else
+    end
+  end,
+})
+endsnippet
+
+snippet vim_buf ""
+local buf = vim.api.nvim_get_current_buf()
+
+vim.b.buffer_variable = 'test'
+endsnippet

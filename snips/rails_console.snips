@@ -1,3 +1,19 @@
 snippet helper_in_console ""
 helper.sanitize
 endsnippet
+
+snippet describe_table ""
+ActiveRecord::Base.connection.execute("DESCRIBE users").then do |res|
+  puts res.fields.map{ '%-20s'%_1 }.join;
+  res.each { |cols| puts cols.map{'%-20s'%_1}.join }
+end
+endsnippet
+
+snippet explain_old ""
+ActiveRecord::Base.connection.execute("EXPLAIN SELECT * FROM users").then { puts _1.fields.zip(_1.first).to_h.ai }
+endsnippet
+
+snippet explain "rails 7.1 ~ with psql"
+User.where('age > ?', 25).joins(:user).explain(:analayze)
+User.where('age > ?', 25).joins(:user).explain(:verbose)
+endsnippet
