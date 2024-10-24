@@ -2,7 +2,7 @@
 
 # memorize
 v ~/dots/memorize
-v ~/dots/snips
+v ~/dots/snips/
 v ~/dots/config/nvim/words
 v ~/dots/config/mise/config.toml
 v $(mise config | grep '.mise.toml' | awk '{print $1}' | perl -pe 's/~/$ENV{"HOME"}/')  ## open near mise config
@@ -28,6 +28,19 @@ open -a 'Google Chrome.app' 'https://www.calculator.net/ip-subnet-calculator.htm
 security add-generic-password -a $LOGNAME -T "" -U -s 'test-pass' -w 'PASS'  ## Save password to keychian
 security find-generic-password -a $LOGNAME -s 'test-pass' -w  ## Get password from keychain
 security delete-generic-password -a $LOGNAME -s 'test-pass'  ## Delete password from keychain
+
+brew install 1password-cli  ## Need `preference > developer > integrate with 1Password CLI` OR `op signin`
+op vault ls  ## 1password get vault
+op item ls --vault 'VAULT'  ## 1password get items
+op item get 'ITEM' --field 'token' --vault 'VAULT'  ## 1password get specific field
+op item get 'ITEM' --vault 'VAULT' --format json  ## 1password get json
+op item create --vault 'VAULT' --title 'APIKey' --category 'Login|Secure Note|Password' "token=..." "username=foo" ..
+op document create config.yaml --vault 'VAULT' --title 'config.yaml'  ## if want update. delete and recreate
+op item create --vault 'VAULT' --template ./item.json  ## .title, .vault, .category, .fields[{ .label, .value }]
+op item edit 'APIKey' --vault 'VAULT' "token=..."
+op run --env-file="./prod.env" -- aws  ## AWS_ACCESS_KEY="op://<vault>/<item>/<field>/access_key_id"
+op inject -i .env.tpl -o .env  ## AWS_ACCESS_KEY="op://<vault>/<item>/<field>/access_key_id"
+op read "op://<vault>/<item>/<field>/access_key_id"
 
 system_profiler SPBluetoothDataType | yq '.Bluetooth.Connected.HHKB-Studio1.["Battery Level"]'
 
@@ -190,7 +203,13 @@ docker run -it --rm -e LOKI_ADDR=http://host.docker.internal:9000 grafana/logcli
 docker run --rm -it --network my-networtk sauljabin/kaskade:latest consumer -b my-kafka:9092 -t my-topic  ## kafka tui
 
 docker run --rm -it --net host nicolaka/netshoot  ## network swiss-army knife
+docker run --rm -it --net host nicolaka/netshoot mtr 'example.com'
 docker run --rm -it roninrb/ronin ronin http --shell https://example.com  ## network swiss-army knife for ruby
+docker run --rm -it -p 8080:80 containous/whoami
+
+docker run --rm -it --network localstack -p 4566:4566 -p 4510-4559:4510-4559 localstack/localstack
+
+docker run -d -p 5000:5000 --restart always --name registry -v $(pwd)/registry-data:/var/lib/registry registry:2  ## push localhost:5000/ruby:latest
 
 echo 'docker.io' | docker-credential-osxkeychain get
 
@@ -204,6 +223,8 @@ aws --cli-auto-prompt  ## aws auto prompt
 aws eks update-kubeconfig --name ${CLUSTER_NAME} --profile ${PROFILE}
 aws configure --profile ${PROFILE} ## region=ap-northeast-2, format=text|table|json|yaml
 aws s3 ls
+aws s3 ls --recursive --human-readable --summarize s3://bucket-name/directory
+aws s3api get-bucket-lifecycle-configuration --bucket ${BUCKET}
 aws sts get-caller-identity  ## check simply current account info
 aws sts get-caller-identity --profile ${PROFILE}
 aws sts get-caller-identity --query Account --output text  ## get aws account id
@@ -216,9 +237,13 @@ aws eks describe-addon-versions --kubernetes-version 1.23 --addon-name coredns -
 aws ec2 describe-instances --query 'Reservations[*].Instances[*].[Tags[?Key==`Name`].Value|[0],InstanceId,InstanceType,PrivateIpAddress,PublicIpAddress,State.Name]' --output text
 aws ec2 describe-instances --filters 'Name=tag:Name,Values=name_*' --query 'Reservations[*].Instances[*]'  ## .[InstanceId,PrivateIpAddress]
 aws ec2 describe-instance-types --query 'InstanceTypes[*].[InstanceType, MemoryInfo.SizeInMiB, VCpuInfo.DefaultVCpus]' --output text | grep -e '^m' | sort -k3 -n
+aws ec2 describe-images --owners amazon --region ap-northeast-2 | jq '.[][] | [.Architecture, .ImageId, .Description]'  ## get AMI
 
 aws eks list-nodegroups --cluster-name ${NAME} | grep 129_2x
 aws eks update-nodegroup-config --cluster-name ${NAME} --nodegroup-name ${NGNAME} --scaling-config desiredSize=0
+
+aws lightsail get-bundles
+aws lightsail get-blueprints
 
 # kubectl
 kubectl get pod -A -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,IMAGE:.spec.containers[].image'
@@ -235,6 +260,9 @@ docker run --rm -e EKS_SERVER=$(aws eks describe-cluster --name $EKS_CLUSTER | j
 kubectl run mysql-console --restart=Never -i --tty --attach --rm --image mysql --command -- bash
 kubectl run psql-console --restart=Never -i --tty --attach --rm --image postgres --command -- bash
 kubectl run ubuntu-console --restart=Never -i --tty --attach --rm --image ubuntu --command -- bash
+kubectl create deployment whoami --image=containous/whoami
+kubectl expose deployment whoami --type=NodePort --port=80 --target-port=80
+kubectl expose deployment whoami --name=whoami-lb --type=LoadBalancer --port=80 --target-port=80
 
 kubectl wait --timeout 10m --for=condition=Ready -f pod.yaml
 kubectl kurt all  ## restart tracker
@@ -252,6 +280,8 @@ helm show values --version ${VER} -n ${NS} ${CHART}
 helm get values ${RELEASE_NAME}  ## helm으로 반영된 values.yaml 파일 가져오기
 helm ls -a -n ${NS}  ## 특정 네임스페이스의 헬름 차트 인스턴스 목록 띄우기. -A 로 전체 목록
 helm diff upgrade ${NAME} ${CHART_REPO} --values=values.yaml --debug --allow-unreleased  ## 반영될 maniftest 확인
+
+nova find --helm --format table --wide
 
 # perl
 perl -MIO::Socket::INET -e '$sock=IO::Socket::INET->new(PeerAddr=>"google.com",PeerPort=>"80",Proto=>"tcp"); print $sock "GET / HTTP/1.0\nHost: google.com\n\n"; print while <$sock>'
@@ -336,6 +366,7 @@ gh api repos/${OWNER}/${REPO}/pulls/5355  ## list pr info json
 gh api repos/${OWNER}/${REPO}/pulls/5355/files  ## list pr files json
 gh api repos/${OWNER}/${REPO}/pulls/5355/commits  ## list pr commit json
 gh api repos/${{ github.repository }}/pulls/5355 -q '.title'  ## in github action. with `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}`
+gh api user --jq '.login'
 gh auth token | clipcopy  ## get github access tokens
 gh ssh-key add $KEY_FILE -t $TITLE
 gh ssh-key list
