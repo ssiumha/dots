@@ -27,6 +27,10 @@ snips=("all.snips")
 
 case $ft in
   typescript) snips+=("javascript.snips") ;;
+  javascript)
+    case $fp in
+      */javascript/controllers/* ) snips+=("rails_stimulus.snips") ;;
+    esac ;;
   zsh) snips+=("sh.snips") ;;
   toml)
     case $fp in
@@ -44,6 +48,7 @@ case $ft in
       *.github/actions*  ) snips+=("github_action.snips") ;;
       *helmfile.d/*      ) snips+=("helmfile.snips") ;;
       */templates/*      ) snips+=("helm_chart.snips") ;;
+      */fixtures/*       ) snips+=("rails_fixture.snips") ;;
       *)
         snips+=("docker_compose.snips") ;;
     esac ;;
@@ -53,6 +58,7 @@ case $ft in
       *app/admin/*      ) snips+=("rails_amdin.snips") ;;
       *app/controllers/*) snips+=("rails_controller.snips") ;;
       *app/models/*     ) snips+=("rails_model.snips") ;;
+      *app/helpers/*    ) snips+=("rails_helper.snips") ;;
       *config/*         ) snips+=("rails_config.snips") ;;
       *db/migrate/*     ) snips+=("rails_migrate.snips") ;;
       *test/*           ) snips+=("rails_minitest.snips") ;;
