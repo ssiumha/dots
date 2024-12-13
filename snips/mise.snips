@@ -69,4 +69,9 @@ sources = ["Cargo.toml", "src/**/*.rs"]
 outputs = ["target/debug/mycli"]
 
 # run: `mise watch -t build`
+# run: `mise watch -t build -- --print-events --verbose`
+endsnippet
+
+snippet task_with_arguments ""
+run = "docker compose logs {{arg(i=0)}}"
 endsnippet

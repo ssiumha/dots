@@ -53,3 +53,17 @@ snippet tailwind_children "awesome"
   <span>C</span>
 </div>
 endsnippet
+
+snippet clickable_card ""
+<div class="relative has-[h2:focus]:ring-2 has-[h2:hover]:ring-2">
+  <h2>
+    <a href="" class="focus:outline-none">클릭될 타이틀<span class="absolute inset-0" /></a>
+  </h2>
+  <p>카드 전체 선택 가능</p>
+  <ul>
+    <li><a href="">태그</a></li>
+    <li><a href="">태그</a></li>
+    <li><a href="">태그</a></li>
+  </ul>
+</div>
+endsnippet

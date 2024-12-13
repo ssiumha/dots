@@ -310,12 +310,12 @@ resource "aws_ses_domain_dkim" "dkim" {
 }
 
 resource "aws_route53_record" "dkim" {
-  count   = length(aws_ses_domain_dkim.dkim.dkim_tokens)
-  zone_id = data.aws_route53_zone.app_dev.id
-  name    = "${element(aws_ses_domain_dkim.dkim.dkim_tokens, count.index)}._domainkey.${data.aws_route53_zone.app_dev.name}"
-  type    = "CNAME"
-  records = ["${element(aws_ses_domain_dkim.dkim.dkim_tokens, count.index)}.dkim.amazonses.com"]
-  ttl     = 600
+  for_each = toset(aws_ses_domain_dkim.dkim.dkim_tokens)
+  zone_id  = data.aws_route53_zone.app_dev.id
+  name     = "${each.key}._domainkey.${data.aws_route53_zone.app_dev.name}"
+  type     = "CNAME"
+  records  = ["${each.key}.dkim.amazonses.com"]
+  ttl      = 600
 }
 
 resource "aws_route53_record" "spf" {
@@ -454,4 +454,10 @@ resource "aws_iam_user_policy" "s3_user_policy" {
     ]
   })
 }
+endsnippet
+
+snippet ignore_changes "can ignore specific attribute changes"
+  lifecycle {
+    ignore_changes = [desired_count]
+  }
 endsnippet

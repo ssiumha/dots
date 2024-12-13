@@ -38,3 +38,12 @@ Host github.com
   UseKeychain yes
   IdentityFile ~/.ssh/id_ed25519
 endsnippet
+
+snippet tunnel_rds ""
+# ssh -Nv
+Host tunnel-rds
+  User ec2-user
+  HostName 0.0.0.0
+  IdentityFile ~/.ssh/id_ed25519
+  LocalForward 3306 rds-identifier.ap-northeast-2.rds.amazonaws.com:3306
+endsnippet

@@ -14,7 +14,11 @@ tar -X .dockerignore -czh . \
 endsnippet
 
 snippet git_tag "GIT_TAG"
+# 2024.12.01-abcdef
 GIT_TAG=$(shell git log -1 --pretty='format:%cd-%h' --date=format:'%Y.%m.%d')
+
+# v241201-abcdef
+GIT_TAG=$(shell git log -1 --pretty='format:%cd-%h' --date=format:'v%y%m%d')
 endsnippet
 
 snippet build_cross "build cross compile"

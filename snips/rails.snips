@@ -114,3 +114,9 @@ warden.set_user(warden.user(:admin_user), scope: :remote_login) # cleanup when a
 
 redirect_to home_path
 endsnippet
+
+snippet find_each "batch processing"
+User.find_each(batch_size: 500, order: :desc) do |user|
+  user.do_something
+end
+endsnippet

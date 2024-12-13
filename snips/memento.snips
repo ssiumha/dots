@@ -1,0 +1,59 @@
+snippet checklist_deploy_setup "배포 구성 체크리스트"
+- DB
+- HA
+- network
+  - 구조도
+  - VPC
+  - WAF
+  - LB
+  - nginx, modsecurity, fail2ban, naxxi
+  - rate limit, throttling
+- docker
+  - 빌드
+    - multi-stage
+    - frozen install
+    - use pcakge proxy
+  - 이미지 관리
+    - liveness, readniness, healthcheck
+    - graceful restart
+    - logging
+  - 컨테이너 관리
+    - HA
+  - 패키지 관리
+- CI/CD
+  - 배포 파이프라인
+- 모니터링
+  - opentelemetry
+  - 로깅
+    - prometheus
+    - logstash
+    - logrotate
+- ECS
+  - graceful shutdowns (SIGTERM)
+  - zero downtime
+endsnippet
+
+snippet gpt_prompt ""
+# GPT 프롬프트 체크리스트
+- 역할과 과제 부여: "You're an expert editor.. your task is to.."
+- 구체적인 지시: "Follow these steps carefully..."
+- 예제 포함: "Analyze the <examples> to understand my style..."
+- XML 태그 구조 사용: "<data></data>, <prompt></prompt>"
+  - 응답 품질을 30%까지 향상시킬 수 있다
+- 생각 공간을 제공: "In <thinking> tags, describe the key aspects of the edits you will make"
+- 다양성: "Give me three variations"
+- 제약 조건: "Limit to 500 words"
+
+```
+<data>
+[Slack thread]
+</data>
+
+<instruction>
+You're..
+...
+- Present your response using:
+  <follow_up> tags for follow-up items
+</instruction>
+```
+endsnippet

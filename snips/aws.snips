@@ -1,16 +1,18 @@
 snippet monthly_pricing "roughly. base 2024-10"
-EBS gp3          | $91  /TB
-EBS gp2          | $114 /TB
-RDS Storage      | $120 /TB
-RDS db.r5.large  | $250 /ea
-RDS db.t3.medium | $72  /ea
-RDS backup       | $23  /TB
-S3               | $23  /TB
-S3 tag           | $1   /100만tag
-ECR              | $100 /TB
-EKS              | $58  /ea
-EC2 m5.xlarge    | $138 /ea
-EC2 m5.large     | $69  /ea
+EBS gp3           | $91  /TB
+EBS gp2           | $114 /TB
+RDS Storage       | $120 /TB
+RDS db.r5.large   | $250 /ea | 2CPU 16GiB
+RDS db.t3.medium  | $91  /ea | 2CPU 4GiB
+RDS db.t4g.medium | $108 /ea | 2CPU 4GiB
+Aurora Serverless | $146 /ea | 1ACU: 2GiB, 730 hour
+RDS backup        | $23  /TB
+S3                | $23  /TB
+S3 tag            | $1   /100만tag
+ECR               | $100 /TB
+EKS               | $58  /ea
+EC2 m5.xlarge     | $138 /ea | 4CPU 16GiB
+EC2 m5.large      | $69  /ea | 2CPU 8GiB
 endsnippet
 
 snippet simple_info ""
@@ -60,4 +62,70 @@ docker run hello-world
 sudo mkdir -p /usr/local/lib/docker/cli-plugins/
 sudo curl -SL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$(uname -m)" -o /usr/local/lib/docker/cli-plugins/docker-compose
 sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+endsnippet
+
+snippet eks_node_groups ""
+# get list
+aws eks list-nodegroups --cluster-name <cluster> --output json | jq -r '.nodegroups[]'
+
+# get describe
+aws eks list-nodegroups --cluster-name <cluster> --output json | jq -r '.nodegroups[]' \
+  | xargs -I{} aws eks describe-nodegroup --cluster-name fsl-dev --nodegroup {} --output json | jq -r '[.nodegroup.nodegroupName, .nodegroup.scalingConfig]'
+
+# update scaling
+aws eks update-nodegroup-config --cluster-name <cluster> --nodegroup-name <nodegroup> --scaling-config desiredSize=2
+endsnippet
+
+snippet eks_all_asg_instance ""
+aws eks list-nodegroups --cluster-name <cluster> --output json | jq -r '.nodegroups[]' \
+  | xargs -I% aws eks describe-nodegroup --cluster-name fsl-dev --nodegroup % --query 'nodegroup.resources.autoScalingGroups[*].name' --output text \
+  | xargs -I% aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names % --query 'AutoScalingGroups[*].Instances[*].InstanceId' --output json \
+  | jq -r '.[][]' | sort > all_asg_instance.txt
+endsnippet
+
+snippet ecs_describe ""
+aws ec2 describe-instances \
+  | jq -r '.Reservations[]
+    | .Instances[]
+    | [
+        (.Tags[]|select(.Key=="Name")|.Value),
+        (.Tags[]|select(.Key=="aws:eks:cluster-name")|.Value),
+        (.Tags[]|select(.Key=="aws:autoscaling:groupName")|.Value),
+        .InstanceId
+      ]
+    | @tsv
+  ' \
+  | sort | column -t
+endsnippet
+
+snippet ecs_task_definition_attributes ""
+family: "app"
+networkMode: "awsvpc"
+requiresCompatibilities: ["FARGATE"]
+cpu: "256"
+memory: "512"
+tags
+containerDefinitions:
+  - name: whoami
+    image: traefik/whoami
+    cpu: 256
+    memory: 512
+    portMappings:
+      - containerPort: 80
+        hostPort: 80
+    essential: true
+    environment:
+      - name: NODE_ENV
+        value: production
+
+# taskRoleArn
+# executionRoleArn
+# volumes
+# placementConstraints
+# pidMode
+# ipcMode
+# proxyConfiguration
+# inferenceAccelerators
+# ephemeralStorage
+# runtimePlatform
 endsnippet

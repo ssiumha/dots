@@ -312,6 +312,29 @@ open("|fzf", "w+") do
 end
 endsnippet
 
+snippet fzf_with_filter ""
+def with_filter(command)
+  io = IO.popen(command, 'r+')
+  begin
+    stdout, $stdout = $stdout, io
+    yield rescue nil
+  ensure
+    $stdout = stdout
+  end
+  io.close_write
+  io.readlines.map(&:chomp)
+end
+
+result = with_filter('fzf -m') do
+  1000.times do |n|
+    puts n
+    sleep 0.005
+  end
+end
+
+pp result
+endsnippet
+
 snippet net_http_get ""
 require 'net/http'
 
@@ -389,6 +412,14 @@ file = CSV.generate do |csv|
 end
 
 File.write('/tmp/result.csv', file)
+endsnippet
+
+snippet csv_append ""
+CSV.open('users.csv', 'a') do |csv|
+  csv << ['name', 'age'] if File.zero?('users.csv')
+
+  csv << ['kim', 20]
+end
 endsnippet
 
 snippet csv_read ""

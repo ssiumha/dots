@@ -1,0 +1,16 @@
+snippet last_token "{-1}"
+git branch | fzf --preview 'git show --color=always {-1}'
+endsnippet
+
+snippet bind_enter ""
+git branch | fzf --preview 'git show --color=always {-1}' \
+                 --bind 'enter:become(git checkout {-1})'
+endsnippet
+
+snippet skip_use_walker ""
+#  --walker=OPTS           [file][,dir][,follow][,hidden] (default: file,follow,hidden)
+#  --walker-root=DIR       Root directory from which to start walker (default: .)
+#  --walker-skip=DIRS      Comma-separated list of directory names to skip
+
+fzf --walker-skip .git,node_moduels,target
+endsnippet

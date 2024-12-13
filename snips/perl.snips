@@ -30,3 +30,30 @@ GetOptions(
   help => sub { help; }
 ) or help;
 endsnippet
+
+snippet system_call ""
+system("ls -al"); # return exit code. print stdout
+
+my $output = `ls -al`; # return stdout
+my $output = qx(ls -al); # same as above
+endsnippet
+
+snippet sed1 "insert first line"
+| perl -pe 'print "first line\n" if $. == 1'
+endsnippet
+
+snippet return_regex_result "/r"
+$str = "foo";
+$res = $str =~ s/foo/bar/r;
+
+# $str is still "foo"
+# $res is "bar"
+endsnippet
+
+snippet tsv_to_markdown_table ""
+echo "123\tname\ttest" | perl -pe '$a=$_=~s/[^\t\n]/-/gr and print $a=~s/-//gr and print $a if $.==1' | perl -ple 's/(^|\t|$)/|/g;'
+endsnippet
+
+snippet a_option "argument"
+# perl -F, -ane 'print $F[0];'
+endsnippet

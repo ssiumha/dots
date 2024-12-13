@@ -13,3 +13,12 @@ snippet media_screen_query_with_tailwind ""
 @media (min-width: 1280px) { .xl\:mt-1 { margin-top: 0.25rem; } }
 @media (min-width: 1536px) { .2xl\:mt-1 { margin-top: 0.25rem; } }
 endsnippet
+
+snippet width_100_alternative ""
+button {
+  // width: calc(100% - 48px);
+  width: stretch;
+  margin-inline: 24px;
+}
+
+endsnippet

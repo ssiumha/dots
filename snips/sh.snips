@@ -92,6 +92,19 @@ snippet template_strict "start shell script"
 set -euxo pipefail
 endsnippet
 
+snippet docker_entrypoint "docker entrypoint"
+#!/bin/bash
+
+case "$1" in
+  app)
+    exec ./app
+    ;;
+  *)
+    exec "$@"
+    ;;
+esac
+endsnippet
+
 snippet run_docker_compose "run heredoc"
 cat <<-EOF | docker compose --file - --project-name ${COMPOSE_NAME} up --detach --force-recreate --wait
   version: "3.9"
@@ -462,4 +475,33 @@ Application  application.rb /^  class Application < Rails::Application$/;"  c  c
 configure    application.rb /^  def configure$/;"                         f  class:MyApp::Application
 initialize   application.rb /^  def initialize$/;"                        f  class:MyApp::Application
 MyApp        application.rb /^module MyApp$/;"                            m
+endsnippet
+
+snippet array "bash >= 3"
+declare -a array
+array=(value1 value2) # init
+
+echo "${array[0]}" # read
+array[0]="new value" # update
+array+=("value3") # append
+unset array[0] # delete
+endsnippet
+
+snippet dict "map; hash. but bash >= 4"
+declare -A dict
+dict=([name]="value" [name2]="value2") # init
+
+echo "${dict[name]}" # read
+dict[name]="new value" # update
+dict+=([name3]="value3") # append
+unset dict[name] # delete
+
+echo "${#dict[@]}" # length
+echo "${!dict[@]}" # keys
+echo "${dict[@]}"  # values
+
+# loop
+for key in "${!dict[@]}"; do
+  echo "$key: ${dict[$key]}"
+done
 endsnippet

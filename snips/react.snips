@@ -40,3 +40,42 @@ const MyModal = () => {
   );
 }
 endsnippet
+
+snippet mui_dialog ""
+function SampleDialog(props: DialogProps) {
+  return (
+    <Dialog open={props.open} onClose={props.onClose} fullWidth maxWidth="sm">
+      <DialogTitle>팝업</DialogTitle>
+      <DialogContent>
+        <TextField label="필드" />
+      </DialogContent>
+      <DialogActions>
+        <Button label="실행" size="large" />
+        <Button label="닫기" size="large" />
+      </DialogActions>
+    </Dialog>
+  );
+}
+endsnippet
+
+snippet use_modal ""
+import { createPortal } from 'react-dom';
+
+const useModal = () => {
+  const [modal, setModal] = useState<ReactNode>(null);
+
+  const openModal = (_modal: ReactNode) => {
+    setModal(_modal);
+  };
+
+  const closeModal = () => {
+    setModal(null);
+  };
+
+  const modalContent = modal ? createPortal(modal, document.body) : null;
+
+  return { openModal, closeModal, modal: modalContent };
+};
+
+export default useModal;
+endsnippet

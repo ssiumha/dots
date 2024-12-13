@@ -21,3 +21,16 @@ snippet describe_table ""
 describe `table_name`;
 show create table `table_name`;
 endsnippet
+
+snippet create_user_with_database ""
+SERVICE_USERNAME=service_user
+SERVICE_DATABASE=service_db
+SERVICE_PASSWORD=$(docker run --rm -it ubuntu cat /proc/sys/kernel/random/uuid | tr -d '-' | base64 | cut -b 1-22)
+mysql -e "
+CREATE DATABASE ${SERVICE_DATABASE} DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_unicode_ci;
+CREATE USER '${SERVICE_USERNAME}' IDENTIFIED BY '${SERVICE_PASSWORD}';
+GRANT ALL ON ${SERVICE_DATABASE}.* TO '${SERVICE_USERNAME}';
+FLUSH PRIVILEGES;
+"
+endsnippet
+

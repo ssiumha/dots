@@ -51,6 +51,48 @@ runs:
   post: 'post.js'
 endsnippet
 
+snippet template_build_ecr ""
+name: Build and Push to ECR
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/build.yaml
+  workflow_dispatch: {}
+
+# need when self-hosted
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    name: Build
+    timeout-minutes: 10
+
+    concurrency:
+      group: build
+      cancel-in-progress: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assume role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::000000000000:role/github-oidc-role
+          aws-region: ap-northeast-2
+
+      - name: Build and push to ECR
+        run: |
+          set -euxo pipefail
+          docker build \
+            --push
+            -t 000000000000.dkr.ecr.ap-northeast-2.amazonaws.com/${{ github.repository }}:${{ github.sha }} \
+            .
+endsnippet
+
+
 snippet step "jobs.job.steps[n]"
       - working-directory: src/proj
         env:
@@ -65,6 +107,21 @@ snippet step_gh_diff_files "jobs.job.steps[n]"
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           gh pr diff ${PR_NUMBER} --name-only
+endsnippet
+
+snippet on_trigger "on:"
+on:
+  # when pr opend, pushed
+  pull_request:
+    paths:
+      - .github/workflows/currnet_work.yml
+
+  # cron
+  schedule:
+    - cron: '0 * * * *'
+
+  # can manual running
+  workflow_dispatch: {}
 endsnippet
 
 snippet trigger_complete_another_workflow "on:"
@@ -95,4 +152,63 @@ perl <<-'EOF'
     exit 1;
   }
 EOF
+endsnippet
+
+snippet concurrency "uniq job"
+jobs:
+  job1:
+    concurrency:
+      cancel-in-progress: true
+      group: ${{ github.workflow }}-${{ github.ref }}
+endsnippet
+
+snippet print_group ""
+        run: |
+          echo '::group::init'
+          echo 123
+          echo '::endgroup::'
+endsnippet
+
+snippet github_summary ""
+        run: |
+          echo '### Result' >> $GITHUB_STEP_SUMMARY
+endsnippet
+
+snippet output ""
+jobs:
+  example-job:
+    steps:
+      - name: Generate output
+        id: generate
+        run: |
+          echo "message=Hello, World!" >> ${GITHUB_OUTPUT}
+
+          # need zero indent
+          echo <<EOF >> ${GITHUB_OUTPUT}
+          multiline<<OUT
+          Line 1
+          Line 2
+          OUT
+          EOF
+
+          echo 'foo<<EOF' >> ${GITHUB_OUTPUT}
+          echo -e "$errorMessages\n" >> ${GITHUB_OUTPUT}
+          echo 'EOF' >> ${GITHUB_OUTPUT}
+      - name: Use the output
+        run: echo "The output message is: ${{ steps.generate.outputs.message }}"
+endsnippet
+
+snippet github_action_runner_url ""
+https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+endsnippet
+
+snippet yarn_registry_with_nexus ""
+    steps:
+      - name: yarn install
+        env:
+          YARN_NPM_REGISTRY_SERVER: https://nexus.example.com/repository/npm
+          YARN_NPM_AUTH_IDENT: user:password
+          YARN_NPM_ALWAYS_AUTH: true
+        run: |
+          yarn install
 endsnippet
