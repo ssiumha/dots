@@ -1,0 +1,7 @@
+[
+//  {
+//    "key": "cmd+c",
+//    "command": "editor.action.accessibleViewAcceptInlineCompletion",
+//    "when": "accessibleViewIsShown && accessibleViewCurrentProviderId == 'inlineCompletions'"
+//  }
+]

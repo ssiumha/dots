@@ -98,3 +98,29 @@ task 'install:mise' do
 
   sh 'curl https://mise.run | sh'
 end
+
+desc 'install vscode settings'
+task 'install:vscode' do
+  VSCODE_SETTINGS_PATH = "#{Dir.home}/Library/Application Support/Code/User/settings.json"
+  VSCODE_KEYBINDING_PATH = "#{Dir.home}/Library/Application Support/Code/User/keybindings.json"
+
+  if File.symlink? VSCODE_SETTINGS_PATH
+    puts "vscode settings.json : already linked"
+  elsif File.exist? VSCODE_SETTINGS_PATH
+    puts "vscode settings.json : link failed. already exist file"
+    puts "should execute `rm '#{VSCODE_SETTINGS_PATH}'`"
+  else
+    FileUtils.ln_s File.join(DOT_CONFIG, 'vscode/settings.json'), VSCODE_SETTINGS_PATH
+    FileUtils.ln_s File.join(DOT_CONFIG, 'vscode/keybindings.json'), VSCODE_KEYBINDING_PATH
+    puts "vscode settings.json : now linked"
+    puts "vscode keybindings.json : now linked"
+  end
+
+  # TODO
+  # code --list-extensions > code_extensions
+  # code --install-extension vscodevim.vim
+  #   aykutsarac.jsoncrack-vscode
+  #   vscodevim.vim
+  #   github.copilot
+  #   github.copilot-chat
+end

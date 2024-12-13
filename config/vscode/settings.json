@@ -1,0 +1,10 @@
+{
+    "files.autoSave": "afterDelay",
+
+    "security.workspace.trust.untrustedFiles": "open",
+
+    "editor.tabSize": 2,
+
+    "vim.vimrc.enable": true,
+    "vim.vimrc.path": "$HOME/.vimrc",
+}
