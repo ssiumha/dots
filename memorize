@@ -7,6 +7,8 @@ v ~/dots/config/nvim/words
 v ~/dots/config/mise/config.toml
 v $(mise config | grep '.mise.toml' | awk '{print $1}' | perl -pe 's/~/$ENV{"HOME"}/')  ## open near mise config
 
+cd ~/.local/state/k9s/screen-dumps
+
 # open macos
 open /Applications
 
@@ -216,6 +218,7 @@ echo 'docker.io' | docker-credential-osxkeychain get
 
 # terraform
 terraform plan -out plan.out | tee plan.std.out
+terraform plan -target aws_ecs_service.whoami -out plan.out | tee plan.std.out
 terraform apply plan.out   ## or TF_LOG=DEBUG or TF_LOG=TRACE
 
 # aws
@@ -245,6 +248,9 @@ aws eks update-nodegroup-config --cluster-name ${NAME} --nodegroup-name ${NGNAME
 aws lightsail get-bundles
 aws lightsail get-blueprints
 
+eks-node-viewer -resources cpu,memory
+eks-node-viewer -resources cpu,memory --extra-labels 'topology.kubernetes.io/zone' --node-sort=eks-node-viewer/node-cpu-usage=dsc
+
 # kubectl
 kubectl get pod -A -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,IMAGE:.spec.containers[].image'
 kubectl get node --sort-by='.metadata.creationTimestamp'
@@ -264,6 +270,8 @@ kubectl create deployment whoami --image=containous/whoami
 kubectl expose deployment whoami --type=NodePort --port=80 --target-port=80
 kubectl expose deployment whoami --name=whoami-lb --type=LoadBalancer --port=80 --target-port=80
 
+kubectl cp namespace/${POD}:tmp/foo.txt /tmp/foo.txt  ## not working pod:/tmp/foo.txt
+
 kubectl wait --timeout 10m --for=condition=Ready -f pod.yaml
 kubectl kurt all  ## restart tracker
 kubectl outdated
@@ -271,6 +279,8 @@ kubectl oomd -A  ## Check out of memory
 kubectl resource-capacity --util --pods
 kubectl ktop  ## resource check
 v ~/.local/state/k9s/screen-dumps/  ## k9s log
+
+kubectl get node | grep 1.25 | awk '{ print $1 }' | xargs kubectl cordon
 
 htpasswd -c auth username && kubectl create secret generic basic-auth --from-file=auth  ## create basic auth secret. https://kubernetes.github.io/ingress-nginx/examples/auth/basic/
 htpasswd -nB username
@@ -311,6 +321,13 @@ perl -e 'for my $dir (@INC) { opendir(DIR, $dir) or next; while (my $file = read
 
 # yq
 | xargs -n1 yq eval-all 'select(.kind == "StatefulSet") |= (.spec.template.spec.containers[] | select(.name == "api")).image |= sub(":.+?$", ":123")'
+
+# sq
+sq add 'postgres://user:password@localhost:5432/dbname'  ## add connection
+sq list
+sq inspect @active
+sq diff @dbname/staging.actor @dbname/prod.actor
+sq tbl copy .actor .actor2
 
 # curl
 curl --header "Host: test.example.com" http://aws-domain.elb.amazonaws.com  ## DNS 설정 없이 ingress 테스트할 때 사용
@@ -370,6 +387,9 @@ gh api user --jq '.login'
 gh auth token | clipcopy  ## get github access tokens
 gh ssh-key add $KEY_FILE -t $TITLE
 gh ssh-key list
+
+gh secret set APP_ENV < ./app.env  ## create secret from file
+gh secret set -f ./app.env  ## create multiple secrets from file
 
 gh pr checks -i5 --watch $(gh api /user --jq '.login'):$(g branch --show-current)  ## watch github pr actions
 gh pr checks $(gh api /user --jq '.login'):$(g branch --show-current) | fzf | perl -ne '($r,$j)=m[https.+?github.com/(.+)/runs/.+/job/(\d+)]; $n=($r=~s@/@_@gr); $log="/tmp/github_action_${n}_${j}.log"; `gh api repos/$r/jobs/$j/logs > ${log}`; exec "nvim +AnsiEsc ${log}"'  ## github action job download log
