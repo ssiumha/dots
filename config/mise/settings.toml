@@ -1,3 +1,0 @@
-experimental = true # with python virtaulenv activation
-python_venv_auto_create = true
-legacy_version_file_disable_tools=['python']

@@ -1,3 +1,8 @@
+[settings]
+# disable_tools = ["python"]
+experimental = true # with python virtaulenv activation
+python_venv_auto_create = true
+
 [env]
 
 [tools]
@@ -12,20 +17,34 @@ bat = "latest"
 dust = "latest"
 jq = "latest"
 just = "latest"
-# dasel = "latest"
+dasel = "latest"
+gum = "latest"
+watchexec = "latest" # mise watch -t
 
 ruby = ["system", "3.3.0"]
 
-"ubi:DarthSim/overmind" = "latest"
-"ubi:DarthSim/hivemind" = "latest"
-"ubi:mr-karan/doggo" = "latest"
+ubi = "latest"
+"ubi:neilotoole/sq" = "latest"
+# rust = "latest"
+# "cargo:jwt-cli" = "latest"
+# "ubi:DarthSim/overmind" = "latest"
+# "ubi:DarthSim/hivemind" = "latest"
+# "ubi:mr-karan/doggo" = "latest"
+# "ubi:danielgatis/imgcat" = "latest"
+# "ubi:dotenvx/dotenvx" = "latest"
 
-[plugins]
+[alias]
 usage = "https://github.com/jdx/mise-usage.git"
 
 [tasks."yarn:latest"]
 description = "set yarn version to latest"
 run = "yarn set version latest"
+
+[tasks."setup:devcontainer"]
+description = "setup devcontainer"
+run = """
+mise use -C $HOME --yes npm:@devcontainers/cli
+"""
 
 [tasks."setup:devops"]
 description = "setup devops tools"
@@ -56,15 +75,6 @@ in
         sudo apt-get install -y libssl-dev libreadline-dev zlib1g-dev
         ;;
 esac
-"""
-
-[tasks."lsp:web"]
-description = "setup LSP web frontent"
-run = """
-mise use --yes \
-  npm:@tailwindcss/language-server \
-  npm:typescript-language-server
-mise set DOTS_LSP_WEB=1
 """
 
 [tasks."docker"]
