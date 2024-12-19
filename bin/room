@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+
+subcommand = ARGV.shift
+if subcommand.nil?
+  puts 'Usage: room <subcommand> [options]'
+  exit 1
+end
+
+case subcommand.to_sym
+when :portal
+  `mkdir -p ~/room/portal`
+
+  name = ARGV.shift
+  addr = `pwd`.gsub('/', '!').chomp
+
+  `touch ~/room/portal/#{addr}!#{name}`
+
+  if $?.success?
+    `ln -s ~/room/portal/#{addr}!#{name} ./#{name}`
+    puts "Created a portal to #{name}"
+  else
+    puts "Failed to create a portal"
+  end
+end
