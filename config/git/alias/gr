@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # $1:graph / $2:hash / $3:date / $4:name / $5:subject / $6:branch
-git log --graph --oneline $@ \
-        --format='%x09%C(green)%h%C(reset)%x09%C(reset)%ad%x09%<(16,trunc)%C(blue)%an%x09%C(reset)%s%x09%C(auto)%d' --color $@ \
+git log --graph --oneline \
+        --format='%x09%C(green)%h%C(reset)%x09%C(reset)%ad%x09%<(16,trunc)%C(blue)%an%x09%C(reset)%s%x09%C(auto)%d' \
+        --color $@ \
   | awk -F '\t' '{ printf "%-6s\t%s\t%s %s %s %s\t%s\n", $1, $2, $3, $4, $5, $6, $7 }' \
   | less -S -R

@@ -5,5 +5,9 @@
 
 git for-each-ref --sort=committerdate refs/heads/ --color=always \
   --format="%(HEAD) %(color:green)%(committerdate:short)%(color:reset) %09 %(color:yellow)%(refname:short)%(color:reset) %09 %(authorname) %09 %(contents:subject)" \
-  | column -t -s $'\t' | fzf +s --tac --ansi | perl -pe 's/^\*//' | awk '{print $2}' | xargs -I% git checkout %
+  | column -t -s $'\t' \
+  | fzf +s --tac --ansi \
+      --preview-window '<70(down,40%)' \
+      --preview "echo {} | perl -pe 's/^\*//' | awk '{print \$2}' | xargs git show --color=always" \
+  | perl -pe 's/^\*//' | awk '{print $2}' | xargs -I% git checkout %
 

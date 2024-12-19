@@ -36,6 +36,7 @@
   gra = !$HOME/.config/git/alias/gr --all
 
   st = status --short --branch
+  sti = status --short --branch --ignored
 
   s = switch
   sw = switch

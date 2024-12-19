@@ -16,11 +16,13 @@ compose.local.yaml
 .note
 
 ## asdf, env
-.tool-versions
-.envrc
 .direnv/
-.mise.toml
 .editorconfig
+.envrc
+.mise.toml
+.mise/
+.tool-versions
+justfile
 
 ## vim
 tags

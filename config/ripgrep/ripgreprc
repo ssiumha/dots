@@ -1,7 +1,8 @@
 --smart-case
 
 # usecase: `rg -tweb xxx`
---type-add=web:*.{html,css,js}*
+--type-add=web:*.{html,css,js,ts}*
+--type-add=rails:*.{rb,yaml,yml,js,ts,erb}
 
 # disable gitignore
 --hidden
@@ -9,18 +10,24 @@
 --no-ignore-dot
 
 # globs
--g=!.terraform/
--g=!node_modules/
--g=!.next/
--g=!vendor/
 -g=!.bundle/ruby
+-g=!.idea
+-g=!.next/
+-g=!.terraform/
+-g=!.yarn/releases
+-g=!node_modules/
+-g=!tmp/
+-g=!vendor/
 
 -g=!.git/
 -g=!.svn/
 -g=!.devbox/
 -g=!log/
 
--g=!builds/
 -g=!*.svg
--g=!public/assets
 -g=!.ruby-lsp/
+-g=!builds/
+-g=!dist/
+-g=!public/assets
+-g=!tsconfig.tsbuildinfo
+-g=!.dart_tool

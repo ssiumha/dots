@@ -1,34 +1,36 @@
-k9s:
-  views:
-    v1/pods:
-      columns:
-        - NAMESPACE
-        - NAME
-        - READY
-        - RESTARTS
-        - STATUS
-        - AGE
-        - CPU
-        - MEM
-        - "%CPU/R"
-        - "%CPU/L"
-        - "%MEM/R"
-        - "%MEM/L"
-        - IP
-        - NODE
-        # QOS PF LABELS
-#     v1/nodes:
-#       columns:
-#         - NAME
-#         - STATUS
-# #        - ROLE
-#         - VERSION
-#         - PODS
-#         - CPU
-#         - MEM
-#         - "%CPU"
-#         - "%MEM"
-#         - CPU/A
-#         - CPU/A
-#         - AGE
-#         # - '.metadata.labels.topology\.kubernetes\.io/zone'
+views:
+  v1/pods:
+    columns:
+      - NAMESPACE
+      - NAME
+      - READY
+      - RESTARTS
+      - STATUS
+      - AGE
+      - CPU
+      - MEM
+      - "%CPU/R"
+      - "%CPU/L"
+      - "%MEM/R"
+      - "%MEM/L"
+      - IP
+      - NODE
+      # QOS PF LABELS
+  v1/nodes:
+    sortColumn: AGE:asc
+    columns:
+      # - NAME
+      - INTERNAL-IP
+      - STATUS
+      # - ROLE
+      - TAINTS
+      - VERSION
+      - PODS
+      - CPU
+      - MEM
+      - "%CPU"
+      - "%MEM"
+      - "CPU/A"
+      - "MEM/A"
+      - AGE
+      - LABELS

@@ -56,10 +56,12 @@ class String
   alias esc noop
 
   def underscore = self.gsub(/([a-z0-9])([A-Z])/, '\1_\2').downcase
+  def /(other) = File.join(self.to_s, other.to_s)
 end
 
 class Symbol
   def underscore = self.to_s.underscore.to_sym
+  def /(other) = File.join(self.to_s, other.to_s)
 end
 
 class Hash

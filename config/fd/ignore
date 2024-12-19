@@ -5,6 +5,6 @@
 node_modules
 
 .ruby-lsp
-vendor/bundle
+**/vendor/bundle
 public/assets
 tmp/cache
