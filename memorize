@@ -56,7 +56,8 @@ ssh-keygen -t ed25519 -C "user@example.com"
 ssh-keygen -f ~/.ssh/id_ed25519 -y  ## public key
 date +"%Y-%m-%dT%H:%M:%S%z"  ## iso-8610 in BSD
 
-ssh -L 8080:localhost:80 user@remote -N ## local port forward. curl localhost:8080 -> localhost:80 in remote
+ssh -L 8080:10.0.0.0:80 user@remote -N ## local port forward. curl localhost:8080 -> 10.0.0.0:80 in remote
+ssh -R 8080:192.168.0.0:80 user@remote -N ## remote port forward. curl remote:8080 -> 192.168.0.0:80 in local
 
 join -a 1 -a 2 -e "-" -o '0,1.2,2.2' /tmp/before.txt /tmp/after.txt  ## key,name file outer join
 
@@ -199,8 +200,8 @@ docker run --rm -it ubuntu cat /proc/sys/kernel/random/uuid | tr -d '-' | base64
 docker run --rm -it ruby:slim bash  ## ~200MB
 docker run --rm -it ruby:3-alpine sh  ## ~90MB
 
-docker run -it --rm -e LOKI_ADDR=http://host.docker.internal:9000 grafana/logcli:2.8.11 -- query '{app!=""}'
-docker run -it --rm -e LOKI_ADDR=http://host.docker.internal:9000 grafana/logcli:2.8.11 query --from '2024-04-01T16:00:00+09:00' --to '2024-04-01T16:30:00+09:00' '{app!=""}' --limit 50000 --output raw
+docker run -it --rm grafana/logcli:3.2.2 --addr="http://host.docker.internal:3100" query '{app!=""}' --output jsonl --tail
+docker run -it --rm grafana/logcli:3.2.2 --addr="http://host.docker.internal:3100" query --from '2024-04-01T16:00:00+09:00' --to '2024-04-01T16:30:00+09:00' '{app!=""}' --limit 50000 --output raw
 
 docker run --rm -it --network my-networtk sauljabin/kaskade:latest consumer -b my-kafka:9092 -t my-topic  ## kafka tui
 
@@ -373,6 +374,7 @@ git rev-parse --show-toplevel  ## git root path
 git rebase -r --exec "git commit --amend --no-edit --reset-author" HEAD~3  ## reset author
 
 # gh
+BROWSER=false gh auth login
 gh pr list --web ## open pull request github
 open https://github.com/$(git remote get-url up | perl -ne 'print /:(.+).git/') ## open github
 open https://github.com/$(git remote get-url up | perl -ne 'print /:(.+).git/')/pulls ## open github pr
