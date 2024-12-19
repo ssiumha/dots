@@ -1,0 +1,15 @@
+snippet rebalance_on_off "routing"
+# off
+PUT _cluster/settings
+{
+  "persistent" : {
+    "cluster.routing.rebalance.enable": "none"
+  }
+}
+
+# rollback
+PUT _cluster/settings
+{
+  "cluster.routing.rebalance.enable": null
+}
+endsnippet

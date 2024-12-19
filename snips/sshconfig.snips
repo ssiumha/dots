@@ -40,10 +40,13 @@ Host github.com
 endsnippet
 
 snippet tunnel_rds ""
-# ssh -Nv
+# ssh tunnel-rds -Nv
+#  == ssh -Nv -L 3306:rds-identifier.ap-northeast-2.rds.amazonaws.com:3306 ec2-user@0.0.0.0
 Host tunnel-rds
   User ec2-user
   HostName 0.0.0.0
   IdentityFile ~/.ssh/id_ed25519
   LocalForward 3306 rds-identifier.ap-northeast-2.rds.amazonaws.com:3306
+  LocalForward 6379 redis.ap-northeast-2.rds.amazonaws.com:6379
 endsnippet
+

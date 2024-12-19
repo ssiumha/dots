@@ -70,7 +70,7 @@ aws eks list-nodegroups --cluster-name <cluster> --output json | jq -r '.nodegro
 
 # get describe
 aws eks list-nodegroups --cluster-name <cluster> --output json | jq -r '.nodegroups[]' \
-  | xargs -I{} aws eks describe-nodegroup --cluster-name fsl-dev --nodegroup {} --output json | jq -r '[.nodegroup.nodegroupName, .nodegroup.scalingConfig]'
+  | xargs -I{} aws eks describe-nodegroup --cluster-name <cluster> --nodegroup {} --output json | jq -r '[.nodegroup.nodegroupName, .nodegroup.scalingConfig]'
 
 # update scaling
 aws eks update-nodegroup-config --cluster-name <cluster> --nodegroup-name <nodegroup> --scaling-config desiredSize=2
@@ -78,7 +78,7 @@ endsnippet
 
 snippet eks_all_asg_instance ""
 aws eks list-nodegroups --cluster-name <cluster> --output json | jq -r '.nodegroups[]' \
-  | xargs -I% aws eks describe-nodegroup --cluster-name fsl-dev --nodegroup % --query 'nodegroup.resources.autoScalingGroups[*].name' --output text \
+  | xargs -I% aws eks describe-nodegroup --cluster-name <cluster> --nodegroup % --query 'nodegroup.resources.autoScalingGroups[*].name' --output text \
   | xargs -I% aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names % --query 'AutoScalingGroups[*].Instances[*].InstanceId' --output json \
   | jq -r '.[][]' | sort > all_asg_instance.txt
 endsnippet
@@ -96,6 +96,24 @@ aws ec2 describe-instances \
     | @tsv
   ' \
   | sort | column -t
+endsnippet
+
+snippet query_log_group ""
+aws logs start-query --log-group-name <group> \
+  --start-time $(gdate -d "1 hour ago" +%s) \
+  --end-time $(gdate +%s) \
+  --query-string \
+    "fields @timestamp, @message, @logStream, @log
+      | filter @logStream =~ 'test'
+      | sort @timestamp asc
+      | limit 10000" \
+  | jq -r '.queryId' \
+  | xargs -I {} aws logs get-query-results --query-id {} \
+  | jq -r '.results[] | map({(.field | sub("@"; "")): .value}) | add | [.timestamp, .logStream, .message] | @tsv'
+endsnippet
+
+snippet query_log_tail ""
+aws logs tail "<group>" --follow --query "filter @message like /Error/"
 endsnippet
 
 snippet ecs_task_definition_attributes ""

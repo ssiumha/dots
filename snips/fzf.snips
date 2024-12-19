@@ -14,3 +14,16 @@ snippet skip_use_walker ""
 
 fzf --walker-skip .git,node_moduels,target
 endsnippet
+
+snippet placeholder "{}"
+$FZF_QUERY: same {q}. but if nothing matches, it doesn’t work.
+
+{} : selected item
+{q} : query
+{1}, {2} : delimiter base fields
+  --delimiter : <- regex
+{1..2} : range fields
+{f} : fzf temporary file path
+{n} : index (RN)
+{+f}, {+n} : multiple select case
+endsnippet

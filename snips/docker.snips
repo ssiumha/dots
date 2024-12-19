@@ -20,3 +20,9 @@ snippet build_using_tar "over pipeline"
 tar -X .dockerignore -czh . \
   | docker buildx build -f Dockerfile -
 endsnippet
+
+snippet docker_go ""
+go() {
+  docker run --rm -v "$(pwd):/app" -w /app golang:latest go "$@"
+}
+endsnippet
