@@ -1,7 +1,7 @@
 # vim: et ts=2
 
 # time RUN_ZSH_PROFILE=true zsh -i -c exit
-[ "$RUN_ZSH_PROFILE" = "true" ] && zmodload zsh/zprof
+[ "$RUN_ZSH_PROFILE" = "true" ] && export ZSH_DEBUG=true && zmodload zsh/zprof
 
 # TODO: export _ZSH_INIT_MINIMAL= is wsl
 
@@ -111,11 +111,18 @@ ksw() {
     | fzf | cut -c3- | xargs -I% kubectl config use-context %
 }
 
+alias j="just"
+alias jl="JUST_JUSTFILE=justfile.local just"
+
+alias ~d="$HOME/dots"
+alias ~r="$HOME/room"
+
 ################################
 # Alias (Docker)
 ################################
 
 alias doggo="docker run --rm ghcr.io/mr-karan/doggo:latest"
+alias laws="AWS_PROFILE=localstack aws"
 
 ################################
 # Prompt
@@ -169,9 +176,9 @@ elif [ -d "$HOME/.asdf" ]; then
   source "$HOME/.asdf/asdf.sh"
 fi
 
-if command -v zoxide &>/dev/null; then
+if mise ls zoxide &>/dev/null; then
   export _ZO_DATA_DIR="$HOME/.local/zsh/zoxide"
-  eval "$(zoxide init zsh --no-cmd)"
+  eval "$(mise x -- zoxide init zsh --no-cmd)"
   alias z=__zoxide_z
   alias zz=__zoxide_zi
 fi
@@ -236,20 +243,28 @@ then
 
   zinit light zsh-users/zsh-autosuggestions
   zinit light zsh-users/zsh-completions
+
+  zinit ice wait"0" silent
   zinit light zsh-users/zsh-syntax-highlighting
 
-  # zinit snippet 'https://github.com/asdf-vm/asdf/blob/master/completions/_asdf'
-  zinit snippet 'https://github.com/junegunn/fzf/blob/master/shell/completion.zsh'
+  zinit ice wait"2" silent
   zinit light chitoku-k/fzf-zsh-completions
 
   zinit ice from"gh" as"program" pick"bin/*"
   zinit light reegnz/jq-zsh-plugin
 
+  # zinit snippet 'https://github.com/asdf-vm/asdf/blob/master/completions/_asdf'
+  zinit snippet 'https://github.com/junegunn/fzf/blob/master/shell/completion.zsh'
   zinit snippet 'https://github.com/git/git/blob/master/contrib/completion/git-prompt.sh'
 else
   command -v git &>/dev/null \
     && git clone --depth=5 https://github.com/zdharma-continuum/zinit "${zinit_home}/bin"
 fi
+
+################################
+# After Zinit
+################################
+export WORDCHARS="-/_@" # for word movement. Empty in completion.zsh
 
 ################################
 # completion
@@ -262,12 +277,16 @@ if [[ "$_ZSH_INIT_MINIMAL" != true ]]; then
   if [ ! -f "$ZSH_COMPDUMP" ] || [ $(find "$ZSH_COMPDUMP" -mtime +1 -print) ]; then
     echo 'compinit!'
     rm -f "$ZSH_COMPDUMP"
-    compinit -d "$ZSH_COMPDUMP"
+
+    compinit
+
+    mise which aws_completer &>/dev/null && complete -C $(mise which aws_completer) aws
   fi
+
   compinit -C -d "$ZSH_COMPDUMP"
 
   command -v mise &>/dev/null && eval "$(mise completion zsh)"
-  command -v aws_completer &>/dev/null && complete -C aws_completer aws
+  mise which just &>/dev/null && eval "$(mise x -- just --completions zsh)"
 fi
 
 bindkey '^I' expand-or-complete
@@ -282,11 +301,25 @@ zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*:*:*:*:descriptions' format '%F{green}-- %d --%f'
 zstyle ':completion:*:*:*:*:corrections' format '%F{yellow}!- %d (errors: %e) -!%f'
 
+_sq_completion() { eval "$(sq completion zsh)" }
+_comps[sq]=_sq_completion
+
+_gh_completion() { eval "$(gh completion -s zsh)" }
+_comps[gh]=_gh_completion
+
+_op_completion() { eval "$(op completion zsh)" }
+_comps[op]=_op_completion
+
 ################################
 # fzf
 ################################
 
-export FZF_DEFAULT_OPTS="--extended --cycle --reverse --height=40% --ansi"
+if [ $TERM_PROGRAM = zed ]; then
+  export FZF_DEFAULT_OPTS="--extended --cycle --reverse --ansi"
+else
+  export FZF_DEFAULT_OPTS="--extended --cycle --reverse --ansi --tmux 90%,70%"
+fi
+
 export FZF_COMPLETION_OPTS=""
 export FZF_COMPLETION_TRIGGER=""
 
@@ -295,11 +328,11 @@ bindkey '^F' fzf-completion
 #### command complete
 
 _fzf_compgen_path() {
-  fd --type f --hidden --follow . "$1"
+  fd --type f --no-ignore-vcs --hidden --follow . "$1"
 }
 
 _fzf_compgen_dir() {
-  fd --type d --hidden --follow . "$1"
+  fd --type d --no-ignore-vcs --hidden --follow . "$1"
 }
 
 # _fzf_dir_completion() {
@@ -522,4 +555,4 @@ fzf-completion() {
 
 ################################
 
-[ "$RUN_ZSH_PROFILE" = "true" ] && zprof
+[ "$RUN_ZSH_PROFILE" = "true" ] && zprof > "$HOME/tmp/prof/$(date +"%Y%m%dT%H%M%S").log"
