@@ -7,6 +7,8 @@ tap "homebrew/cask"
 # grep -> gegrep
 # iproute2mac -> ip
 
+brew "font-d2coding"
+
 brew "tmux"
 brew "universal-ctags"
 brew "sqlite"
@@ -19,6 +21,9 @@ brew "tidy-html5"
 brew "trippy"
 
 brew "jnv"
+brew "wtfutil"
+brew "pipet"
+brew "btop"
 
 cask "orbstack"
 # cask "alacritty"
@@ -31,6 +36,16 @@ cask "raycast"
 tap "FelixKratz/formulae"
 cask "sketchybar" # with `brew services start sketchybar`
 cask "font-hack-nerd-font"
+
+tap "jorgerojas26/lazysql"
+brew "lazysql"
+
+# https://awslabs.github.io/data-on-eks/docs/resources/binpacking-custom-scheduler-eks
+tap "aws/tap"
+brew "eks-node-viewer"
+
+tap "laishulu/homebrew"
+brew "macism"
 
 # brew "m-cli"
 
