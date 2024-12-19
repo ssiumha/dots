@@ -18,14 +18,14 @@
 (add-hook 'org-mode-hook (lambda ()
                            (set-face-attribute 'org-table nil :family "D2Coding" :height 180)))
 
-(load-theme 'wombat t)
+; (load-theme 'wombat t)
 
 ;; Desktop Mode
 (desktop-save-mode 1)
 (setq desktop-save t
       desktop-restore-frames t
       desktop-auto-save-timeout 5
-      desktop-dirname "~/.local/emacs/desktop"
+      ; desktop-dirname "~/.local/emacs/desktop"
       desktop-base-file-name "emacs.desktop")
 
 ; (setq initial-frame-alist
@@ -36,19 +36,23 @@
 ;         (display . ":1")))
 
 ;; Directory
-(setq package-user-dir "~/.local/emacs/elpa"
-      backup-directory-alist `(("." . "~/.local/emacs/tmp/"))
-      backup-by-copying t)
+(setq ;package-user-dir "~/.local/emacs/elpa"
+      backup-directory-alist `(("." . "~/.local/emacs/backup"))
+      backup-by-copying t
+      auto-save-file-name-transforms `((".*" ,temporary-file-directory t))
+      delete-auto-save-files t)
 
 ;; Edit
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 (setq-default indent-tabs-mode nil)
+(setq-default tab-width 2)
+(setq evil-shift-width 2)
 
 ;; Org
 (setq org-startup-indented t ; +STARTUP: indent
       org-confirm-babel-evaluate nil ; Evaluate code block without confirmation
       org-log-done t ; or 'note
-      org-persist-directory "~/.local/emacs/org-persist"
+      ; org-persist-directory "~/.local/emacs/org-persist"
       org-persist-autoload t)
 
 (org-babel-do-load-languages
@@ -62,6 +66,15 @@
   "open"
   :follow (lambda (path)
             (start-process "open" nil "open" (expand-file-name path))))
+
+(add-to-list 'exec-path "/opt/homebrew/bin")
+(org-link-set-parameters
+  "send-tmux"
+  :follow (lambda (path)
+            (start-process "send-tmux" nil "tmux" "send-keys" path input "Enter")))
+;TODO: (let ((input (read-string "Input: ")))
+;  (setq-local tmux-target-pane)
+;  (message "Input: %s" tmux-target-pane))
 
 ;; Package
 (require 'package)
