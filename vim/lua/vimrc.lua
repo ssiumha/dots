@@ -1,81 +1,139 @@
 -- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md
--- TODO: brew install yaml-language-server
--- TODO: npm install -g dockerfile-language-server-nodejs @microsoft/compose-language-service bash-language-server
--- TODO: ast-grep? css json nginx? perl? postgres prisma rubocop? sorbat? sql stimulus_ls syntax_tree
--- TODO: html, htmx, terraform? tsserver, vue(or volar, vuels), ttags, typst?, unison(markdown), vimls,
+-- TODO: add auto installer
+--   scripting: python deno bash
+--   devops: terraform yaml dockerfile compose bash
+--   rails: MasonInstall ruby-lsp stimulus tailwind rubocop...
+--   nestjs: tsserver vue
+--   web: css sjon nginx perl postgres prisma sql syntax_tree html htmx
+--   markdown: unison
+--   vim: lua, vimls
+--   ttags, typst, unison
 
--- local capabilities = require('cmp_nvim_lsp').default_capabilities()
--- local cmp = require'cmp'
--- cmp.setup({
---   snippet = {
---     expand = function(args)
---       require('snippy').expand_snippet(args.body)
---       -- vim.snippet.expand(args.body) -- For native neovim snippets (Neovim v0.10+)
---     end,
---   },
---   window = {
---     -- completion = cmp.config.window.bordered(),
---     -- documentation = cmp.config.window.bordered(),
---   },
---   mapping = cmp.mapping.preset.insert({
---     -- ['<C-b>'] = cmp.mapping.scroll_docs(-4),
---     -- ['<C-f>'] = cmp.mapping.scroll_docs(4),
---     -- ['<C-Space>'] = cmp.mapping.complete(),
---     ['<C-e>'] = cmp.mapping.abort(),
---     ['<CR>'] = cmp.mapping.confirm({ select = true })
---   }),
---   sources = cmp.config.sources(
---     { { name = 'nvim_lsp' }, },
---     { { name = 'buffer' }, })
--- })
-
--- echo nvim_get_runtime_file('parser', v:true)
-lspconfig = require'lspconfig'
-
-if os.getenv("DOTS_LSP_WEB") then
--- lspconfig.stimulus_ls.setup{}
-  lspconfig.tailwindcss.setup{}
-  lspconfig.tsserver.setup{}
+-------------------
+-- CUSTOM
+-------------------
+local function get_keys(t)
+  local keys = {}
+  for k, _ in pairs(t) do table.insert(keys, k) end
+  return keys
 end
 
--- lspconfig.bashls.setup{}
--- lspconfig.dockerls.setup{}
--- lspconfig.docker_compose_language_service.setup{}
--- -- lspconfig.typos_lsp.setup{}
--- -- lspconfig.ruby_ls.setup{
--- --   capabilities = capabilities
--- -- }
--- lspconfig.pyright.setup {
---   analysis = {
---     autoSearchPaths = true,
---     diagnosticMode = "openFilesOnly",
---     useLibraryCodeForTypes = true
---   }
+-- @param commands table
+-- @usage
+-- local commands = {
+--   ['Test'] = function() print('test') end,
+--   ['Open'] = function() vim.cmd('edit ~/.config') end,
 -- }
--- lspconfig.jsonls.setup {}
--- lspconfig.yamlls.setup {
---   settings = {
---     yaml = {
---       schemas = {
---         -- TODO: use environment variable?
---         ["https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.29.2-standalone-strict/deployment.json"] = "deployment/**/deployment/*.yaml",
---         ["https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.29.2-standalone-strict/statefulset.json"] = "deployment/**/statefulset/*.yaml",
---         ["https://json.schemastore.org/github-workflow.json"] = ".github/workflows/*",
---         ["https://json.schemastore.org/github-action.json"] = ".github/actions/*",
---       }
---     }
---   }
--- }
+-- @return nil
+local function fzf_command(commands)
+  vim.fn['fzf#run']({
+    source = get_keys(commands),
+    -- window = { width = 0.9, height = 0.6 },
+    tmux = '90%,70%',
+    sink = function(selected)
+      if commands[selected] then
+        commands[selected]()
+      else
+        vim.print('command not found: ' .. selected)
+      end
+    end,
+  })
+end
 
-vim.opt.rtp:append("~/.cache/treesitter")
+vim.api.nvim_create_user_command('FzfLuaTest', function()
+  fzf_command({
+    ['print'] = function() print('test') end,
+    ['open'] = function() vim.cmd('edit ~/.config') end,
+  })
+end, {})
+
+-------------------
+-- williamboman/mason.nvim
+-- neovim/nvim-lspconfig
+-- 'esmuellert/nvim-eslint'
+-------------------
+require('nvim-eslint').setup{} -- mason eslint not working on pnpm
+
+require('mason').setup {
+  PATH = "prepend"
+}
+require("mason-lspconfig").setup {
+  ensure_installed = {},
+  handlers = {
+    function(server_name)
+      require("lspconfig")[server_name].setup {}
+    end,
+    ["html"] = function()
+      require("lspconfig").html.setup {
+        filetypes = { "html", "eruby" }
+      }
+    end,
+    ["yamlls"] = function()
+      require("lspconfig").yamlls.setup {
+        settings = {
+          yaml = {
+            schemas = {
+              -- TODO: use environment variable?
+              ["https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.29.2-standalone-strict/deployment.json"] = "deployment/**/deployment/*.yaml",
+              ["https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.29.2-standalone-strict/statefulset.json"] = "deployment/**/statefulset/*.yaml",
+              ["https://json.schemastore.org/github-workflow.json"] = ".github/workflows/*",
+              ["https://json.schemastore.org/github-action.json"] = ".github/actions/*",
+            }
+          }
+        }
+      }
+    end,
+    ["docker_compose_language_service"] = function()
+      require("lspconfig").docker_compose_language_service.setup {
+        filetypes = { "yaml" }
+      }
+    end,
+  }
+}
+
+-------------------
+-- hrsh7th/nvim-cmp
+-------------------
+-- local capabilities = require('cmp_nvim_lsp').default_capabilities()
+local cmp = require'cmp'
+cmp.setup({
+  snippet = {
+    expand = function(args)
+      -- require('snippy').expand_snippet(args.body)
+      -- vim.snippet.expand(args.body) -- For native neovim snippets (Neovim v0.10+)
+    end,
+  },
+  window = {
+    -- completion = cmp.config.window.bordered(),
+    -- documentation = cmp.config.window.bordered(),
+  },
+  mapping = cmp.mapping.preset.insert({
+    -- ['<C-b>'] = cmp.mapping.scroll_docs(-4),
+    -- ['<C-f>'] = cmp.mapping.scroll_docs(4),
+    -- ['<C-Space>'] = cmp.mapping.complete(),
+    ['<C-e>'] = cmp.mapping.abort(),
+    ['<CR>'] = cmp.mapping.confirm({ select = true })
+  }),
+  sources = cmp.config.sources(
+    { { name = 'nvim_lsp' }, },
+    { { name = 'buffer' }, })
+})
+
+
+----------------------------------
+-- nvim-treesitter/nvim-treesitter
+----------------------------------
+-- vim.opt.rtp:append("~/.cache/treesitter")
+--
+-- ~/.local/share/mise/installs/neovim/0.10.1/lib/nvim
 require'nvim-treesitter.configs'.setup {
-  parser_install_dir = "~/.cache/treesitter",
+  -- parser_install_dir = "~/.cache/treesitter",
   ensure_installed = { 'ruby', 'yaml' },
   auto_install = true,
   highlight = {
     enable = true,
-    additional_vim_regex_highlighting = true,
-    disable = { 'embedded_template' }
+    additional_vim_regex_highlighting = false,
+    -- disable = { 'embedded_template' }
   },
 
   textobjects = {
@@ -110,19 +168,38 @@ require'nvim-treesitter.configs'.setup {
   },
 }
 
+vim.api.nvim_set_hl(0, "TreesitterContext", { ctermbg = 8, bg = "#393939" })
 require'treesitter-context'.setup{
   enable = true,
   line_numbers = true,
   max_lines = 10,
+  mode = 'topline',
+  multiline_threshold = 1,
   patterns = {
     default = { 'class', 'function', 'method' }
   }
 }
 
+-- TODO
+-- vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+-- vim.opt.foldtext = "v:lua.vim.treesitter.foldtext()"
+
 ----------------------------------
 -- HiPhish/rainbow-delimiters.nvim
 ----------------------------------
 local rainbow_delimiters = require 'rainbow-delimiters'
+
+vim.api.nvim_create_autocmd('LspAttach', {
+  pattern = '*.html.erb',
+  callback = function()
+    if not vim.b.rainbow_delimiters_enabled
+       and vim.treesitter.get_parser() ~= nil
+    then
+      rainbow_delimiters.enable()
+      vim.b.rainbow_delimiters_enabled = true
+    end
+  end
+})
 
 ---@type rainbow_delimiters.config
 vim.g.rainbow_delimiters = {

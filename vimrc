@@ -54,6 +54,9 @@ set tabstop=2 shiftwidth=0 softtabstop=-1
 set expandtab shiftround
 set backspace=2 "indent,eol,start
 
+set nowrap
+set list listchars=tab:\|\ ,trail:-,nbsp:+,extends:>,precedes:<
+
 set timeoutlen=250
 
 set iskeyword+=\-,$
@@ -65,8 +68,7 @@ set wildignorecase
 set cursorcolumn
 
 "set spell spellfile=$HOME/dots/vim/spell/en.utf-8.add
-highlight SpellBad cterm=underline ctermbg=88 gui=underline guibg=#902020 guisp=NvimLightRed
-
+" highlight SpellBad cterm=underline ctermbg=88 gui=underline guibg=#902020 guisp=NvimLightRed
 
 " terminal
 
@@ -77,6 +79,7 @@ endif
 
 " netrw
 let g:netrw_fastbrowse = 2 " prevent reset cursor. but want refresh, need <c-l>
+let g:netrw_keepdir = 0 " auto cd
 "let g:netrw_liststyle = 3 " tree mode
 
 "----------------
@@ -119,7 +122,13 @@ call plug#begin(expand('$HOME/.local/vim/plugged'))
 
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
-  let $FZF_DEFAULT_COMMAND="fd -tf --no-ignore-vcs --follow"
+  let $FZF_DEFAULT_COMMAND="fd -tf --hidden --no-ignore-vcs --follow --exclude 'tmp/' --exclude 'dist/' --exclude '.bundle/'"
+  let g:fzf_vim = {}
+  let g:fzf_vim.preview_window = ['hidden,right,50%,<70(down,40%)', 'ctrl-/']
+  if exists('$TMUX')
+    let g:fzf_layout = { 'tmux': '90%,70%' }
+  endif
+
   nnoremap <space>p <esc>:Files<cr>
   nnoremap <space>p[ <esc>:History<cr>
   nnoremap <space>pb <esc>:Buffers<cr>
@@ -143,6 +152,12 @@ Plug 'voldikss/vim-floaterm'
   let g:floaterm_width = 0.95
   let g:floaterm_height = 0.8
 
+  " TODO
+  " exec 'tabe ' . system('ls | fzf --tmux 90\%,70\%')
+  " function! MyFloat(cmd, on_exit)
+  " call MyFloat(
+  "   \ { outfile -> '$HOME/dots/bin/snip ' . &filetype . ' "' . expand('%:p') . '" > ' . outfile }
+  "   \ { outfile -> execute 'read ' . s:mysnip_tempfile })
   command! -nargs=* -complete=customlist,floaterm#cmdline#complete -bang -range MySnip  call s:mysnip()
   nnoremap <space>f <esc>:MySnip<cr>
 
@@ -160,6 +175,10 @@ Plug 'voldikss/vim-floaterm'
     endtry
   endfunc
 
+  " @param job [number] ex) 3
+  " @param data [number] ex) 0
+  " @param event [string] ex) 'exit'
+  " @param opener [string] ex) 'split'
   func! s:mysnip_on_exit(job, data, event, opener) abort
     if filereadable(s:mysnip_tempfile)
       execute 'read ' . s:mysnip_tempfile
@@ -221,6 +240,12 @@ Plug 'itchyny/lightline.vim'
 Plug 'nanotech/jellybeans.vim'
 
 " Utils
+Plug 'kana/vim-metarw' " TODO: webdav
+
+Plug 'tpope/vim-dadbod'
+Plug 'kristijanhusak/vim-dadbod-ui'
+" Plug 'kristijanhusak/vim-dadbod-completion' "Optional
+
 Plug 'powerman/vim-plugin-AnsiEsc'
 Plug 'tpope/vim-commentary'
 Plug 'michaeljsmith/vim-indent-object'
@@ -228,73 +253,42 @@ Plug 'michaeljsmith/vim-indent-object'
 Plug 'jpalardy/vim-slime'
   let g:slime_target = 'tmux'
   let g:slime_paste_file = tempname()
-
-if has('nvim')
-Plug 'lukas-reineke/indent-blankline.nvim'
-Plug 'HiPhish/rainbow-delimiters.nvim'
-endif
+  " let g:slime_no_mappings = 1
+  func! s:slime_wrapper()
+    " TODO C-c wrapper
+    " let b:slime_config["socket_name"] = "default"
+    " let b:slime_config["target_pane"] = "%1" -> complete fzf
+  endfunc
 
 " else " TODO
-Plug 'nathanaelkane/vim-indent-guides'
-  let g:indent_guides_enable_on_vim_startup = 1
-  let g:indent_guides_indent_levels = 16
-  let g:indent_guides_guide_size = 2
-  let g:indent_guides_start_level = 2
-  let g:indent_guides_auto_colors = 0
-  "highlight IndentGuidesEven ctermbg=darkgray
+"Plug 'nathanaelkane/vim-indent-guides'
+"  let g:indent_guides_enable_on_vim_startup = 1
+"  let g:indent_guides_indent_levels = 16
+"  let g:indent_guides_guide_size = 2
+"  let g:indent_guides_start_level = 2
+"  let g:indent_guides_auto_colors = 0
+"  "highlight IndentGuidesEven ctermbg=darkgray
 
 Plug 'junegunn/vim-easy-align'
   xmap <space>ga <Plug>(LiveEasyAlign)
   nmap <space>ga <Plug>(LiveEasyAlign)
 
-" Plug 'dense-analysis/ale'
-"   let g:ale_fixers = {
-"   \   'yaml': ['yamllint'],
-"   \   'javascript': ['eslint'],
-"   \   'typescript': ['eslint'],
-"   \}
-"   " \   '*': ['remove_trailing_lines', 'trim_whitespace'],
-
-"   " let g:ale_disable_lsp = 1
-"   let g:ale_linters_ignore = {'typescript': ['deno']}
-"   let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
-"   let g:ale_sign_error = '✘'
-"   let g:ale_sign_warning = '⚠'
-"   let g:ale_lint_on_text_changed = 'never'
-
-"   let g:ale_completion_enabled = 1
-"   set omnifunc=ale#completion#OmniFunc
-
-"   " getline(1, '$')
-"   " TODO
-"   function! FzfVimOmniComplete(...)
-"     return fzf#vim#complete(s:extend({
-"           \ 'prefix': '^.*$',
-"           \ 'source': ale#completion#OmniFunc(1, '')}, get(a:000, 0, fzf#wrap())))
-"   endfunction
-
 Plug 'neovim/nvim-lspconfig'
+Plug 'williamboman/mason.nvim'
+Plug 'williamboman/mason-lspconfig.nvim'
+Plug 'esmuellert/nvim-eslint'
 
-" Plug 'hrsh7th/nvim-cmp'
-" Plug 'hrsh7th/cmp-nvim-lsp'
-" Plug 'hrsh7th/cmp-buffer'
-" Plug 'hrsh7th/cmp-path'
-" Plug 'hrsh7th/cmp-cmdline'
-
-" if has('nvim')
-" Plug 'dcampos/cmp-snippy'
-" Plug 'dcampos/nvim-snippy'
-"   imap <expr> <Tab> snippy#can_expand_or_advance() ? '<Plug>(snippy-expand-or-advance)' : '<Tab>'
-"   imap <expr> <S-Tab> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<S-Tab>'
-"   smap <expr> <Tab> snippy#can_jump(1) ? '<Plug>(snippy-next)' : '<Tab>'
-"   smap <expr> <S-Tab> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<S-Tab>'
-"   xmap <Tab> <Plug>(snippy-cut-text)
-" endif
+Plug 'hrsh7th/nvim-cmp'
+Plug 'hrsh7th/cmp-nvim-lsp'
+Plug 'hrsh7th/cmp-buffer'
+Plug 'hrsh7th/cmp-path'
+Plug 'hrsh7th/cmp-cmdline'
 
 " Lang
 Plug 'tpope/vim-rails', { 'for': 'ruby' }
 Plug 'hashivim/vim-terraform', { 'for': 'terraform' }
 Plug 'elixir-editors/vim-elixir', { 'for': 'elixir' }
+Plug 'NoahTheDuke/vim-just', { 'for': 'just' }
 
 Plug 'fifi2/gtd.vim'
   let g:gtd#dir = '~/docs/gtd'
@@ -328,6 +322,16 @@ if has('nvim-0.7.0')
   Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
   Plug 'nvim-treesitter/nvim-treesitter-context'
   Plug 'nvim-treesitter/nvim-treesitter-textobjects'
+
+  Plug 'lukas-reineke/indent-blankline.nvim'
+  Plug 'HiPhish/rainbow-delimiters.nvim'
+
+  Plug 'github/copilot.vim'
+    let g:copilot_filetypes = {
+          \ '*': v:true,
+          \ }
+    " let g:copilot_no_tab_map = v:true
+    " imap <silent><script><expr> <tab> copilot#Accept("\<CR>")
 endif
 
 call plug#end()
@@ -338,6 +342,16 @@ call plug#end()
 colorscheme jellybeans
 
 highlight TreesitterContext guibg=gray ctermbg=8
+
+highlight IndentLevel1 guibg=#ff0000 ctermbg=red
+highlight IndentLevel2 guibg=#ffff00 ctermbg=yellow
+highlight IndentLevel3 guibg=#ffa500 ctermbg=blue
+highlight IndentLevel4 guibg=#00ff00 ctermbg=green
+" syntax match IndentLevel1 /^ \{2}/ containedin=ALL
+" syntax match IndentLevel2 /^ \{2}\zs \{2}\ze/ containedin=ALL
+" syntax match IndentLevel3 /^ \{4}\zs \{2}\ze/ containedin=ALL
+" syntax match IndentLevel4 /^ \{6} \{2}/ containedin=ALL contained
+" call matchadd('IndentLevel2', "^ ")
 
 autocmd FileType yaml
       \ setlocal nofoldenable foldmethod=expr foldexpr=nvim_treesitter#foldexpr()
