@@ -12,6 +12,7 @@ brew "font-d2coding"
 brew "tmux"
 brew "universal-ctags"
 brew "sqlite"
+brew "pueue" # with `brew services start pueue`
 
 cask "openlens"
 
