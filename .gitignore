@@ -1,7 +1,5 @@
-!config/emacs/init.el
 !config/zed/keymap.json
 !config/zed/settings.json
-config/emacs/
 config/gh/hosts.yml
 config/k9s/aliases.yaml
 config/k9s/config.yaml
