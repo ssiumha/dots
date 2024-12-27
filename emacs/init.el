@@ -15,8 +15,8 @@
 (setq-default line-spacing 3)
 
 (set-face-attribute 'default nil :height 180)
-(add-hook 'org-mode-hook (lambda ()
-                           (set-face-attribute 'org-table nil :family "D2Coding" :height 180)))
+; (add-hook 'org-mode-hook (lambda ()
+;                            (set-face-attribute 'org-table nil :family "D2Coding" :height 180)))
 
 ; (load-theme 'wombat t)
 
@@ -67,6 +67,11 @@
   :follow (lambda (path)
             (start-process "open" nil "open" (expand-file-name path))))
 
+(org-link-set-parameters
+  "chrome"
+  :follow (lambda (link)
+            (start-process "open-chrome" nil "open" "-a" "Google Chrome.app" link)))
+
 (add-to-list 'exec-path "/opt/homebrew/bin")
 (org-link-set-parameters
   "send-tmux"
@@ -78,12 +83,12 @@
 
 ;; Package
 (require 'package)
-(add-to-list 'package-archives
-             '("melpa" . "https://melpa.org/packages/"))
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
 ; (package-refresh-contents)
 
-(use-package spacemacs-theme)
+(use-package spacemacs-theme
+             :ensure t)
 (load-theme 'spacemacs-dark)
 
 (use-package org-sticky-header
@@ -100,6 +105,29 @@
 ;              :hook (org-mode . org-modern-visibility-mode))
 ;; display-buffer-in-side-window를
 ;; olivetti, org-ql,
+
+; TODO: remove when emacs v30
+(use-package which-key
+             :ensure t
+             :init
+             (setq which-key-idle-delay 0.2
+                   which-key-popup-type 'minibuffer ; 'side-window|'frame
+                   which-key-sort-order 'which-key-key-order-alpha)
+             :config
+             (which-key-mode))
+
+(use-package company
+             :ensure t
+             :hook (org-mode . company-mode))
+(use-package company-org-block
+             :ensure t
+             :after company
+             :config
+             (add-to-list 'company-backends 'company-org-block))
+
+(use-package valign
+             :ensure t
+             :hook (org-mode . valign-mode))
 
 ;; Evil
 (unless (package-installed-p 'evil)
