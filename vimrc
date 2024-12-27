@@ -77,10 +77,30 @@ if has('nvim')
   set laststatus=3 " global status line
 endif
 
+"----------------
+" variables
+"----------------
 " netrw
 let g:netrw_fastbrowse = 2 " prevent reset cursor. but want refresh, need <c-l>
 let g:netrw_keepdir = 0 " auto cd
 "let g:netrw_liststyle = 3 " tree mode
+
+"----------------
+" fold
+"----------------
+
+" highlight Folded ctermfg=145 ctermbg=236 gui=italic guifg=#a0a8b0 guibg=#384048
+autocmd ColorScheme * highlight Folded cterm=NONE ctermbg=236 ctermfg=145 gui=italic guibg=NONE guifg=#a0a8b0
+
+" highlight FoldColumn cterm=NONE ctermbg=NONE guibg=NONE
+
+set fillchars=fold:\ ,vert:\
+" set foldcolumn=2
+" set foldtext=MyFoldText()
+" func! MyFoldText()
+"   " v:foldlevel
+"   return getline(v:foldstart) . ' ... ' . (v:foldend - v:foldstart + 1) . ' lines'
+" endfunc
 
 "----------------
 " file
