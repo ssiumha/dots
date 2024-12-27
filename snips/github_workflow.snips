@@ -92,7 +92,6 @@ jobs:
             .
 endsnippet
 
-
 snippet step "jobs.job.steps[n]"
       - working-directory: src/proj
         env:
