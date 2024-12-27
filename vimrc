@@ -290,32 +290,32 @@ Plug 'hashivim/vim-terraform', { 'for': 'terraform' }
 Plug 'elixir-editors/vim-elixir', { 'for': 'elixir' }
 Plug 'NoahTheDuke/vim-just', { 'for': 'just' }
 
-Plug 'fifi2/gtd.vim'
-  let g:gtd#dir = '~/docs/gtd'
-  let g:gtd#default_action = 'inbox'
-  let g:gtd#tag_lines_count = 10
-  let g:gtd#review = [
-        \ { 'formula': '!inbox', 'title': 'INBOX' },
-        \ { 'formula': '!todo -#calendar', 'title': 'TODO' },
-        \ { 'formula': '!waiting', 'title': 'WAITING' },
-        \ { 'formula': '!pr', 'title': 'PULL_REQUEST' },
-        \ { 'formula': '!someday', 'title': 'SOMEDAY' },
-        \ { 'formula': '!meeting', 'title': 'MEETING' }
-        \ ]
-        " \ { 'formula': '!todo #calendar:mon', 'title': 'MONDAY' },
-        " \ { 'formula': '!todo #calendar:tue', 'title': 'TUESDAY' },
-        " \ { 'formula': '!todo #calendar:wed', 'title': 'WEDNESDAY' },
-        " \ { 'formula': '!todo #calendar:thu', 'title': 'THURSDAY' },
-        " \ { 'formula': '!todo #calendar:fri', 'title': 'FRIDAY' },
-        " \ { 'formula': '!todo #calendar:sat', 'title': 'SATURDAY' },
-        " \ { 'formula': '!todo #calendar:sun', 'title': 'SUNDAY' },
+" Plug 'fifi2/gtd.vim'
+"   let g:gtd#dir = '~/docs/gtd'
+"   let g:gtd#default_action = 'inbox'
+"   let g:gtd#tag_lines_count = 10
+"   let g:gtd#review = [
+"         \ { 'formula': '!inbox', 'title': 'INBOX' },
+"         \ { 'formula': '!todo -#calendar', 'title': 'TODO' },
+"         \ { 'formula': '!waiting', 'title': 'WAITING' },
+"         \ { 'formula': '!pr', 'title': 'PULL_REQUEST' },
+"         \ { 'formula': '!someday', 'title': 'SOMEDAY' },
+"         \ { 'formula': '!meeting', 'title': 'MEETING' }
+"         \ ]
+"         " \ { 'formula': '!todo #calendar:mon', 'title': 'MONDAY' },
+"         " \ { 'formula': '!todo #calendar:tue', 'title': 'TUESDAY' },
+"         " \ { 'formula': '!todo #calendar:wed', 'title': 'WEDNESDAY' },
+"         " \ { 'formula': '!todo #calendar:thu', 'title': 'THURSDAY' },
+"         " \ { 'formula': '!todo #calendar:fri', 'title': 'FRIDAY' },
+"         " \ { 'formula': '!todo #calendar:sat', 'title': 'SATURDAY' },
+"         " \ { 'formula': '!todo #calendar:sun', 'title': 'SUNDAY' },
         "
-Plug 'vimwiki/vimwiki'
-  let g:vimwiki_list = [
-        \ {'path': '~/docs/vimwiki', 'syntax': 'markdown', 'ext': '.md'}
-        \ ]
-  nnoremap <space>ww :VimwikiIndex<cr>
-  autocmd FileType vimwiki nnoremap <buffer> t :VimwikiTabnewLink<cr>
+" Plug 'vimwiki/vimwiki'
+"   let g:vimwiki_list = [
+"         \ {'path': '~/docs/vimwiki', 'syntax': 'markdown', 'ext': '.md'}
+"         \ ]
+"   nnoremap <space>ww :VimwikiIndex<cr>
+"   autocmd FileType vimwiki nnoremap <buffer> t :VimwikiTabnewLink<cr>
 
 
 if has('nvim-0.7.0')
