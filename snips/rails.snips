@@ -65,6 +65,31 @@ endsnippet
 
 snippet db_dump "rails way"
 bin/rails db < path_to_your_dump_file.sql
+snippet propshaft_assets_content "inline asset"
+raw Rails.application.assets.load_path.find('logo.svg').content
+# OR
+Rails.application.assets.load_path.find('logo.svg').content.html_safe
+endsnippet
+
+snippet load_server ">= rails 6.1. config/application.rb"
+# Rails.application.load_server
+
+    server do
+      Dir.chdir(File.expand_path("..", __dir__)) do
+        ...
+      end
+    end
+endsnippet
+
+snippet check_run_point ""
+if defined?(Rails::Console)
+  # called rails console
+elsif defined?(Rails::Generateors)
+  # called rails generate
+elsif defined?(Rake.application)
+  # called task
+else
+end
 endsnippet
 
 snippet base_script "script/base"
