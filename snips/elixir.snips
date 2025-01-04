@@ -1,0 +1,13 @@
+snippet cmd_run_server ""
+mix phx.server
+endsnippet
+
+snippet print_log ""
+require Logger
+
+Logger.info("test")
+endsnippet
+
+snippet print_io ""
+IO.puts(message)
+endsnippet
