@@ -440,3 +440,37 @@ endsnippet
 snippet pipe "stdin"
 ls | ruby -e 'ARGF.each_line.map { ... }'
 endsnippet
+
+snippet erb "template"
+require 'erb'
+require 'ostruct'
+
+require 'bundler/inline'
+
+gemfile do
+  source 'https://rubygems.org'
+  gem 'erubi'
+end
+
+template = <<-EOF
+function <%= name %>() {
+  <% if true %>
+    <%= name %>
+  <% end %>
+  <% if false %>
+    console.log(false)
+  <% end %>
+}
+EOF
+
+name = 'asdf'
+context = OpenStruct.new(name: name)
+context.define_singleton_method(:if) do |condition, &block|
+  block.call if condition
+end
+
+puts ERB.new(template, trim_mode: '-').result(context.instance_eval { binding })
+
+erubi = Erubi::Engine.new(template, trim: true)
+puts eval(erubi.src)
+endsnippet

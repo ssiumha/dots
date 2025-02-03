@@ -34,3 +34,8 @@ FLUSH PRIVILEGES;
 "
 endsnippet
 
+snippet create_user ""
+CREATE USER 'user'@'%' IDENTIFIED BY 'password';
+GRANT ALL PRIVILEGES ON dbname.* TO 'devuser'@'%';
+FLUSH PRIVILEGES;
+endsnippet

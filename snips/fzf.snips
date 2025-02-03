@@ -27,3 +27,7 @@ $FZF_QUERY: same {q}. but if nothing matches, it doesn’t work.
 {n} : index (RN)
 {+f}, {+n} : multiple select case
 endsnippet
+
+snippet input_by_pass "run ruby"
+fzf --disabled --bind "start:reload:echo ''" --bind "enter:become(echo {q})" --preview 'ruby -e {q}' --preview-window 'bottom,100'
+endsnippet

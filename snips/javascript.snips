@@ -89,3 +89,11 @@ snippet jsdoc "documentation"
 function Book(title, author) {
 }
 endsnippet
+
+snippet jest_module_mocking ""
+jest.mock('../app/module', () => ({
+  __esModule: true,
+  default: jest.fn(() => 'mocked')
+  getRepository: jest.fn().mockResolvedValue('mocked')
+}))
+endsnippet

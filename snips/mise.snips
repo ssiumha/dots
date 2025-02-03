@@ -76,3 +76,14 @@ endsnippet
 snippet task_with_arguments ""
 run = "docker compose logs {{arg(i=0)}}"
 endsnippet
+
+snippet use_task_with_variables ""
+[vars]
+e2e_args = '--headless'
+# or
+_.file = '.env'
+
+[tasks.use-env]
+env = { APP_ENV = "local" }
+run = "bundle exec ruby app.rb {{vars.e2e_args}}"
+endsnippet

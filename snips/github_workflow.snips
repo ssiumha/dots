@@ -173,6 +173,23 @@ snippet github_summary ""
           echo '### Result' >> $GITHUB_STEP_SUMMARY
 endsnippet
 
+snippet github_group "print pretty log"
+        run: |
+          echo '::group::init'
+          echo 123
+          echo '::endgroup::'
+endsnippet
+
+snippet github_annotation "print pretty log"
+        # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#setting-a-notice-message
+        run: |
+          echo "::error::Error message"
+          echo "::warning file=app.js,line=1,endLine=2,col=5,title=warn::$text"
+          echo "::notice::$text"
+          echo "::debug"
+endsnippet
+
+
 snippet output ""
 jobs:
   example-job:
