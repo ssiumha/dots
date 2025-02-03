@@ -1,3 +1,50 @@
+local ensure_packer = function()
+  local fn = vim.fn
+  local install_path = fn.stdpath('data')..'/site/pack/packer/start/packer.nvim'
+  if fn.empty(fn.glob(install_path)) > 0 then
+    fn.system({'git', 'clone', '--depth', '1', 'https://github.com/wbthomason/packer.nvim', install_path})
+    vim.cmd [[packadd packer.nvim]]
+    return true
+  end
+  return false
+end
+
+local packer_bootstrap = ensure_packer()
+
+vim.cmd [[packadd packer.nvim]]
+
+require('packer').startup(function(use)
+  use 'wbthomason/packer.nvim'
+
+  use 'neovim/nvim-lspconfig'
+  use 'williamboman/mason.nvim'
+  use 'williamboman/mason-lspconfig.nvim'
+
+  use 'nvimdev/lspsaga.nvim'
+  vim.api.nvim_set_keymap('n', '<space>la', ':Lspsaga code_action<cr>', { noremap = true })
+  vim.api.nvim_set_keymap('n', '<space>ld', ':Lspsaga show_cursor_diagnostics<cr>', { noremap = true })
+
+  use 'hrsh7th/nvim-cmp'
+  use 'hrsh7th/cmp-nvim-lsp'
+  use 'hrsh7th/cmp-buffer'
+  use 'hrsh7th/cmp-path'
+  use 'hrsh7th/cmp-cmdline'
+
+  use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate' }
+  use 'nvim-treesitter/nvim-treesitter-context'
+  use 'nvim-treesitter/nvim-treesitter-textobjects'
+
+  use 'lukas-reineke/indent-blankline.nvim'
+  use 'HiPhish/rainbow-delimiters.nvim'
+
+  use 'lewis6991/gitsigns.nvim'
+
+  if packer_bootstrap then
+    require('packer').sync()
+  end
+end)
+
+
 -- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md
 -- TODO: add auto installer
 --   scripting: python deno bash
@@ -50,10 +97,8 @@ end, {})
 -------------------
 -- williamboman/mason.nvim
 -- neovim/nvim-lspconfig
--- 'esmuellert/nvim-eslint'
+-- nvimdev/lspsaga.nvim
 -------------------
-require('nvim-eslint').setup{} -- mason eslint not working on pnpm
-
 require('mason').setup {
   PATH = "prepend"
 }
@@ -88,8 +133,44 @@ require("mason-lspconfig").setup {
         filetypes = { "yaml" }
       }
     end,
+    ["biome"] = function()
+      local lspconfig = require("lspconfig")
+      lspconfig.biome.setup {
+        root_dir = lspconfig.util.root_pattern("biome.json")
+      }
+    end,
+    ["ts_ls"] = function()
+      local lspconfig = require("lspconfig")
+      lspconfig.ts_ls.setup {
+        root_dir = lspconfig.util.root_pattern("package.json", "tsconfig.json", "jsconfig.json", ".git"),
+        init_options = {
+          plugins = {
+            -- {
+            --   name = "@vue/typescript-plugin",
+            --   location = "/usr/local/lib/node_modules/@vue/typescript-plugin",
+            --   languages = {"javascript", "typescript", "vue"},
+            -- },
+          },
+          preferences = {
+            includeCompletionsForModuleExports = true,
+            includeCompletionsForImportStatements = true,
+          },
+        },
+      }
+    end,
   }
 }
+
+vim.api.nvim_create_autocmd('LspAttach', {
+  callback = function()
+    require('lspsaga').setup{
+      -- diagnostic = {
+      --   on_insert = false,
+      -- }
+    }
+  end
+})
+
 
 -------------------
 -- hrsh7th/nvim-cmp
@@ -361,3 +442,9 @@ vim.g.rainbow_delimiters = {
 --     whitespace = { highlight = highlight, remove_blankline_trail = true },
 --     scope = { highlight = highlight, enabled = true, char = "▎", show_exact_scope = true },
 -- }
+
+
+--------------------------------------
+-- lewis6991/gitsigns.nvim
+--------------------------------------
+require('gitsigns').setup()

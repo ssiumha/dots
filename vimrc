@@ -120,14 +120,11 @@ set runtimepath^=~/dots/vim
 "----------------
 " complete
 "----------------
-set dictionary+=$HOME/dots/config/nvim/words/dict.txt
 set dictionary+=$HOME/.firm/dict.txt
 iab destory destroy
 iab functino function
 iab lien line
 iab exmaple example
-
-autocmd FileType * execute 'setlocal dict+=$HOME/dots/config/nvim/words/'.&filetype.'.txt'
 
 "----------------
 " plug
@@ -143,8 +140,7 @@ call plug#begin(expand('$HOME/.local/vim/plugged'))
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
   let $FZF_DEFAULT_COMMAND="fd -tf --hidden --no-ignore-vcs --follow --exclude 'tmp/' --exclude 'dist/' --exclude '.bundle/'"
-  let g:fzf_vim = {}
-  let g:fzf_vim.preview_window = ['hidden,right,50%,<70(down,40%)', 'ctrl-/']
+  let g:fzf_preview_window = ['down,50%,<70(down,40%)', 'ctrl-/']
   if exists('$TMUX')
     let g:fzf_layout = { 'tmux': '90%,70%' }
   endif
@@ -152,12 +148,13 @@ Plug 'junegunn/fzf.vim'
   nnoremap <space>p <esc>:Files<cr>
   nnoremap <space>p[ <esc>:History<cr>
   nnoremap <space>pb <esc>:Buffers<cr>
+  nnoremap <space>pt <esc>:Tags<cr>
+  " nnoremap <space>ps <esc>:Snippets<cr> " TODO: symbol
   nnoremap <space>pc <esc>:Commands<cr>
   nnoremap <space>pj <esc>:Jumps<cr>
   nnoremap <space>pl <esc>:Lines<cr>
   nnoremap <space>pL <esc>:BLines<cr>
   nnoremap <space>pm <esc>:Marks<cr>
-  nnoremap <space>ps <esc>:Snippets<cr>
   nnoremap <space>pr <esc>:Rg<space>
 
   nmap <leader><tab> <plug>(fzf-maps-n)
@@ -166,28 +163,29 @@ Plug 'junegunn/fzf.vim'
   imap <c-x><c-f> <plug>(fzf-complete-path)
   imap <c-x><c-l> <plug>(fzf-complete-line)
 
+  " TODO
+  " func! FzfAction(list, action) abort
+
 Plug 'ibhagwan/fzf-lua'
 
 Plug 'voldikss/vim-floaterm'
   let g:floaterm_width = 0.95
   let g:floaterm_height = 0.8
 
-  " TODO
-  " exec 'tabe ' . system('ls | fzf --tmux 90\%,70\%')
-  " function! MyFloat(cmd, on_exit)
-  " call MyFloat(
-  "   \ { outfile -> '$HOME/dots/bin/snip ' . &filetype . ' "' . expand('%:p') . '" > ' . outfile }
-  "   \ { outfile -> execute 'read ' . s:mysnip_tempfile })
-  command! -nargs=* -complete=customlist,floaterm#cmdline#complete -bang -range MySnip  call s:mysnip()
-  nnoremap <space>f <esc>:MySnip<cr>
-
-  func! s:mysnip() abort
+  " FloatermCmd('ls', { out -> setline('.', out) })
+  " FloatermCmd('fzf', { out -> append(line('.') - 1, out) })
+  " FloatermCmd('fzf', { path -> execute('read ' . path) }, 'filepath')
+  " FloatermCmd(printf('$HOME/dots/bin/snip %s %s', &ft, expand('%:p')), { path -> execute('read ' . path) }, 'filepath')
+  func! FloatermCmd(cmd, action, return_type='stdout') abort
     try
+      let l:tempfile = tempname()
       let [shell, shellslash, shellcmdflag, shellxquote] = floaterm#util#use_sh_or_cmd()
-
-      let s:mysnip_tempfile = tempname()
-      let newcmd = [&shell, &shellcmdflag, '$HOME/dots/bin/snip ' . &filetype . ' "' . expand('%:p') . '" > ' . s:mysnip_tempfile]
-      let jobopts = { 'on_exit': funcref('s:mysnip_on_exit') }
+      let newcmd = [&shell, &shellcmdflag, a:cmd . ' > ' . l:tempfile]
+      " @param job [number] ex) 3
+      " @param data [number] ex) 0
+      " @param event [string] ex) 'exit'
+      " @param opener [string] ex) 'split'
+      let jobopts = { 'on_exit': funcref({ job, data, event, opener -> a:action(a:return_type == 'filepath' ? l:tempfile : readfile(l:tempfile)) }) }
       let config = {}
       let bufnr = floaterm#terminal#open(-1, newcmd, jobopts, config)
     finally
@@ -195,22 +193,15 @@ Plug 'voldikss/vim-floaterm'
     endtry
   endfunc
 
-  " @param job [number] ex) 3
-  " @param data [number] ex) 0
-  " @param event [string] ex) 'exit'
-  " @param opener [string] ex) 'split'
-  func! s:mysnip_on_exit(job, data, event, opener) abort
-    if filereadable(s:mysnip_tempfile)
-      execute 'read ' . s:mysnip_tempfile
-    endif
-  endfunc
+  command! -nargs=* -complete=customlist,floaterm#cmdline#complete -bang -range MySnip
+        \ call FloatermCmd(printf('$HOME/dots/bin/snip %s %s', &ft, expand('%:p')), { path -> execute('read ' . path) }, 'filepath')
+  nnoremap <space>f <esc>:MySnip<cr>
 
 Plug 'mileszs/ack.vim'
   nnoremap <space>a :Ack!<space>
   let g:ackprg = 'rg --vimgrep --smart-case --color=never'
 
 Plug 'tpope/vim-fugitive', { 'on': ['Git'] }
-
 Plug 'vim-test/vim-test'
 
 " UI
@@ -268,7 +259,16 @@ Plug 'kristijanhusak/vim-dadbod-ui'
 
 Plug 'powerman/vim-plugin-AnsiEsc'
 Plug 'tpope/vim-commentary'
+Plug 'tpope/vim-repeat'
+Plug 'tpope/vim-surround'
 Plug 'michaeljsmith/vim-indent-object'
+
+" ggandor/leap.nvim?
+Plug 'justinmk/vim-sneak'
+  let g:sneak#s_next = 1
+
+  nmap <c-s-s> <Plug>Sneak_S
+  nmap <c-s> <Plug>Sneak_s
 
 Plug 'jpalardy/vim-slime'
   let g:slime_target = 'tmux'
@@ -280,29 +280,32 @@ Plug 'jpalardy/vim-slime'
     " let b:slime_config["target_pane"] = "%1" -> complete fzf
   endfunc
 
-" else " TODO
-"Plug 'nathanaelkane/vim-indent-guides'
-"  let g:indent_guides_enable_on_vim_startup = 1
-"  let g:indent_guides_indent_levels = 16
-"  let g:indent_guides_guide_size = 2
-"  let g:indent_guides_start_level = 2
-"  let g:indent_guides_auto_colors = 0
-"  "highlight IndentGuidesEven ctermbg=darkgray
-
 Plug 'junegunn/vim-easy-align'
   xmap <space>ga <Plug>(LiveEasyAlign)
   nmap <space>ga <Plug>(LiveEasyAlign)
 
-Plug 'neovim/nvim-lspconfig'
-Plug 'williamboman/mason.nvim'
-Plug 'williamboman/mason-lspconfig.nvim'
-Plug 'esmuellert/nvim-eslint'
+"Plug 'rhysd/vim-lsp-ale'
+Plug 'dense-analysis/ale'
+  let g:ale_linters = {}
+  let g:ale_fixers = {}
 
-Plug 'hrsh7th/nvim-cmp'
-Plug 'hrsh7th/cmp-nvim-lsp'
-Plug 'hrsh7th/cmp-buffer'
-Plug 'hrsh7th/cmp-path'
-Plug 'hrsh7th/cmp-cmdline'
+  let g:ale_enabled = 1
+  let g:ale_completion_autoimport = 1
+  let g:ale_disable_lsp = 1
+  let g:ale_fix_on_save = 1
+  let g:ale_lint_on_save = 1
+  let g:ale_linters_explicit = 1
+
+  let g:ale_virtualtext = 1
+  let g:ale_virtualtext_cursor = 1
+  let g:ale_virtualtext_prefix = '>>'
+
+  let g:ale_set_loclist = 0
+  let g:ale_set_quickfix = 0
+  let g:ale_use_neovim_diagnostics_api = 1
+  " let g:ale_disable_lsp = 'auto'
+  " let g:ale_completion_enabled = 1
+  " set omnifunc=ale#completion#OmniFunc
 
 " Lang
 Plug 'tpope/vim-rails', { 'for': 'ruby' }
@@ -310,49 +313,12 @@ Plug 'hashivim/vim-terraform', { 'for': 'terraform' }
 Plug 'elixir-editors/vim-elixir', { 'for': 'elixir' }
 Plug 'NoahTheDuke/vim-just', { 'for': 'just' }
 
-" Plug 'fifi2/gtd.vim'
-"   let g:gtd#dir = '~/docs/gtd'
-"   let g:gtd#default_action = 'inbox'
-"   let g:gtd#tag_lines_count = 10
-"   let g:gtd#review = [
-"         \ { 'formula': '!inbox', 'title': 'INBOX' },
-"         \ { 'formula': '!todo -#calendar', 'title': 'TODO' },
-"         \ { 'formula': '!waiting', 'title': 'WAITING' },
-"         \ { 'formula': '!pr', 'title': 'PULL_REQUEST' },
-"         \ { 'formula': '!someday', 'title': 'SOMEDAY' },
-"         \ { 'formula': '!meeting', 'title': 'MEETING' }
-"         \ ]
-"         " \ { 'formula': '!todo #calendar:mon', 'title': 'MONDAY' },
-"         " \ { 'formula': '!todo #calendar:tue', 'title': 'TUESDAY' },
-"         " \ { 'formula': '!todo #calendar:wed', 'title': 'WEDNESDAY' },
-"         " \ { 'formula': '!todo #calendar:thu', 'title': 'THURSDAY' },
-"         " \ { 'formula': '!todo #calendar:fri', 'title': 'FRIDAY' },
-"         " \ { 'formula': '!todo #calendar:sat', 'title': 'SATURDAY' },
-"         " \ { 'formula': '!todo #calendar:sun', 'title': 'SUNDAY' },
-        "
-" Plug 'vimwiki/vimwiki'
-"   let g:vimwiki_list = [
-"         \ {'path': '~/docs/vimwiki', 'syntax': 'markdown', 'ext': '.md'}
-"         \ ]
-"   nnoremap <space>ww :VimwikiIndex<cr>
-"   autocmd FileType vimwiki nnoremap <buffer> t :VimwikiTabnewLink<cr>
-
-
-if has('nvim-0.7.0')
-  Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
-  Plug 'nvim-treesitter/nvim-treesitter-context'
-  Plug 'nvim-treesitter/nvim-treesitter-textobjects'
-
-  Plug 'lukas-reineke/indent-blankline.nvim'
-  Plug 'HiPhish/rainbow-delimiters.nvim'
-
-  Plug 'github/copilot.vim'
-    let g:copilot_filetypes = {
-          \ '*': v:true,
-          \ }
-    " let g:copilot_no_tab_map = v:true
-    " imap <silent><script><expr> <tab> copilot#Accept("\<CR>")
-endif
+Plug 'github/copilot.vim'
+  let g:copilot_filetypes = {
+        \ '*': v:true,
+        \ }
+  " let g:copilot_no_tab_map = v:true
+  " imap <silent><script><expr> <tab> copilot#Accept("\<CR>")
 
 call plug#end()
 
@@ -387,9 +353,31 @@ if has('nvim-0.7.0')
     autocmd LspAttach * nnoremap <buffer> <silent> gi        <cmd>lua vim.lsp.buf.implementation()<CR>
     autocmd LspAttach * nnoremap <buffer> <silent> <c-]>     <cmd>lua vim.lsp.buf.definition()<CR>
     autocmd LspAttach * nnoremap <buffer> <silent> K         <cmd>lua vim.lsp.buf.hover()<CR>
-    autocmd LspAttach * nnoremap <buffer> <silent> <space>la <cmd>lua vim.lsp.buf.code_action()<CR>
+    autocmd LspAttach * nnoremap <buffer> <silent> <space>lD <cmd>lua vim.diagnostic.setqflist({ open = true })<CR>
+    " autocmd LspAttach * nnoremap <buffer> <silent> <space>la <cmd>lua vim.lsp.buf.code_action()<CR>
   augroup END
 endif
+
+"----------------
+" plug:after ale
+"----------------
+let g:ale_linters['typescript'] = ['biome']
+let g:ale_fixers['typescript'] = ['my_biome']
+
+let g:ale_linters['typescriptreact'] = ['biome']
+let g:ale_fixers['typescriptreact'] = ['my_biome']
+
+" let g:ale_biome_options = '--no-ignore'
+" let g:ale_biome_fixer_apply_unsafe = 1
+func! MyAleFixBiome(buffer) abort
+    let l:executable = ale#handlers#biome#GetExecutable(a:buffer)
+    let l:cmd = printf('%s check --apply %%t', ale#Escape(l:executable))
+    return {  'command': l:cmd, 'read_temporary_file': 1 }
+endfunc
+call ale#fix#registry#Add('my_biome', 'MyAleFixBiome', ['typescript'], 'my custom biome')
+
+let g:ale_linters['sh'] = ['shellcheck']
+let g:ale_linters['bash'] = ['shellcheck']
 
 "----------------
 " commands
