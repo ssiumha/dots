@@ -166,8 +166,6 @@ Plug 'junegunn/fzf.vim'
   " TODO
   " func! FzfAction(list, action) abort
 
-Plug 'ibhagwan/fzf-lua'
-
 Plug 'voldikss/vim-floaterm'
   let g:floaterm_width = 0.95
   let g:floaterm_height = 0.8
@@ -267,7 +265,7 @@ Plug 'michaeljsmith/vim-indent-object'
 Plug 'justinmk/vim-sneak'
   let g:sneak#s_next = 1
 
-  nmap <c-s-s> <Plug>Sneak_S
+  nmap <m-c-s> <Plug>Sneak_S
   nmap <c-s> <Plug>Sneak_s
 
 Plug 'jpalardy/vim-slime'
@@ -344,18 +342,6 @@ autocmd FileType yaml
 
 if has('nvim-0.7.0')
   lua require 'vimrc'
-
-  "autocmd Filetype ruby setlocal omnifunc=v:lua.vim.lsp.omnifunc
-  augroup user_lsp_config
-    autocmd!
-
-    autocmd LspAttach * nnoremap <buffer> <silent> gd        <cmd>lua vim.lsp.buf.declaration()<CR>
-    autocmd LspAttach * nnoremap <buffer> <silent> gi        <cmd>lua vim.lsp.buf.implementation()<CR>
-    autocmd LspAttach * nnoremap <buffer> <silent> <c-]>     <cmd>lua vim.lsp.buf.definition()<CR>
-    autocmd LspAttach * nnoremap <buffer> <silent> K         <cmd>lua vim.lsp.buf.hover()<CR>
-    autocmd LspAttach * nnoremap <buffer> <silent> <space>lD <cmd>lua vim.diagnostic.setqflist({ open = true })<CR>
-    " autocmd LspAttach * nnoremap <buffer> <silent> <space>la <cmd>lua vim.lsp.buf.code_action()<CR>
-  augroup END
 endif
 
 "----------------

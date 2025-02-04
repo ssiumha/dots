@@ -21,8 +21,6 @@ require('packer').startup(function(use)
   use 'williamboman/mason-lspconfig.nvim'
 
   use 'nvimdev/lspsaga.nvim'
-  vim.api.nvim_set_keymap('n', '<space>la', ':Lspsaga code_action<cr>', { noremap = true })
-  vim.api.nvim_set_keymap('n', '<space>ld', ':Lspsaga show_cursor_diagnostics<cr>', { noremap = true })
 
   use 'hrsh7th/nvim-cmp'
   use 'hrsh7th/cmp-nvim-lsp'
@@ -39,11 +37,28 @@ require('packer').startup(function(use)
 
   use 'lewis6991/gitsigns.nvim'
 
+  use 'ibhagwan/fzf-lua'
+
   if packer_bootstrap then
     require('packer').sync()
   end
 end)
 
+vim.api.nvim_create_autocmd("LspAttach", {
+  group = vim.api.nvim_create_augroup("user_lsp_config", { clear = true }),
+  callback = function(ev)
+    local opts = { buffer = ev.buf, silent = true, noremap = true }
+
+    vim.keymap.set("n", "gd",         vim.lsp.buf.declaration, opts)
+    vim.keymap.set("n", "gi",         vim.lsp.buf.implementation, opts)
+    vim.keymap.set("n", "<c-]>",      vim.lsp.buf.definition, opts)
+    vim.keymap.set("n", "K",          vim.lsp.buf.hover, opts)
+    vim.keymap.set("n", "<space>lD",  function() vim.diagnostic.setqflist({ open = true }) end, opts)
+    vim.keymap.set('n', '<space>la', ':Lspsaga code_action<cr>', opts)
+    vim.keymap.set('n', '<space>ld', ':Lspsaga show_cursor_diagnostics<cr>', opts)
+    -- vim.keymap.set("n", "<space>la", vim.lsp.buf.code_action, opts)
+  end,
+})
 
 -- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md
 -- TODO: add auto installer
