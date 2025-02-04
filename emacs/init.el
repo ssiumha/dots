@@ -221,7 +221,7 @@
              :config
              (setq evil-want-keybinding nil
                    evil-want-C-i-jump nil
-                   ;evil-want-C-u-scroll t
+                   evil-want-C-u-scroll t
                    evil-want-C-w-in-emacs-state t
                    evil-want-Y-yank-to-eol t
                    evil-want-integration t
@@ -230,10 +230,11 @@
              (evil-define-key 'normal 'global
                               (kbd "g t") 'tab-bar-switch-to-next-tab
                               (kbd "g T") 'tab-bar-switch-to-prev-tab
+                              (kbd "Y") (lambda () (interactive) (evil-yank (point) (line-end-position)))
                               (kbd ",") 'evil-repeat-find-char
                               (kbd ":") 'evil-repeat-find-char
                               (kbd ";") 'evil-ex
-                              ; (kbd "SPC p") 'my-ivy-find-file-in-dir
+                              ; (kbd "SPC p") 'my/ivy-find-file-in-dir
                               (kbd "C-S-h") 'sp-backward-sexp
                               (kbd "C-S-l") 'sp-forward-sexp
                               (kbd "C-S-k") 'sp-backward-up-sexp
@@ -241,20 +242,18 @@
                               (kbd "C-w t") 'my/org-open-link-or-new-tab
                               )
 
+             (evil-define-key 'insert 'global
+                              (kbd "C-a") #'org-start-of-line
+                              (kbd "C-e") #'org-end-of-line)
+
              (evil-define-key 'normal org-mode-map
-                              (kbd "Y") (lambda () (interactive) (evil-yank (point) (line-end-position)))
                               (kbd "<TAB>") #'org-cycle
                               (kbd "<S-TAB>") #'org-shifttab
                               (kbd "{") #'org-previous-visible-heading
                               (kbd "}") #'org-next-visible-heading
                               (kbd "(") #'org-backward-heading-same-level
                               (kbd ")") #'org-forward-heading-same-level
-                              (kbd "C-w g f") #'org-open-at-point
-                              (kbd "C-u") #'evil-scroll-up)
-
-             (evil-define-key 'insert org-mode-map
-                              (kbd "C-a") #'org-start-of-line
-                              (kbd "C-e") #'org-end-of-line)
+                              (kbd "C-w g f") #'org-open-at-point)
 
              ; j -> org-agenda-goto-date
              ; k -> org-agenda-capture
@@ -318,6 +317,10 @@
 (use-package origami
              :ensure t
              :hook (prog-mode . origami-mode))
+
+(use-package magit
+             :ensure t
+             :bind ("C-x g" . magit-status))
 
 ; (org-element-context) -> (link (:type ifle :path ./test.org :format bracket :raw-link ./test.or ...))
 ; (org-element-property :type (org-element-context)) -> "file"
