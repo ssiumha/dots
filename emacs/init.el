@@ -2,8 +2,11 @@
 (prefer-coding-system 'utf-8)
 (setq default-buffer-file-coding-system 'utf-8-unix)
 
+(global-auto-revert-mode 1) ; apply file change immediately
+(global-tab-line-mode -1) ; window level tab
+
 (show-paren-mode 1)
-(tab-bar-mode 1)
+(tab-bar-mode 1) ; frame level tab
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
@@ -234,12 +237,14 @@
                               (kbd ",") 'evil-repeat-find-char
                               (kbd ":") 'evil-repeat-find-char
                               (kbd ";") 'evil-ex
-                              ; (kbd "SPC p") 'my/ivy-find-file-in-dir
+                              (kbd "C-u") 'evil-scroll-up
                               (kbd "C-S-h") 'sp-backward-sexp
                               (kbd "C-S-l") 'sp-forward-sexp
                               (kbd "C-S-k") 'sp-backward-up-sexp
                               (kbd "C-S-j") 'sp-down-sexp
                               (kbd "C-w t") 'my/org-open-link-or-new-tab
+                              (kbd "SPC p p") 'counsel-file-jump-from-git-root
+                              (kbd "SPC p [") 'counsel-recentf
                               )
 
              (evil-define-key 'insert 'global
@@ -289,6 +294,7 @@
              (evil-ex-define-cmd "q" 'evil-q)
              )
 
+; M-o ivy-dispatching-done
 (use-package ivy
              :ensure t
              :init
@@ -298,8 +304,44 @@
              (setq ivy-height 15
                    enable-recursive-minibuffers t
                    ivy-re-builders-alist '((t . ivy--regex-fuzzy))
+                   ;; ivy-sort-matches-functions-alist '((t . nil))
                    ;; ivy-sort-matches-functions-alist '((t . ivy--prefix-sort))
-                   ))
+                   )
+             )
+
+(use-package ivy-prescient
+             :ensure t
+             :config
+             (ivy-prescient-mode 1))
+
+(use-package counsel
+             :ensure t
+             :after ivy
+             :config
+             (counsel-mode 1)
+
+             (defun counsel-file-jump-from-git-root ()
+               "Run `counsel-file-jump` from the root of the current Git repository if available."
+               (interactive)
+               (let ((git-root (locate-dominating-file default-directory ".git")))
+                 (counsel-file-jump "" (or git-root default-directory))))
+
+             (dolist (command '(counsel-file-jump counsel-find-file counsel-recentf counsel-file-jump-from-git-root))
+               (ivy-add-actions
+                command
+                '(("t" (lambda (file)
+                         (tab-new)
+                         (find-file (expand-file-name file)))
+                   "Open in new tab"))))
+             )
+
+(use-package vimrc-mode
+             :ensure t
+             :mode ("\\.vim\\(rc\\)?\\'" . vimrc-mode))
+
+(use-package lua-mode
+             :ensure t
+             :mode ("\\.lua\\'" . lua-mode))
 
 (use-package web-mode
              :ensure t
