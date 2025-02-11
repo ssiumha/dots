@@ -14,7 +14,7 @@ brew "universal-ctags"
 brew "sqlite"
 brew "pueue" # with `brew services start pueue`
 
-cask "openlens"
+# cask "openlens"
 
 brew "mysql"
 brew "tidy-html5"
@@ -33,6 +33,8 @@ cask "openvpn-connect"
 cask "ngrok"
 cask "raycast"
 
+# cask 'bitwarden' -> recommend appstore install for safari
+brew 'bitwarden-cli'
 
 tap "FelixKratz/formulae"
 cask "sketchybar" # with `brew services start sketchybar`
