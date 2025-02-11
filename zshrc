@@ -114,6 +114,7 @@ ksw() {
 alias j="just"
 alias jl="JUST_JUSTFILE=justfile.local just"
 
+alias cdr="cd \$(git rev-parse --show-toplevel)"
 alias ~d="$HOME/dots"
 alias ~r="$HOME/room"
 
