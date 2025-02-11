@@ -1,0 +1,38 @@
+#!/usr/bin/env ruby
+# mise description="Check OS Disk"
+
+require_relative '../common'
+
+df = `df -g #{Dir.home}`.split("\n")[1].split.then { _1[1..4] }.zip(%i[size used avail capacity]).to_h.invert
+docker_df = `docker system df`
+
+def dust(path, n: 5, filter: nil) = `dust -d1 -n#{n} -p -P -om #{filter and "--filter #{filter}"} #{path}`
+
+#{dust Dir.home/:repos, n: 10, filter: 'node_modules'}
+# fd -td -I 'node_modules' ~/repos | grep -E -v 'node_modules/.+/node_modules' | grep -v 'yarn/v6' | xargs dust -d0 -p --force-colors | perl -lape "s;$HOME/;;"
+
+puts <<-EOF
+
+==== System ====
+#{df[:used]}Gi / #{df[:size]}Gi (Avail: #{df[:avail]}Gi, #{df[:capacity]})
+
+==== Docker ====
+#{docker_df}
+
+==== Disk ====
+#{dust '/opt/homebrew/Cellar'}
+
+#{dust Dir.home/:repos, n: 10}
+
+#{dust '/Applications', n: 10}
+
+#{dust Dir.home/'.local/share/mise/installs'}
+
+#{dust Dir.home/:Library}
+
+#{dust Dir.home/'.gradle', n: 1}
+
+#{dust Dir.home/'Library/Developer/Xcode/Archives'}
+
+#{dust Dir.home/'Downloads'}
+EOF
