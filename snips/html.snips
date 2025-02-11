@@ -67,3 +67,11 @@ snippet clickable_card ""
   </ul>
 </div>
 endsnippet
+
+snippet access_named_form_from_document "document.form_name.field_name.value"
+document.form_name.field_name.value
+
+<form name="form_name">
+  <input name="field_name" value="">
+</form>
+endsnippet

@@ -368,7 +368,7 @@ esac
 endsnippet
 
 snippet ssh_proxy_command "jump"
-ssh -o ProxyCommand="ssh -i ~/.ssh/a.pem -W 10.0.1.10:22 a@999.999.999.999" -i ~/.ssh/b.pem b@10.0.1.10
+ssh -o ProxyCommand="ssh -i ~/.ssh/a.pem -W %h:%p a@999.999.999.999" -i ~/.ssh/b.pem b@10.0.1.10
 endsnippet
 
 snippet fzf_actions "key bind, events"

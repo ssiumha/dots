@@ -46,3 +46,8 @@ endsnippet
 snippet hourly_rsync ""
 0 * * * * rsync -avz /path/to/source /path/to/destination
 endsnippet
+
+snippet daily_docker_image_prune ""
+# every day at 5:00
+0 5 * * * /usr/bin/docker image prune -f > /dev/null 2>&1
+endsnippet

@@ -1,0 +1,11 @@
+snippet create_directory "d"
+endsnippet
+
+snippet copy_file "mt mf mc"
+목적지에 커서놓고 mt (target)
+source에 커서놓고 mf (file)
+그 후 mc (copy)
+endsnippet
+
+snippet rename "R"
+endsnippet
