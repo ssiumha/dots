@@ -5,4 +5,5 @@ config/k9s/aliases.yaml
 config/k9s/config.yaml
 config/k9s/config.yml
 config/nvim/pack
+config/nvim/plugin
 config/zed
