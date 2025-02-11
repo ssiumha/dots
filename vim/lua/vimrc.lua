@@ -39,6 +39,29 @@ require('packer').startup(function(use)
 
   use 'ibhagwan/fzf-lua'
 
+  -- Require plugins for avante.nvim
+  use 'stevearc/dressing.nvim'
+  use 'nvim-lua/plenary.nvim'
+  use 'MunifTanjim/nui.nvim'
+  use 'MeanderingProgrammer/render-markdown.nvim'
+
+  -- Optional dependencies for avante.nvim
+  -- use 'hrsh7th/nvim-cmp'
+  -- use 'nvim-tree/nvim-web-devicons' -- or use 'echasnovski/mini.icons'
+  -- use 'HakonHarnes/img-clip.nvim'
+  -- use 'zbirenbaum/copilot.lua'
+  use {
+    'yetone/avante.nvim',
+    branch = 'main',
+    run = 'make',
+    config = function()
+      require('avante_lib').load()
+      require('avante').setup{
+        provider = 'copilot',
+      }
+    end
+  }
+
   if packer_bootstrap then
     require('packer').sync()
   end

@@ -82,7 +82,7 @@ endif
 "----------------
 " netrw
 let g:netrw_fastbrowse = 2 " prevent reset cursor. but want refresh, need <c-l>
-let g:netrw_keepdir = 0 " auto cd
+let g:netrw_keepdir = 1 " disable auto cd
 "let g:netrw_liststyle = 3 " tree mode
 
 "----------------
@@ -262,6 +262,7 @@ Plug 'tpope/vim-surround'
 Plug 'michaeljsmith/vim-indent-object'
 
 " ggandor/leap.nvim?
+" TODO: C-s 만 사용하고, 앞뒤 이동 ;, 로만 맞춰서 쓰기
 Plug 'justinmk/vim-sneak'
   let g:sneak#s_next = 1
 
@@ -417,6 +418,8 @@ augroup filetype_all
   autocmd StdinReadPost * setlocal nowrap buftype=nofile
 
   autocmd FileType qf nnoremap <buffer> q :cclose<cr>
+
+  autocmd CursorHold,FocusGained * checktime
 augroup END
 
 "----------------
