@@ -25,6 +25,7 @@ ruby = ["system", "3.3.0"]
 
 ubi = "latest"
 "ubi:neilotoole/sq" = "latest"
+"ubi:alexpasmantier/television" = { version = "latest", exe = "tv" }
 # rust = "latest"
 # "cargo:jwt-cli" = "latest"
 # "ubi:DarthSim/overmind" = "latest"
