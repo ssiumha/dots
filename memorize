@@ -69,6 +69,7 @@ for i in $(echo $res); do echo $i; done  ## iterate variable line by line
 tmux send-keys -t $(tmux split-window -d -P -F "#{pane_id}" 'ssh temp0') 'ls' Enter
 for i in {0..6}; do tmux send-keys -t $(tmux split-window -d -P -F "#{pane_id}" "ssh temp$i") 'ls' Enter; tmux select-layout tiled; done
 tmux capture-pane -J -p -S - -t $TMUX_PANE > /tmp/pane.log  ## tmux save to logs ;; -S - : from start ;; -p : to stdout ;; -J : wrapped lines join ;; -t : target. %123
+tmux new -s 'session-name' -d 'command'  ## simple run background using tmux
 
 | cut -c-$COLUMNS
 | while read -r line; do echo $line; done
@@ -144,6 +145,8 @@ bin/rails routes --expand
 bin/rails g scaffold_controller 'm/model' index show
 watch -cn1 bundle exec rspec --force-color spec/**  ## watch test in rspec rails
 
+watchexec --watch apps/admin --exts ts --debounce 2 pnpm admin:build ## watchexec
+
 bin/rails g model User email:string:index age:integer birth_at:datetime 'point:decimal{5,2}' 'group:references{polymorphic}' disabled:boolean salutation:text
 
 bundle exec rails new . --name fooapp --database=sqlite3 --skip-docker --asset-pipeline=propshaft
@@ -194,6 +197,7 @@ docker run --rm -it -e'POSTGRES_USER=postgres' -e'POSTGRES_PASSWORD=postgres' -e
 docker ps --format json | jq -r '([.Names, .State, .ID, .Image, .Ports] | @tsv)' | column -ts $'\t' | less -S
 
 docker run --rm -it --network bridge mysql mysqlsh root@host.docker.internal:3306 -e 'util.checkForServerUpgrade();'
+docker run --rm -it --env MYSQL_DATABASE=dev --env MYSQL_ROOT_PASSWORD=password -p 3306:3306 mysql:8.0
 
 docker run --rm -it ubuntu cat /proc/sys/kernel/random/uuid | tr -d '-' | base64 | cut -b 1-22  ## generate uuid 22 char
 
@@ -251,6 +255,17 @@ aws lightsail get-blueprints
 
 eks-node-viewer -resources cpu,memory
 eks-node-viewer -resources cpu,memory --extra-labels 'topology.kubernetes.io/zone' --node-sort=eks-node-viewer/node-cpu-usage=dsc
+
+# az
+az account list --output table
+az vm list-skus --location koreacentral --output table
+az vm image list --output table
+az mysql server list-skus --location koreacentral --output table
+
+# wireguard
+sudo wg show
+sudo wg-quick up ./wg0.conf
+sudo wg-quick down ./wg0.conf
 
 # kubectl
 kubectl get pod -A -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,IMAGE:.spec.containers[].image'
@@ -329,6 +344,7 @@ sq list
 sq inspect @active
 sq diff @dbname/staging.actor @dbname/prod.actor
 sq tbl copy .actor .actor2
+sq sql --src @dbname 'UPDATE actor SET name = "test" WHERE id = 1'
 
 # curl
 curl --header "Host: test.example.com" http://aws-domain.elb.amazonaws.com  ## DNS 설정 없이 ingress 테스트할 때 사용
