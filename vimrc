@@ -301,7 +301,9 @@ Plug 'dense-analysis/ale'
 
   let g:ale_set_loclist = 0
   let g:ale_set_quickfix = 0
-  let g:ale_use_neovim_diagnostics_api = 1
+  if has('nvim-0.6.0')
+    let g:ale_use_neovim_diagnostics_api = 1
+  endif
   " let g:ale_disable_lsp = 'auto'
   " let g:ale_completion_enabled = 1
   " set omnifunc=ale#completion#OmniFunc
