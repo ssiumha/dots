@@ -1,4 +1,6 @@
 .git
+.next
+.nx
 
 .terraform
 
