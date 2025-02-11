@@ -1,0 +1,12 @@
+#!/bin/bash
+
+rg --heading --sort=path --line-number $@ \
+  | nvim \
+    +'match RgHeading /\v^\S+/' \
+    +'hi RgHeading ctermfg=yellow guifg=yellow'
+
+# heading : purple
+# number: green
+#
+    # +'match RgHide /\v^\d+:-.+/' \
+
