@@ -94,7 +94,7 @@ autocmd ColorScheme * highlight Folded cterm=NONE ctermbg=236 ctermfg=145 gui=it
 
 " highlight FoldColumn cterm=NONE ctermbg=NONE guibg=NONE
 
-set fillchars=fold:\ ,vert:\
+set fillchars=fold:\ ,vert:│
 " set foldcolumn=2
 " set foldtext=MyFoldText()
 " func! MyFoldText()
