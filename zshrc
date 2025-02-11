@@ -315,7 +315,7 @@ _comps[op]=_op_completion
 # fzf
 ################################
 
-if [ $TERM_PROGRAM = zed ]; then
+if [ "$TERM_PROGRAM" = zed ]; then
   export FZF_DEFAULT_OPTS="--extended --cycle --reverse --ansi"
 else
   export FZF_DEFAULT_OPTS="--extended --cycle --reverse --ansi --tmux 90%,70%"
