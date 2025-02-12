@@ -85,7 +85,8 @@
              (setq desktop-base-file-name "emacs.desktop"
                    desktop-save 'if-exists
                    desktop-restore-frames t
-                   desktop-auto-save-timeout 5)
+                   desktop-auto-save-timeout 5
+                   desktop-load-locked-desktop t)
              (if (eq system-type 'windows-nt)
                  (setq desktop-dirname (expand-file-name "~/.emacs.d"))
                  (setq desktop-dirname "~/.local/emacs/desktop"))
@@ -97,6 +98,7 @@
              ; :hook
              ; (org-mode . (lambda () (set-face-attribute 'org-table nil :family "D2Coding" :height 180)))
              :config
+             (require 'org-tempo)
              (setq org-cycle-max-level 2
                    org-startup-indented t ; +STARTUP: indent
                    org-confirm-babel-evaluate nil ; Evaluate code block without confirmation
@@ -175,6 +177,10 @@
              ; (setq company-fuzzy-sorting-backend 'alphabetic)
              :config
              (global-company-fuzzy-mode 1))
+(use-package company-capf
+             :after company
+             :config
+             (add-to-list 'company-backends 'company-capf))
 
 (use-package valign
              :ensure t
