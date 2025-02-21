@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# TODO
+# curl '100.99.99.2:8021/ashtwin/00-fleeting/' | yq -p xml -o json | jq '.multistatus.response[].propstat.prop.displayname' | pbcopy
+
+target_file=$(mktemp -t fleeting)
+today=$(date +%y%m%d)
+nvim  "$target_file" +"norm i$today "
+
+if [ ! -s "$target_file" ]; then
+  echo "File is empty, exiting"
+  rm "$target_file"
+  exit 1
+fi
+
+file_name=$(head -n1 "$target_file" | sed 's/\n//g')
+file_content=$(tail -n+2 "$target_file")
+upload_url="http://100.99.99.2:8021/ashtwin/00-fleeting/$(
+  echo "$file_name" | jq -Rr '@uri' | perl -pe 's/%0A//g'
+).md"
+
+echo -e "URL: $upload_url"
+echo -e "File name: $file_name"
+echo -e "File content: $file_content"
+
+echo "$file_content" | curl "${upload_url}" -X PUT -T -
+
+rm "$target_file"
