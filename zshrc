@@ -114,9 +114,30 @@ ksw() {
 alias j="just"
 alias jl="JUST_JUSTFILE=justfile.local just"
 
-alias cdr="cd \$(git rev-parse --show-toplevel)"
 alias ~d="$HOME/dots"
 alias ~r="$HOME/room"
+
+alias cdr="cd \$(git rev-parse --show-toplevel)"
+
+function zp() {
+  # display: @/app
+  # move: ~/..
+  local git_root=$(git rev-parse --show-toplevel)
+  local cd_path=$(
+    fd --color never -td . "$git_root" \
+      | ruby -ne "BEGIN {puts '.'}; puts \$_.sub('$git_root/', '').chomp" \
+      | fzf \
+          --scheme=path \
+          --preview "lsd --tree --depth 2 $git_root/{+}" \
+          --preview-window 'right:40'
+  )
+
+  if [ -z "$cd_path" ]; then
+    return
+  fi
+
+  cd "$git_root/$cd_path"
+}
 
 ################################
 # Alias (Docker)
@@ -255,7 +276,7 @@ then
   zinit light reegnz/jq-zsh-plugin
 
   # zinit snippet 'https://github.com/asdf-vm/asdf/blob/master/completions/_asdf'
-  zinit snippet 'https://github.com/junegunn/fzf/blob/master/shell/completion.zsh'
+  # zinit snippet 'https://github.com/junegunn/fzf/blob/master/shell/completion.zsh'
   zinit snippet 'https://github.com/git/git/blob/master/contrib/completion/git-prompt.sh'
 else
   command -v git &>/dev/null \
@@ -288,6 +309,7 @@ if [[ "$_ZSH_INIT_MINIMAL" != true ]]; then
 
   command -v mise &>/dev/null && eval "$(mise completion zsh)"
   mise which just &>/dev/null && eval "$(mise x -- just --completions zsh)"
+  mise which fzf &>/dev/null && eval "$(mise x -- fzf --zsh)"
 fi
 
 bindkey '^I' expand-or-complete
@@ -327,6 +349,9 @@ export FZF_COMPLETION_TRIGGER=""
 bindkey '^F' fzf-completion
 
 #### command complete
+# elif eval "noglob type _fzf_complete_${cmd_word} >/dev/null"; then
+#   prefix="$prefix" eval _fzf_complete_${cmd_word} ${(q)lbuf}
+#   zle reset-prompt
 
 _fzf_compgen_path() {
   fd --type f --no-ignore-vcs --hidden --follow . "$1"
@@ -336,13 +361,9 @@ _fzf_compgen_dir() {
   fd --type d --no-ignore-vcs --hidden --follow . "$1"
 }
 
-# _fzf_dir_completion() {
-#   fd .
-# }
-
 _fzf_complete_make() {
-  _fzf_complete -m --preview 'echo {}' --preview-window down:3:wrap --min-height 15 -- "$@" < <(
-    command make help
+  _fzf_complete -m -- "$@" < <(
+    make help
   )
 }
 _fzf_complete_make_post() {
@@ -351,7 +372,7 @@ _fzf_complete_make_post() {
 
 _fzf_complete_m() {
   _fzf_complete --min-height 15 -- "$@" < <(
-    command mise tasks ls --no-header
+    mise tasks ls --no-header
   )
 }
 _fzf_complete_m_post() {
@@ -362,7 +383,8 @@ _fzf_complete_m_post() {
 _fzf_select_history_widget() {
   BUFFER="$(history | perl -e 'print reverse <>' |
     perl -pe 's/^\s*\d+\*?\s+//' |
-    awk '!a[$0]++ && length<256' |
+    awk '!a[$0]++ && 10<length && length<256' |
+    grep -v 'git add' -v 'g add' |
     fzf --height=40% --scheme=history --no-sort --query "$LBUFFER" |
     sed 's/\\n/\n/')"
   CURSOR=$#BUFFER             # cursor move to line end
@@ -415,7 +437,7 @@ _fzf_sub_complete() {
 _fzf_command_complete_g_post() { awk '{ print $2 }' }
 _fzf_command_complete_g() {
   _fzf_complete -m --preview 'echo {}' --preview-window down:3:wrap --min-height 15 -- "$@" < <(
-    command git status --short
+    git status --short
   )
 }
 
@@ -431,14 +453,14 @@ _fzf_command_complete_gb() {
 _fzf_command_complete_di_post() { awk '{ print $3 }' }
 _fzf_command_complete_di() {
   _fzf_complete -m --preview 'echo {} | awk "{print $3}" | xargs docker image inspect' --preview-window right:40%:wrap --min-height 15 -- "$@" < <(
-    command docker images
+    docker images
   )
 }
 
 _fzf_command_complete_dc_post() { awk '{ print $1 }' }
 _fzf_command_complete_dc() {
   _fzf_complete -m --preview 'echo {}' --preview-window down:3:wrap --min-height 15 -- "$@" < <(
-    command docker container ls
+    docker container ls
   )
 }
 
@@ -453,7 +475,7 @@ _fzf_command_complete_rise_dir() {
 
 _fzf_pane_complete() {
   _fzf_complete -m --min-height 15 -- "$@" < <(
-    tmux capture-pane -J -p -t $TMUX_PANE | perl -pe 's/\s+/\n/g;' | awk '!a[$0]++' | sort
+  tmux capture-pane -J -p -t $TMUX_PANE | perl -pe 's/\s+/\n/g;' | awk '!a[$0]++ && length($0)>8' | sort
   )
 }
 
@@ -501,56 +523,13 @@ _fzf_my_completion_hook() {
   esac
 }
 
-#### overwrite completion
-# https://github.com/junegunn/fzf/blob/master/shell/completion.zsh#L264
-fzf-completion() {
-  local tokens cmd prefix trigger tail matches lbuf d_cmds
-  setopt localoptions noshwordsplit noksh_arrays noposixbuiltins
-
-  # http://zsh.sourceforge.net/FAQ/zshfaq03.html
-  # http://zsh.sourceforge.net/Doc/Release/Expansion.html#Parameter-Expansion-Flags
-  tokens=(${(z)LBUFFER})
-  if [ ${#tokens} -lt 1 ]; then
-    zle ${fzf_default_completion:-expand-or-complete}
-    return
-  fi
-
-  cmd=$(__fzf_extract_command "$LBUFFER")
-
-  # Explicitly allow for empty trigger.
-  trigger=${FZF_COMPLETION_TRIGGER-'**'}
-  [ -z "$trigger" -a ${LBUFFER[-1]} = ' ' ] && tokens+=("")
-
-  # When the trigger starts with ';', it becomes a separate token
-  if [[ ${LBUFFER} = *"${tokens[-2]-}${tokens[-1]}" ]]; then
-    tokens[-2]="${tokens[-2]-}${tokens[-1]}"
-    tokens=(${tokens[0,-2]})
-  fi
-
-  lbuf=$LBUFFER
-  tail=${LBUFFER:$(( ${#LBUFFER} - ${#trigger} ))}
-
-  # Trigger sequence given
-  # if [ ${#tokens} -gt 1 -a "$tail" = "$trigger" ]; then
-  if [[ ${#tokens} -gt 1 && ( "$tail" == "$trigger" || "$tail" == :* ) ]]; then
-    d_cmds=(${=FZF_COMPLETION_DIR_COMMANDS:-cd pushd rmdir})
-
-    [ -z "$trigger"      ] && prefix=${tokens[-1]} || prefix=${tokens[-1]:0:-${#trigger}}
-    [ -n "${tokens[-1]}" ] && lbuf=${lbuf:0:-${#tokens[-1]}}
-
-    if _fzf_my_completion_hook "$prefix" "$lbuf"; then
-      zle reset-prompt
-    elif eval "type _fzf_complete_${cmd} > /dev/null"; then
-      prefix="$prefix" eval _fzf_complete_${cmd} ${(q)lbuf}
-      zle reset-prompt
-    elif [ ${d_cmds[(i)$cmd]} -le ${#d_cmds} ]; then
-      _fzf_dir_completion "$prefix" "$lbuf"
-    else
-      _fzf_path_completion "$prefix" "$lbuf"
-    fi
-  # Fall back to default completion
+# _fzf_complete_${cmd_word}
+# $1 : prefix, $2 : lbuf
+_fzf_path_completion () {
+  if _fzf_my_completion_hook "$1" "$2"; then
+    zle reset-prompt
   else
-    zle ${fzf_default_completion:-expand-or-complete}
+    __fzf_generic_path_completion "$1" "$2" _fzf_compgen_path "-m" "" " "
   fi
 }
 
