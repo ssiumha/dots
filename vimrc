@@ -44,6 +44,7 @@ vnoremap <silent> p p`]
 nnoremap <silent> p p`]
 
 nnoremap <esc><esc> :noh<cr>
+nnoremap <silent> * :let @/='\<<c-r>=expand("<cword>")<cr>\>'<cr>:set hls<cr>
 
 " key mapping more
 nnoremap <space>cd :cd %:p:h<cr>
@@ -57,7 +58,7 @@ set backspace=2 "indent,eol,start
 set nowrap
 set list listchars=tab:\|\ ,trail:-,nbsp:+,extends:>,precedes:<
 
-set timeoutlen=250
+set timeoutlen=300
 
 set iskeyword+=\-,$
 
@@ -94,6 +95,7 @@ autocmd ColorScheme * highlight Folded cterm=NONE ctermbg=236 ctermfg=145 gui=it
 
 " highlight FoldColumn cterm=NONE ctermbg=NONE guibg=NONE
 
+set foldminlines=5
 set fillchars=fold:\ ,vert:│
 " set foldcolumn=2
 " set foldtext=MyFoldText()
@@ -137,7 +139,7 @@ endif
 
 call plug#begin(expand('$HOME/.local/vim/plugged'))
 
-Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf' ", { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
   let $FZF_DEFAULT_COMMAND="fd -tf --hidden --no-ignore-vcs --follow --exclude 'tmp/' --exclude 'dist/' --exclude '.bundle/'"
   let g:fzf_preview_window = ['down,50%,<70(down,40%)', 'ctrl-/']
@@ -145,8 +147,10 @@ Plug 'junegunn/fzf.vim'
     let g:fzf_layout = { 'tmux': '90%,70%' }
   endif
 
-  nnoremap <space>p <esc>:Files<cr>
+  nnoremap <space>p  <esc>:Files<cr>
+  nnoremap <space>pp <esc>:Files<cr>
   nnoremap <space>p[ <esc>:History<cr>
+  nnoremap <space>pg <esc>:GitFiles<cr>
   nnoremap <space>pb <esc>:Buffers<cr>
   nnoremap <space>pt <esc>:Tags<cr>
   " nnoremap <space>ps <esc>:Snippets<cr> " TODO: symbol
@@ -208,22 +212,39 @@ Plug 'itchyny/lightline.vim'
   let g:lightline = {}
   let g:lightline.active = {
         \ 'left': [ [ 'mode', 'paste' ],
-        \           [ 'readonly', 'filename', 'modified' ],
+        \           [ 'readonly', 'filename', 'modified', 'method' ],
         \           [] ],
         \ 'right': [ [ 'lineinfo' ],
         \            [ 'percent' ],
         \            [ 'fileformat', 'fileencoding', 'filetype' ] ] }
   let g:lightline.inactive = {
-        \ 'left': [ [ 'filename' ] ],
+        \ 'left':  [ [ 'filename' ] ],
         \ 'right': [ [ 'lineinfo' ],
         \            [ 'percent' ] ] }
   let g:lightline.tabline = {
-        \ 'left': [ [ 'tabs' ] ],
+        \ 'left':  [ [ 'tabs' ] ],
         \ 'right': [ [ 'close' ] ] }
+  let g:lightline.tab = {
+        \ 'active': [ 'tabnum', 'filedir', 'modified' ],
+        \ 'inactive': [ 'tabnum', 'filedir', 'modified' ] }
+  let g:lightline.tab_component_function = {
+        \  'filedir': 'LightlineFiledir',
+        \ }
   let g:lightline.component_function = {
         \   'filename': 'LightlineFilename',
         \   'treesitter': 'LightlineTreesitter',
+        \   'method': 'NearestMethodOrFunction'
         \ }
+
+  function! LightlineFiledir(n) abort
+    let buflist = tabpagebuflist(a:n)
+    let winnr = tabpagewinnr(a:n)
+    let _ = expand('#'.buflist[winnr - 1].':p:h:t')
+    if _ !=# ''
+      return _.'/'.expand('#'.buflist[winnr - 1].':t')
+    endif
+    return '[No Name]'
+  endfunction
 
   function! LightlineFilename()
     let root = fnamemodify(get(b:, 'git_dir'), ':h')
@@ -245,6 +266,20 @@ Plug 'itchyny/lightline.vim'
     endtry
   endfunction
 
+Plug 'liuchengxu/vista.vim'
+  " let g:vista_fzf_opts = []
+  " let g:vista_fzf_preview = ['right:50%']
+  if has('nvim-0.6.0')
+    let g:vista_default_executive = 'nvim_lsp'
+  endif
+  let g:vista_keep_fzf_colors = 1
+  nnoremap <space>vv :Vista<cr>
+  nnoremap <space>vf :Vista finder<cr>
+  " augroup vista
+  "   autocmd!
+  "   autocmd TabEnter * silent! if &modifiable | Vista | endif
+  "   autocmd TabLeave * silent! if &modifiable | Vista! | endif
+  " augroup END
 
 Plug 'nanotech/jellybeans.vim'
 
@@ -255,19 +290,27 @@ Plug 'tpope/vim-dadbod'
 Plug 'kristijanhusak/vim-dadbod-ui'
 " Plug 'kristijanhusak/vim-dadbod-completion' "Optional
 
+Plug 'hrsh7th/vim-vsnip'
+  let g:vsnip_snippet_dir = expand('$HOME/dots/vim/snippets')
+  let g:vsnip_filetypes = {}
+  let g:vsnip_filetypes.typescriptreact = ['typescript']
+  imap <C-s> <Plug>(vsnip-expand-or-jump)
+  smap <C-s> <Plug>(vsnip-expand-or-jump)
+
 Plug 'powerman/vim-plugin-AnsiEsc'
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-surround'
+Plug 'AndrewRadev/tagalong.vim'
+Plug 'jiangmiao/auto-pairs'
 Plug 'michaeljsmith/vim-indent-object'
+Plug 'itchyny/vim-qfedit'
+" Plug 'thinca/vim-qfreplace'
 
-" ggandor/leap.nvim?
-" TODO: C-s 만 사용하고, 앞뒤 이동 ;, 로만 맞춰서 쓰기
 Plug 'justinmk/vim-sneak'
   let g:sneak#s_next = 1
-
-  nmap <m-c-s> <Plug>Sneak_S
-  nmap <c-s> <Plug>Sneak_s
+  " nmap <m-c-s> <Plug>Sneak_S
+  " nmap <c-s> <Plug>Sneak_s
 
 Plug 'jpalardy/vim-slime'
   let g:slime_target = 'tmux'
@@ -307,6 +350,14 @@ Plug 'dense-analysis/ale'
   " let g:ale_disable_lsp = 'auto'
   " let g:ale_completion_enabled = 1
   " set omnifunc=ale#completion#OmniFunc
+
+" TODO
+" Plug 'tpope/vim-endwise'
+
+Plug 'mattn/emmet-vim'
+  let g:user_emmet_leader_key = '<c-y>'
+  let g:user_emmet_install_global = 0
+  autocmd FileType html,css,typescriptreact EmmetInstall
 
 " Lang
 Plug 'tpope/vim-rails', { 'for': 'ruby' }
@@ -420,6 +471,7 @@ augroup filetype_all
   autocmd StdinReadPost * setlocal nowrap buftype=nofile
 
   autocmd FileType qf nnoremap <buffer> q :cclose<cr>
+  autocmd FileType qf nnoremap <buffer> t :tabe <cfile><cr>:copen<cr>
 
   autocmd CursorHold,FocusGained * checktime
 augroup END
