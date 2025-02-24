@@ -21,12 +21,65 @@ require('packer').startup(function(use)
   use 'williamboman/mason-lspconfig.nvim'
 
   use 'nvimdev/lspsaga.nvim'
+  use { 'catgoose/nvim-colorizer.lua',
+    config = function()
+      require'colorizer'.setup({
+        -- filetypes = { 'html', 'css', 'scss', 'javascript', 'typescript', 'typescriptreact', 'vue', 'yaml', 'json', 'markdown' },
+        user_default_options = {
+          tailwind = 'normal',
+          mode        = 'virtualtext',
+          virtualtext = '■',
+          virtualtext_mode   = 'foreground',
+          virtualtext_inline = 'before',
+        }
+      })
+    end
+  }
+  use {
+    'stevearc/quicker.nvim',
+    disable = true,
+    config = function()
+      require("quicker").setup()
+    end,
+  }
 
-  use 'hrsh7th/nvim-cmp'
   use 'hrsh7th/cmp-nvim-lsp'
   use 'hrsh7th/cmp-buffer'
   use 'hrsh7th/cmp-path'
   use 'hrsh7th/cmp-cmdline'
+  use 'hrsh7th/cmp-vsnip'
+  use { 'hrsh7th/nvim-cmp', config = function()
+    local cmp = require'cmp'
+    cmp.setup{
+      snippet = {
+        expand = function(args)
+          vim.fn["vsnip#anonymous"](args.body)
+        end,
+      },
+      mapping = {
+        ['<C-e>'] = cmp.mapping.abort(),
+        ['<C-n>'] = cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Insert }),
+        ['<C-p>'] = cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Insert }),
+        ['<PageUp>'] = cmp.mapping.scroll_docs(-4),
+        ['<PageDown>'] = cmp.mapping.scroll_docs(4),
+        ['<CR>']  = cmp.mapping.confirm({ select = true }),
+        -- ['<Tab>'] = cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Select }),
+        -- ['<S-Tab>'] = cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Select }),
+      },
+      -- sources = cmp.config.sources(
+      --   { { name = 'nvim_lsp' } },
+      --   { { name = 'buffer' } }),
+      sources = cmp.config.sources({
+        { name = 'vsnip' },
+        { name = 'nvim_lsp' },
+        { name = 'path' },
+        -- { name = 'buffer' },
+        -- { name = 'cmdline' },
+      }, {
+        { name = 'buffer' },
+      }),
+    }
+  end }
 
   use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate' }
   use 'nvim-treesitter/nvim-treesitter-context'
@@ -35,9 +88,18 @@ require('packer').startup(function(use)
   use 'lukas-reineke/indent-blankline.nvim'
   use 'HiPhish/rainbow-delimiters.nvim'
 
-  use 'lewis6991/gitsigns.nvim'
+  use { 'lewis6991/gitsigns.nvim', config = function() require('gitsigns').setup() end }
 
   use 'ibhagwan/fzf-lua'
+
+  use {
+    'andymass/vim-matchup',
+    setup = function()
+      vim.g.matchup_matchparen_offscreen = { method = "popup" }
+      vim.g.matchup_matchparen_deferred = 1
+      vim.g.matchup_matchparen_hi_surround_always = 1
+    end
+  }
 
   -- Require plugins for avante.nvim
   use 'stevearc/dressing.nvim'
@@ -46,12 +108,12 @@ require('packer').startup(function(use)
   use 'MeanderingProgrammer/render-markdown.nvim'
 
   -- Optional dependencies for avante.nvim
-  -- use 'hrsh7th/nvim-cmp'
   -- use 'nvim-tree/nvim-web-devicons' -- or use 'echasnovski/mini.icons'
   -- use 'HakonHarnes/img-clip.nvim'
   -- use 'zbirenbaum/copilot.lua'
   use {
     'yetone/avante.nvim',
+    disable = true,
     branch = 'main',
     run = 'make',
     config = function()
@@ -77,8 +139,10 @@ vim.api.nvim_create_autocmd("LspAttach", {
     vim.keymap.set("n", "<c-]>",      vim.lsp.buf.definition, opts)
     vim.keymap.set("n", "K",          vim.lsp.buf.hover, opts)
     vim.keymap.set("n", "<space>lD",  function() vim.diagnostic.setqflist({ open = true }) end, opts)
+    -- vim.keymap.set('n', '<space>ld', ':Lspsaga show_cursor_diagnostics<cr>', opts)
+    vim.keymap.set('n', '<space>lp', ':Lspsaga diagnostic_jump_prev<cr>', opts)
+    vim.keymap.set('n', '<space>ln', ':Lspsaga diagnostic_jump_next<cr>', opts)
     vim.keymap.set('n', '<space>la', ':Lspsaga code_action<cr>', opts)
-    vim.keymap.set('n', '<space>ld', ':Lspsaga show_cursor_diagnostics<cr>', opts)
     -- vim.keymap.set("n", "<space>la", vim.lsp.buf.code_action, opts)
   end,
 })
@@ -125,12 +189,46 @@ local function fzf_command(commands)
   })
 end
 
+vim.api.nvim_set_keymap('n', '<space>ps', "<cmd>lua require('fzf-lua').lsp_live_workspace_symbols({ caseSensitive = true })<cr>", { noremap = true, silent = true })
+
 vim.api.nvim_create_user_command('FzfLuaTest', function()
   fzf_command({
     ['print'] = function() print('test') end,
     ['open'] = function() vim.cmd('edit ~/.config') end,
   })
 end, {})
+
+function CloseAllFunctionFolds()
+  local ts = vim.treesitter
+  local parsers = require("nvim-treesitter.parsers")
+
+  local bufnr = vim.api.nvim_get_current_buf()
+  if not parsers.has_parser() then
+    print("No Treesitter parser found for current buffer")
+    return
+  end
+
+  local parser = parsers.get_parser(bufnr)
+  local tree = parser:parse()[1]
+  local root = tree:root()
+
+  local query = ts.query.parse(
+    vim.bo.filetype,
+    [[
+      (function_declaration) @func
+      (method_signature) @func
+    ]]
+    -- [[
+    --   (function_declaration) @func
+    --   (method_declaration) @func
+    -- ]]
+  )
+
+  for _, node, _ in query:iter_captures(root, bufnr, 0, -1) do
+    local start_line, _, _, _ = node:range()
+    vim.cmd(start_line + 1 .. "foldclose")
+  end
+end
 
 -------------------
 -- williamboman/mason.nvim
@@ -209,36 +307,6 @@ vim.api.nvim_create_autocmd('LspAttach', {
   end
 })
 
-
--------------------
--- hrsh7th/nvim-cmp
--------------------
--- local capabilities = require('cmp_nvim_lsp').default_capabilities()
-local cmp = require'cmp'
-cmp.setup({
-  snippet = {
-    expand = function(args)
-      -- require('snippy').expand_snippet(args.body)
-      -- vim.snippet.expand(args.body) -- For native neovim snippets (Neovim v0.10+)
-    end,
-  },
-  window = {
-    -- completion = cmp.config.window.bordered(),
-    -- documentation = cmp.config.window.bordered(),
-  },
-  mapping = cmp.mapping.preset.insert({
-    -- ['<C-b>'] = cmp.mapping.scroll_docs(-4),
-    -- ['<C-f>'] = cmp.mapping.scroll_docs(4),
-    -- ['<C-Space>'] = cmp.mapping.complete(),
-    ['<C-e>'] = cmp.mapping.abort(),
-    ['<CR>'] = cmp.mapping.confirm({ select = true })
-  }),
-  sources = cmp.config.sources(
-    { { name = 'nvim_lsp' }, },
-    { { name = 'buffer' }, })
-})
-
-
 ----------------------------------
 -- nvim-treesitter/nvim-treesitter
 ----------------------------------
@@ -253,6 +321,11 @@ require'nvim-treesitter.configs'.setup {
     enable = true,
     additional_vim_regex_highlighting = false,
     -- disable = { 'embedded_template' }
+  },
+
+  matchup = {
+    enable = true
+    -- disable = { 'ruby' }
   },
 
   textobjects = {
@@ -480,9 +553,3 @@ vim.g.rainbow_delimiters = {
 --     whitespace = { highlight = highlight, remove_blankline_trail = true },
 --     scope = { highlight = highlight, enabled = true, char = "▎", show_exact_scope = true },
 -- }
-
-
---------------------------------------
--- lewis6991/gitsigns.nvim
---------------------------------------
-require('gitsigns').setup()
