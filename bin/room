@@ -13,12 +13,17 @@ when :portal
   name = ARGV.shift
   addr = `pwd`.gsub('/', '!').chomp
 
-  `touch ~/room/portal/#{addr}!#{name}`
+  if name.end_with?('/')
+    name = name[0..-2]
+    `mkdir ~/room/portal/#{addr}!#{name}`
+  else
+    `touch ~/room/portal/#{addr}!#{name}`
+  end
 
   if $?.success?
     `ln -s ~/room/portal/#{addr}!#{name} ./#{name}`
     puts "Created a portal to #{name}"
   else
-    puts "Failed to create a portal"
+    puts 'Failed to create a portal'
   end
 end

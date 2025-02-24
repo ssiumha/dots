@@ -18,7 +18,7 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-cd $HOME/dots/snips
+cd "$HOME/dots/snips" || exit 1
 
 ft=$1
 fp=$2
@@ -26,6 +26,7 @@ snips=("all.snips")
 [ -r "$ft.snips" ] && snips+=("$ft.snips")
 
 case $ft in
+  typescriptreact) snips+=("typescript.snips") ;;
   typescript) snips+=("javascript.snips") ;;
   javascript)
     case $fp in
@@ -86,18 +87,18 @@ rg --with-filename --color=never '^snippet ' ${snips[@]} \
           | bat --plain --color always --language ruby' \
         --preview-window 'bottom:nowrap' \
         --bind 'ctrl-e:become(nvim {3})' \
-        --bind 'enter:become(perl -ne "\$a=sprintf {1}; print if /^snippet \$a\b/../endsnippet/ and not /^snippet|endsnippet/" {3} > '$tmpfile')'
+        --bind 'enter:become(perl -ne "\$a=sprintf {1}; print if /^snippet \$a\b/../endsnippet/ and not /^snippet|endsnippet/" {3} > '"$tmpfile"')'
 
 if [ ! -s "$tmpfile" ]; then
   exit 1
 fi
 
-replace_words=$(perl -nle 'print "$1" if /##{(.+?)}/' $tmpfile | sort -r | perl -nle '/(^\d+)/; print unless $seen{$1}++' | sort)
+replace_words=$(perl -nle 'print "$1" if /##{(.+?)}/' "$tmpfile" | sort -r | perl -nle '/(^\d+)/; print unless $seen{$1}++' | sort)
 
-if [ ! -z "$replace_words" ]; then
+if [ -n "$replace_words" ]; then
   echo "$replace_words" | while IFS=$'\n' read -r line; do
-    rnum=$(echo $line | perl -ne '/(\d+):?(.+)?/; print $1')
-    rdefault=$(echo $line | perl -ne '/(\d+):?(.+)?/; print $2')
+    rnum=$(echo "$line" | perl -ne '/(\d+):?(.+)?/; print $1')
+    rdefault=$(echo "$line" | perl -ne '/(\d+):?(.+)?/; print $2')
 
     input_word=$(echo '' | fzf --delimiter "\t" --query "$rdefault" \
       --header "$line" \
@@ -109,8 +110,8 @@ if [ ! -z "$replace_words" ]; then
     if [ -z "$input_word" ]; then
       input_word=$rdefault
     fi
-    perl -i -pe "s;\##\{$rnum.*?};$input_word;g" $tmpfile
+    perl -i -pe "s;\##\{$rnum.*?};$input_word;g" "$tmpfile"
   done
 fi
 
-cat $tmpfile
+cat "$tmpfile"
