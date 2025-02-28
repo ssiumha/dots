@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # TODO
-# curl '100.99.99.2:8021/ashtwin/00-fleeting/' | yq -p xml -o json | jq '.multistatus.response[].propstat.prop.displayname' | pbcopy
+# curl -XPROPFIND '100.99.99.2:8021/ashtwin/00-fleeting/' | yq -p xml -o json | jq '.multistatus.response[].propstat.prop.displayname' | pbcopy
 
 target_file=$(mktemp -t fleeting)
 today=$(date +%y%m%d)
@@ -13,7 +13,7 @@ if [ ! -s "$target_file" ]; then
   exit 1
 fi
 
-file_name=$(head -n1 "$target_file" | sed 's/\n//g')
+file_name=$(head -n1 "$target_file" | sed 's/\n//g' | perl -pe 's/[^a-zA-Z0-9ㄱ-ㅎ가-힣 ]/_/g')
 file_content=$(tail -n+2 "$target_file")
 upload_url="http://100.99.99.2:8021/ashtwin/00-fleeting/$(
   echo "$file_name" | jq -Rr '@uri' | perl -pe 's/%0A//g'
