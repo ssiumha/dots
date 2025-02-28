@@ -48,6 +48,7 @@ nnoremap <silent> * :let @/='\<<c-r>=expand("<cword>")<cr>\>'<cr>:set hls<cr>
 
 " key mapping more
 nnoremap <space>cd :cd %:p:h<cr>
+nnoremap <space>cdr :exe 'cd ' . system('git rev-parse --show-toplevel')<CR>
 nnoremap <space>lc :lc %:p:h<cr>
 
 " edit
@@ -60,6 +61,7 @@ set list listchars=tab:\|\ ,trail:-,nbsp:+,extends:>,precedes:<
 
 set timeoutlen=300
 
+set isfname+=\[,\],\(,\)
 set iskeyword+=\-,$
 
 set completeopt=menu,menuone,longest
@@ -74,6 +76,7 @@ set cursorcolumn
 " terminal
 
 if has('nvim')
+  set signcolumn=yes
   set scrollback=50000
   set laststatus=3 " global status line
 endif
@@ -147,8 +150,14 @@ Plug 'junegunn/fzf.vim'
     let g:fzf_layout = { 'tmux': '90%,70%' }
   endif
 
+  command! Dirs call fzf#run(fzf#wrap({
+    \ 'source': 'fd -td',
+    \ 'sink': 'tabe'
+    \ }))
+
   nnoremap <space>p  <esc>:Files<cr>
   nnoremap <space>pp <esc>:Files<cr>
+  nnoremap <space>pd <esc>:Dirs<cr>
   nnoremap <space>p[ <esc>:History<cr>
   nnoremap <space>pg <esc>:GitFiles<cr>
   nnoremap <space>pb <esc>:Buffers<cr>
@@ -156,8 +165,8 @@ Plug 'junegunn/fzf.vim'
   " nnoremap <space>ps <esc>:Snippets<cr> " TODO: symbol
   nnoremap <space>pc <esc>:Commands<cr>
   nnoremap <space>pj <esc>:Jumps<cr>
-  nnoremap <space>pl <esc>:Lines<cr>
-  nnoremap <space>pL <esc>:BLines<cr>
+  nnoremap <space>pll <esc>:Lines<cr>
+  nnoremap <space>plb <esc>:BLines<cr>
   nnoremap <space>pm <esc>:Marks<cr>
   nnoremap <space>pr <esc>:Rg<space>
 
@@ -302,10 +311,13 @@ Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-surround'
 Plug 'AndrewRadev/tagalong.vim'
-Plug 'jiangmiao/auto-pairs'
+" Plug 'jiangmiao/auto-pairs'
+Plug 'cohama/lexima.vim'
 Plug 'michaeljsmith/vim-indent-object'
 Plug 'itchyny/vim-qfedit'
-" Plug 'thinca/vim-qfreplace'
+Plug 'stefandtw/quickfix-reflector.vim'
+  " let g:qf_write_changes = 0
+Plug 'thinca/vim-qfreplace'
 
 Plug 'justinmk/vim-sneak'
   let g:sneak#s_next = 1
@@ -471,7 +483,7 @@ augroup filetype_all
   autocmd StdinReadPost * setlocal nowrap buftype=nofile
 
   autocmd FileType qf nnoremap <buffer> q :cclose<cr>
-  autocmd FileType qf nnoremap <buffer> t :tabe <cfile><cr>:copen<cr>
+  autocmd FileType qf nnoremap <buffer> t 0:tabe <cfile><cr>:copen<cr>
 
   autocmd CursorHold,FocusGained * checktime
 augroup END

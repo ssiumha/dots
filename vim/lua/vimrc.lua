@@ -20,7 +20,18 @@ require('packer').startup(function(use)
   use 'williamboman/mason.nvim'
   use 'williamboman/mason-lspconfig.nvim'
 
-  use 'nvimdev/lspsaga.nvim'
+  use { 'nvimdev/lspsaga.nvim',
+    config = function()
+      require('lspsaga').setup({
+        symbol_in_winbar = {
+          enable = false
+        },
+        lightbulb = {
+          enable = false
+        }
+      })
+    end
+  }
   use { 'catgoose/nvim-colorizer.lua',
     config = function()
       require'colorizer'.setup({
@@ -134,12 +145,19 @@ vim.api.nvim_create_autocmd("LspAttach", {
   callback = function(ev)
     local opts = { buffer = ev.buf, silent = true, noremap = true }
 
+    -- vim.lsp.buf.document_symbol -> vista
+    -- vim.lsp.buf.workspace_symbol
+    -- vim.lsp.buf.signature_help -- function arguments
+    -- vim.lsp.buf.rename
+    -- vim.diagnostic.open_float
     vim.keymap.set("n", "gd",         vim.lsp.buf.declaration, opts)
     vim.keymap.set("n", "gi",         vim.lsp.buf.implementation, opts)
+    vim.keymap.set("n", "gI",         vim.lsp.buf.type_definition, opts)
+    vim.keymap.set("n", "gr",         vim.lsp.buf.references, opts)
     vim.keymap.set("n", "<c-]>",      vim.lsp.buf.definition, opts)
     vim.keymap.set("n", "K",          vim.lsp.buf.hover, opts)
     vim.keymap.set("n", "<space>lD",  function() vim.diagnostic.setqflist({ open = true }) end, opts)
-    -- vim.keymap.set('n', '<space>ld', ':Lspsaga show_cursor_diagnostics<cr>', opts)
+    vim.keymap.set('n', '<space>ld', ':Lspsaga show_cursor_diagnostics<cr>', opts)
     vim.keymap.set('n', '<space>lp', ':Lspsaga diagnostic_jump_prev<cr>', opts)
     vim.keymap.set('n', '<space>ln', ':Lspsaga diagnostic_jump_next<cr>', opts)
     vim.keymap.set('n', '<space>la', ':Lspsaga code_action<cr>', opts)
@@ -296,16 +314,6 @@ require("mason-lspconfig").setup {
     end,
   }
 }
-
-vim.api.nvim_create_autocmd('LspAttach', {
-  callback = function()
-    require('lspsaga').setup{
-      -- diagnostic = {
-      --   on_insert = false,
-      -- }
-    }
-  end
-})
 
 ----------------------------------
 -- nvim-treesitter/nvim-treesitter
