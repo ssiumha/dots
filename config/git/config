@@ -4,6 +4,26 @@
   editor = nvim
   pager = delta
   autocrlf = no
+
+  # 파일 변경 감지 속도 향상
+  fsmonitor = true
+  untrackedCache = true
+[init]
+  defaultBranch = main
+[column]
+  ui = auto
+[branch]
+  sort = -committerdate
+[tag]
+  sort = version:refname
+[commit]
+  verbose = true
+[rebase]
+  autoSquash = true
+  autoStash = true
+  updateRefs = true
+[help]
+  autocorrect = prompt
 [log]
   date = format:%y-%m-%d %H:%M
 [delta]
@@ -11,14 +31,29 @@
   # delta --diff-so-fancy --show-config
   plus-style = syntax "#114411"
   navigate = true
+  line-numbers = true
+  hyperlinks = true
+  # side-by-side = true
 [rerere]
   enabled = true
+  autoupdate = true
 [push]
   # push local_branch_name => remote/local_branch_name
   default = current
+  autoSetupRemote = true
+  followTags = true
+[fetch]
+  prune = true
+  pruneTags = true
+  all = true
+[pull]
+  rebase = true
+  ff = only
 [diff]
-  colorMoved = default
+  colorMoved = plain
   algorithm = histogram
+  mnemonicPrefix = true
+  renames = true
 [merge]
   ; conflictstyle = zdiff3
 ; [url "git@github.com:"]
