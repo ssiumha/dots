@@ -22,6 +22,7 @@ setopt autocd             # omit `cd`
 setopt auto_pushd         # works auto pushd when cd
 setopt pushd_ignore_dups  # uniq directory stack
 setopt pushdminus         # can use -, $OLDPWD, when pushed
+setopt no_nomatch         # no error when 'app/(router)/...'
 
 ################################
 # Path
@@ -117,7 +118,17 @@ alias jl="JUST_JUSTFILE=justfile.local just"
 alias ~d="$HOME/dots"
 alias ~r="$HOME/room"
 
-alias cdr="cd \$(git rev-parse --show-toplevel)"
+function cdr() {
+  local git_root=$(git rev-parse --show-toplevel)
+  cd "$git_root/$1"
+}
+_fzf_complete_cdr() {
+  local git_root=$(git rev-parse --show-toplevel)
+  _fzf_complete --min-height 15 -- "$@" < <(
+    fd --color never -td . "$git_root" \
+      | ruby -ne "BEGIN {puts '.'}; puts \$_.sub('$git_root/', '').chomp"
+  )
+}
 
 function zp() {
   # display: @/app
@@ -128,7 +139,7 @@ function zp() {
       | ruby -ne "BEGIN {puts '.'}; puts \$_.sub('$git_root/', '').chomp" \
       | fzf \
           --scheme=path \
-          --preview "lsd --tree --depth 2 $git_root/{+}" \
+          --preview "lsd --color always --tree --depth 2 $git_root/{+}" \
           --preview-window 'right:40'
   )
 
@@ -384,7 +395,7 @@ _fzf_select_history_widget() {
   BUFFER="$(history | perl -e 'print reverse <>' |
     perl -pe 's/^\s*\d+\*?\s+//' |
     awk '!a[$0]++ && 10<length && length<256' |
-    grep -v 'git add' -v 'g add' |
+    grep -v 'git add' |
     fzf --height=40% --scheme=history --no-sort --query "$LBUFFER" |
     sed 's/\\n/\n/')"
   CURSOR=$#BUFFER             # cursor move to line end
