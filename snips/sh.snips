@@ -517,3 +517,13 @@ for key in "${!dict[@]}"; do
   echo "$key: ${dict[$key]}"
 done
 endsnippet
+
+snippet sq_command_preset ""
+db="@db"
+
+sq inspect "${db}"
+
+sq "${db} | .user | count()"
+
+sq "${db} | .user | where(.age > 20) | .name | .[0:3]"
+endsnippet
