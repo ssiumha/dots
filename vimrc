@@ -157,7 +157,13 @@ Plug 'junegunn/fzf.vim'
 
   nnoremap <space>p  <esc>:Files<cr>
   nnoremap <space>pp <esc>:Files<cr>
+  nnoremap <space>p1 <esc>:Files %:p:h<cr>
+  nnoremap <space>p2 <esc>:Files %:p:h:h<cr>
+  nnoremap <space>p3 <esc>:Files %:p:h:h:h<cr>
+  nnoremap <space>p4 <esc>:Files %:p:h:h:h:h<cr>
+  nnoremap <space>p5 <esc>:Files %:p:h:h:h:h:h<cr>
   nnoremap <space>pd <esc>:Dirs<cr>
+  " nnoremap <space>pcd <esc>:GitDirs<cr> TODO: change directory
   nnoremap <space>p[ <esc>:History<cr>
   nnoremap <space>pg <esc>:GitFiles<cr>
   nnoremap <space>pb <esc>:Buffers<cr>
@@ -267,6 +273,7 @@ Plug 'itchyny/lightline.vim'
   " TODO yaml
   " InspectTree
   " echo nvim_treesitter#statusline({ "type_patterns": ['flow_node'] })
+
   function! LightlineTreesitter()
     try
       return nvim_treesitter#statusline(100)
@@ -307,17 +314,7 @@ Plug 'hrsh7th/vim-vsnip'
   smap <C-s> <Plug>(vsnip-expand-or-jump)
 
 Plug 'powerman/vim-plugin-AnsiEsc'
-Plug 'tpope/vim-commentary'
-Plug 'tpope/vim-repeat'
-Plug 'tpope/vim-surround'
-Plug 'AndrewRadev/tagalong.vim'
-" Plug 'jiangmiao/auto-pairs'
-Plug 'cohama/lexima.vim'
 Plug 'michaeljsmith/vim-indent-object'
-Plug 'itchyny/vim-qfedit'
-Plug 'stefandtw/quickfix-reflector.vim'
-  " let g:qf_write_changes = 0
-Plug 'thinca/vim-qfreplace'
 
 Plug 'justinmk/vim-sneak'
   let g:sneak#s_next = 1
@@ -366,16 +363,43 @@ Plug 'dense-analysis/ale'
 " TODO
 " Plug 'tpope/vim-endwise'
 
+" Edit
+Plug 'tpope/vim-commentary'
+Plug 'tpope/vim-repeat'
+Plug 'tpope/vim-surround'
+Plug 'AndrewRadev/tagalong.vim' " auto fix matched tag
+Plug 'cohama/lexima.vim' " auto close parentheses
+Plug 'wellle/targets.vim' " extend text objects
+
+Plug 'itchyny/vim-qfedit'
+Plug 'stefandtw/quickfix-reflector.vim'
+  " let g:qf_write_changes = 0
+Plug 'thinca/vim-qfreplace'
+
 Plug 'mattn/emmet-vim'
   let g:user_emmet_leader_key = '<c-y>'
   let g:user_emmet_install_global = 0
+  inoremap <C-y><c-y> <plug>(emmet-expand-abbr)
   autocmd FileType html,css,typescriptreact EmmetInstall
+
+  " TODO
+  " let g:user_emmet_settings = {}
+  " let g:user_emmet_settings.perl = { 'aliases': { 'req': "require '|'" }, 'snippets': { 'w': "warn \"${cursor}\";" } }
 
 " Lang
 Plug 'tpope/vim-rails', { 'for': 'ruby' }
 Plug 'hashivim/vim-terraform', { 'for': 'terraform' }
 Plug 'elixir-editors/vim-elixir', { 'for': 'elixir' }
 Plug 'NoahTheDuke/vim-just', { 'for': 'just' }
+Plug 'diepm/vim-rest-console', { 'for': 'rest' }
+  let g:vrc_include_response_header = 1
+  let g:vrc_response_default_content_type = 'application/json'
+  let g:vrc_show_command = 1
+  let g:vrc_curl_opts = { '-s': '' }
+  let g:vrc_debug = 0
+  let g:vrc_auto_format_response_patterns = {
+        \   'json': 'jq',
+        \}
 
 Plug 'github/copilot.vim'
   let g:copilot_filetypes = {

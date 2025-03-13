@@ -534,6 +534,43 @@ vim.g.rainbow_delimiters = {
 }
 
 --------------------------------------
+--- render-markdown
+--------------------------------------
+vim.api.nvim_set_hl(0, 'RenderMarkdownH1Bg', { bg = '#2E3440' })
+vim.api.nvim_set_hl(0, 'RenderMarkdownH2Bg', { bg = '#3B4252' })
+vim.api.nvim_set_hl(0, 'RenderMarkdownH3Bg', { bg = '#434C5E' })
+vim.api.nvim_set_hl(0, 'RenderMarkdownH4Bg', { bg = '#4C566A' })
+vim.api.nvim_set_hl(0, 'RenderMarkdownH5Bg', { bg = '#4C566A' })
+vim.api.nvim_set_hl(0, 'RenderMarkdownH6Bg', { bg = '#5E81AC' })
+vim.api.nvim_set_hl(0, 'RenderMarkdownH1', { fg = '#ECEFF4' })
+vim.api.nvim_set_hl(0, 'RenderMarkdownH2', { fg = '#ECEFF4' })
+vim.api.nvim_set_hl(0, 'RenderMarkdownH3', { fg = '#ECEFF4' })
+vim.api.nvim_set_hl(0, 'RenderMarkdownH4', { fg = '#ECEFF4' })
+vim.api.nvim_set_hl(0, 'RenderMarkdownH5', { fg = '#ECEFF4' })
+vim.api.nvim_set_hl(0, 'RenderMarkdownH6', { fg = '#ECEFF4' })
+vim.api.nvim_set_hl(0, 'markdownH1', { fg = '#ECEFF4' })
+vim.api.nvim_set_hl(0, 'markdownH2', { fg = '#ECEFF4' })
+vim.api.nvim_set_hl(0, 'markdownH3', { fg = '#ECEFF4' })
+vim.api.nvim_set_hl(0, 'markdownH4', { fg = '#ECEFF4' })
+vim.api.nvim_set_hl(0, 'markdownH5', { fg = '#ECEFF4' })
+vim.api.nvim_set_hl(0, 'markdownH6', { fg = '#ECEFF4' })
+
+require('render-markdown').setup({
+  heading = {
+    enabled = true,
+    width = 'block',
+    border = true,
+    above = '',
+  },
+  indent = {
+    enabled = true,
+    width = 2,
+    skip_level = 1,
+    skip_heading = true,
+  },
+})
+
+--------------------------------------
 -- lukas-reineke/indent-blankline.nvim
 --------------------------------------
 -- local highlight = {
