@@ -1,12 +1,13 @@
 #!/bin/bash
 
-rg --heading --sort=path --line-number $@ \
+search_term="${@: -1}"
+options=("${@:1:$#-1}")
+
+rg --heading --sort=path --line-number "${options[@]}" "$search_term" \
   | nvim \
-    +'match RgHeading /\v^\S+/' \
-    +'hi RgHeading ctermfg=yellow guifg=yellow'
-
-# heading : purple
-# number: green
-#
-    # +'match RgHide /\v^\d+:-.+/' \
-
+    +'syntax match RgHeading /\v^\S+/ | ' \
+    +'hi RgHeading ctermfg=DarkMagenta guifg=#af00d7' \
+    +'syntax match RgLine /\v^\d+:/' \
+    +'hi RgLine ctermfg=green guifg=#00af00'\
+    +'hi RgSearch ctermfg=DarkRed guifg=#DarkRed'\
+    +"call matchadd('RgSearch', '\\v$search_term')"
