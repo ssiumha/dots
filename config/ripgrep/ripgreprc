@@ -31,3 +31,6 @@
 -g=!public/assets
 -g=!tsconfig.tsbuildinfo
 -g=!.dart_tool
+-g=!.aider.*
+-g=!.aider/
+-g=!.nx/

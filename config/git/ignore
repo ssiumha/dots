@@ -14,6 +14,10 @@ compose.local.yaml
 .idea
 .ignore
 .note
+.aider*
+.clinerules
+.ai
+.claude
 
 ## asdf, env
 .direnv/
@@ -21,6 +25,7 @@ compose.local.yaml
 .envrc
 .mise.toml
 .mise/
+.mise
 .tool-versions
 justfile
 
