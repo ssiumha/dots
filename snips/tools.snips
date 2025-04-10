@@ -1,0 +1,5 @@
+snippet logdy "simple pipeline log to web UI to written go"
+# https://github.com/logdyhq/logdy-core
+
+tail -f file.log | logdy
+endsnippet

@@ -38,6 +38,34 @@ snippet use_alias "can use like ruby@dots"
 dots = '3.3.0'
 endsnippet
 
+snippet secret "can check `mise env`"
+# can config env
+# [sops]
+# age_key = ""
+# age_key_file = ""
+
+[env]
+# MISE_SOPS_AGE_KEY = "age_key"
+MISE_SOPS_AGE_KEY_FILE = ".mise/age.txt"
+_.file = ".env.enc.json"
+
+[tools]
+sops = "latest"
+age = "latest"
+
+[tasks."secret:edit"]
+run = "sops edit --age "<public key>" {{env.file}}"
+
+[tasks."secret:generate"]
+run = """
+if [ -z "{{env.MISE_SOPS_AGE_KEY}}" ]; then
+  age-keygen -o .mise/age.txt
+else
+  echo "Already exists"
+fi
+"""
+endsnippet
+
 snippet task_run ""
 [tasks."run"]
 env = { APP_ENV = "local" }
@@ -63,6 +91,19 @@ depends = ["build"]
 # run = "app.rb"
 endsnippet
 
+snippet task_config ""
+# mise-tasks/:task_name
+# .mise-tasks/:task_name
+# mise/tasks/:task_name
+# .mise/tasks/:task_name
+
+[task_config]
+includes = [
+  "tasks.toml",
+  "mytasks/"
+]
+endsnippet
+
 snippet task_watch_build "run if sources is newer than mycli"
 [tasks."build"]
 run = "cargo build"
@@ -75,6 +116,47 @@ endsnippet
 
 snippet task_with_arguments ""
 run = "docker compose logs {{arg(i=0)}}"
+endsnippet
+
+snippet arguments ""
+# mise run test foo bar --e2e-args baz
+run = [
+  'cargo test {{arg(name="cargo_test_args", var=true)}}',
+  './scripts/test-e2e.sh {{option(name="e2e_args")}}',
+]
+
+# positional arguments
+#  - i : index
+#  - name : name. used help, error
+#  - var : if true, multiple arguments can be passed
+#  - default : default value
+run = 'cargo test {{arg(name="file")}}'
+
+# option arguments
+#  - name : name. used help, error
+#  - var : if true, multiple arguments can be passed
+#  - default : default value
+run = './scripts/test-e2e.sh {{option(name="e2e_args")}}'
+
+# flags
+# use: `mise run test --verbose`
+run = 'cargo test {{flag(name="verbose")}}'
+endsnippet
+
+snippet usage ""
+[tasks.add-user]
+description = "Add a user"
+usage = '''
+arg "<user>" default="unknown"
+complete "user" run="mise run list-users-completion"
+'''
+run = 'echo {{arg(name="user")}}'
+
+[tasks.list-users-completion]
+hide = true
+quiet = true # this is mandatory to make completion work (makes the mise command just print "alice bob charlie")
+description = "List users"
+run = 'echo "alice\nbob\ncharlie"'
 endsnippet
 
 snippet use_task_with_variables ""

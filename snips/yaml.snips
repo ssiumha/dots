@@ -1,0 +1,6 @@
+snippet sops ".sops.yaml"
+creation_rules:
+  - path_regex: '\.enc\.env'
+    encrypted_regex: "^(password|api_key)$"
+    pgp: 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
+endsnippet

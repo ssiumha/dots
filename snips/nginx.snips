@@ -1,18 +1,47 @@
+snippet base "/config/nginx/nginx.conf"
+worker_processes 1; # or auto
+
+events {
+  worker_connections 1024;
+}
+
+http {
+  include mime.types;
+  default_type application/octet-stream;
+
+  sendfile on;
+  keepalive_timeout 65;
+
+  server {
+    listen 80;
+    server_name localhost;
+
+    location / {
+      root /usr/share/nginx/html;
+      index index.html index.htm;
+    }
+  }
+}
+
+endsnippet
+
 snippet proxy_pass "with x-headers"
 server {
   underscores_in_headers on;
   # ignore_invalid_headers off;
 
+  # or into location block
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header X-Forwarded-Host $host;
+  proxy_set_header X-Forwarded-Proto $scheme;
+  proxy_set_header X-Forwarded-Server $host;
+  proxy_set_header X-Real-IP $remote_addr;
+  proxy_set_header Host $http_host;
+  proxy_pass_request_headers on;
+  proxy_redirect off;
+
   location / {
     proxy_pass http://127.0.0.1:3000;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Host $host;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_set_header X-Forwarded-Server $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header Host $http_host;
-    proxy_pass_request_headers on;
-    proxy_redirect off;
   }
 }
 endsnippet
@@ -42,3 +71,20 @@ server {
   }
 }
 endsnippet
+
+snippet rewrite "with regex. rewrite most requests to /profile"
+server {
+  listen 80;
+
+  location / {
+    if ($request_uri !~* ^/(api/|static/|media/)) {
+      rewrite ^/(.*)$ /profile/$1 last;
+    }
+
+    proxy_pass http://localhost:3000;
+  }
+
+  location /profile {
+    proxy_pass http://localhost:3000;
+  }
+}

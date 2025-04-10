@@ -527,3 +527,27 @@ sq "${db} | .user | count()"
 
 sq "${db} | .user | where(.age > 20) | .name | .[0:3]"
 endsnippet
+
+snippet node_fetch ""
+node -e "fetch('http://localhost:${PORT}/healthcheck').then(res => process.exit(res.status == 200 ? 0 : 1))"
+endsnippet
+
+snippet docker_ruby ""
+#!/usr/bin/bash
+
+docker run --rm -v $(pwd):/app -w /app \
+  -e "BUNDLE_APP_CONFIG=/app/.bundle" \
+  docker.io/ruby:3.4.2 bundle "$@"
+endsnippet
+
+snippet docker_ansible ""
+#!/bin/bash
+
+docker run --rm -it \
+  -v "$(pwd)":/ansible \
+  -v ~/.ssh:/root/.ssh \
+  -w /ansible \
+  -e ANSIBLE_CONFIG=/ansible/ansible.cfg \
+  alpine/ansible:2.18.1 \
+  ansible-playbook -i inventory.ini "$@"
+endsnippet

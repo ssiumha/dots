@@ -142,6 +142,22 @@ EOF
 ENTRYPOINT ["/docker-entrypoint.sh"]
 endsnippet
 
+snippet copy_entrypoint_sops "sops"
+ARG TARGET_ENV=${TARGET_ENV:-.env}
+ENV TARGET_ENV=${TARGET_ENV}
+
+COPY --chown=omp:omp --chmod=500 <<EOF /docker-entrypoint.sh
+#!/bin/sh
+set -e
+
+if [ -n "\$SOPS_AGE_KEY" ]; then
+  sops exec-env ${TARGET_ENV} "\$*"
+else
+  exec "\$@"
+fi
+EOF
+endsnippet
+
 snippet go_build "go build"
 FROM golang:1.23 as builder
 WORKDIR /build
@@ -171,4 +187,15 @@ yarn start
 EOF
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
+endsnippet
+
+snippet simple_nginx ""
+FROM ghcr.io/linuxserver/nginx:1.26.2
+
+COPY ./nginx.conf /config/nginx/site-confs/default.conf
+endsnippet
+
+snippet install_sops ""
+COPY --from=ghcr.io/getsops/sops:v3.9.4-alpine \
+            /usr/local/bin/sops /usr/local/bin/sops
 endsnippet
