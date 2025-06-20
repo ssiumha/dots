@@ -1,0 +1,64 @@
+#!/bin/bash
+
+# This script is multiple claude communication using tmux script
+
+# Usage:
+#   claude-team send boss1 "Please review the latest report."
+#   claude-team send worker1 "Please complete the task by EOD."
+#
+#   recipient: president, boss1, worker1, worker2, etc.
+
+LOG_FILE="/tmp/claude_team.log"
+SESSION_NAME="claude-team"
+
+log() {
+  local message="$1"
+  echo "$(date '+%Y-%m-%d %H:%M:%S') - $message" >> "$LOG_FILE"
+}
+
+send_message() {
+  local recipient="$1"
+  local message="$2"
+
+  if [[ -z "$recipient" || -z "$message" ]]; then
+    echo "Usage: claude-team send <recipient> <message>"
+    return 1
+  fi
+
+  local target_name="$SESSION_NAME:$recipient"
+
+  # if receipient is workers<n>, use workers.1, workers.2, etc.
+  if [[ "$recipient" == worker* ]]; then
+    local worker_number="${recipient#worker}"
+    target_name="$SESSION_NAME:workers.$worker_number"
+  else
+    target_name="$SESSION_NAME:$recipient.1"
+  fi
+
+  log "Sending message to $recipient ($target_name): $message"
+  tmux send-keys -t "$target_name" "$message" C-m
+  sleep 0.5
+  tmux send-keys -t "$target_name" C-m
+}
+
+start() {
+  tmuxinator start claude-team
+}
+
+main() {
+  case "$1" in
+    send)
+      shift
+      send_message "$@"
+      ;;
+    start)
+      start
+      ;;
+    *)
+      echo "Usage: claude-team send <recipient> <message>"
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"
