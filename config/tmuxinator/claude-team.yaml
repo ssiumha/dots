@@ -1,0 +1,21 @@
+# using:
+#   tmuxinator start claude-team name=test
+name: <%= @settings['name'] || 'claude-team' %>
+root: <%= Dir.pwd %>
+
+windows:
+  - president:
+    - claude --dangerously-skip-permissions
+
+  - boss1:
+    - claude --dangerously-skip-permissions
+
+  - workers:
+      # root: <%= Dir.pwd + '_slot1' %>
+      panes:
+        - worker1:
+          - claude --dangerously-skip-permissions
+        - worker2:
+          - claude --dangerously-skip-permissions
+        - worker3:
+          - claude --dangerously-skip-permissions

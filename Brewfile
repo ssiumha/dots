@@ -14,7 +14,10 @@ cask "font-hack-nerd-font"
 
 cask "wezterm"
 cask "raycast"
+
 brew "tmux"
+brew "tmuxinator"
+
 brew "universal-ctags"
 cask "orbstack"
 
@@ -61,6 +64,7 @@ brew "btop"
 tap "aws/tap"
 brew "eks-node-viewer"
 
+# cask "tigervnc-viewer"
 # cask "openlens"
 
 # brew "m-cli"

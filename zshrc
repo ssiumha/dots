@@ -115,6 +115,8 @@ ksw() {
 alias j="just"
 alias jl="JUST_JUSTFILE=justfile.local just"
 
+alias mux="tmuxinator"
+
 alias ~d="$HOME/dots"
 alias ~r="$HOME/room"
 
