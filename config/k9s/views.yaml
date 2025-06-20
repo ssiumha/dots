@@ -1,4 +1,13 @@
 views:
+  # v1/pods@prefix-ns-*:
+  # v1/pods@specific-namespace:
+  #   columns:
+  #     - NAMESAPCE|W => widemode only
+  #     - NAMESAPCE|WR => widemode only, align right
+  #     - NODE|H => do not display
+  #     - ZORG:.spec.zips[?(@.type == 'zorg')].ip|WR  => json exp
+  #     - X|T -> time column
+  #     - X|N -> number column
   v1/pods:
     columns:
       - NAMESPACE
@@ -9,10 +18,10 @@ views:
       - AGE
       - CPU
       - MEM
-      - "%CPU/R"
-      - "%CPU/L"
-      - "%MEM/R"
-      - "%MEM/L"
+      - '%CPU/R'
+      - '%CPU/L'
+      - '%MEM/R'
+      - '%MEM/L'
       - IP
       - NODE
       # QOS PF LABELS
@@ -26,11 +35,13 @@ views:
       - TAINTS
       - VERSION
       - PODS
-      - CPU
-      - MEM
-      - "%CPU"
-      - "%MEM"
-      - "CPU/A"
-      - "MEM/A"
       - AGE
+      - '%CPU'
+      - CPU
+      - 'CPU/A'
+      - '%MEM'
+      - MEM
+      - 'MEM/A'
+      - TYPE:.metadata.labels.node\.kubernetes\.io/instance-type
+      - ZONE:.metadata.labels.topology\.kubernetes\.io/zone
       - LABELS

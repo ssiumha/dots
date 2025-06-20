@@ -8,3 +8,4 @@ config/nvim/pack
 config/nvim/plugin
 config/zed
 config/claude/
+.netrwhist

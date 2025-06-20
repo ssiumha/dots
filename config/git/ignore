@@ -4,7 +4,7 @@
 ################
 # LOCAL
 ################
-compose.local.yaml
+**/*.local*
 
 ################
 # TOOLS
@@ -23,6 +23,7 @@ compose.local.yaml
 .direnv/
 .editorconfig
 .envrc
+mise.toml
 .mise.toml
 .mise/
 .mise

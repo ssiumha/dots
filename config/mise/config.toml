@@ -2,6 +2,7 @@
 # disable_tools = ["python"]
 experimental = true # with python virtaulenv activation
 python_venv_auto_create = true
+idiomatic_version_file_enable_tools = ["ruby"]
 
 [env]
 
@@ -16,6 +17,7 @@ fd = "latest"
 bat = "latest"
 dust = "latest"
 jq = "latest"
+fx = "latest"
 just = "latest"
 dasel = "latest"
 gum = "latest"
@@ -26,6 +28,7 @@ ruby = ["system", "3.3.0"]
 ubi = "latest"
 "ubi:neilotoole/sq" = "latest"
 "ubi:alexpasmantier/television" = { version = "latest", exe = "tv" }
+sops = "latest"
 # rust = "latest"
 # "cargo:jwt-cli" = "latest"
 # "ubi:DarthSim/overmind" = "latest"

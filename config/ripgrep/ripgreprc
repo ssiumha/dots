@@ -18,6 +18,7 @@
 -g=!node_modules/
 -g=!tmp/
 -g=!vendor/
+-g=!.venv/
 
 -g=!.git/
 -g=!.svn/
