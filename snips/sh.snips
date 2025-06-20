@@ -371,6 +371,26 @@ snippet ssh_proxy_command "jump"
 ssh -o ProxyCommand="ssh -i ~/.ssh/a.pem -W %h:%p a@999.999.999.999" -i ~/.ssh/b.pem b@10.0.1.10
 endsnippet
 
+snippet ssh_tunnel_mysql "access 23306"
+ssh -L 23306:localhost:3306 user@host -N
+endsnippet
+
+snippet tmux_launcher ""
+#!/usr/bin/env ruby
+
+`tmux new-session -d -s 'dev'`
+
+if not `tmux list-windows -t dev | grep 'port-forward'`.empty?
+  puts "process already exists"
+  exit 1
+end
+
+`tmux new-window -t dev: -n 'port-forward'   \
+~/mise x kubectl -- kubectl --context some-context \
+  port-forward deploy/rds-proxy --address="127.0.0.1" 23307:3306 || exit
+`
+endsnippet
+
 snippet fzf_actions "key bind, events"
 example:
   --bind='ctrl-r:reload(date; ps -ef)'
@@ -550,4 +570,24 @@ docker run --rm -it \
   -e ANSIBLE_CONFIG=/ansible/ansible.cfg \
   alpine/ansible:2.18.1 \
   ansible-playbook -i inventory.ini "$@"
+endsnippet
+
+snippet ssh_all_logs ""
+#!/bin/bash
+
+SERVERS=(
+  "10.0.0.1"
+  "10.0.0.2"
+)
+PIDS=()
+
+for SERVER in "${SERVERS[@]}"; do
+  echo "Connecting to $SERVER..."
+  ssh -n "$SERVER" "journalctl -u docker -f -n 10" | sed "s/^/[$SERVER] /" &
+  PIDS+=($!)
+done
+
+trap 'echo -e "\nStopping..."; for PID in "${PIDS[@]}"; do kill $PID 2>/dev/null; done; wait; exit 0' SIGINT
+
+wait
 endsnippet

@@ -1,0 +1,5 @@
+snippet tmux_target ""
+<session-name>:<window-name>.<pane-index>
+or
+%<pane-id>
+endsnippet

@@ -270,6 +270,10 @@ services:
   mysql:
     image: mysql:8.0
     container_name: ${COMPOSE_PROJECT_NAME}-mysql
+    command:
+      - --max_connections=3000
+      - --wait_timeout=30
+      - --interactive_timeout=30
     healthcheck:
       test: ['CMD', 'mysqladmin' ,'ping', '-h', 'localhost']
       interval: 5s
@@ -374,8 +378,8 @@ snippet service_postgres "base postgres"
       - 5432:5432/tcp
     environment:
       POSTGRES_PASSWORD: "password"
-      POSTGRES_USER: "root"
-      POSTGRES_DB: "dev"
+      POSTGRES_USER: "postgres"
+      POSTGRES_DB: "local"
     command:
       - "-cmax_connections=3000"
     volumes:
@@ -513,7 +517,7 @@ endsnippet
 
 snippet mysql "mysql"
 x-logging: &logging
-  driver: journald
+  driver: json-file
   options:
     max-size: 10m
     max-file: 3
@@ -563,4 +567,8 @@ x-logging: &logging
   options:
     tag: "{{.Name}}_{{.ID}}"
     # ImageName, Host, Labels, CreatedAt, Port, Hostname etc..
+
+services:
+  app:
+    logging: *logging
 endsnippet

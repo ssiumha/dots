@@ -228,3 +228,58 @@ snippet yarn_registry_with_nexus ""
         run: |
           yarn install
 endsnippet
+
+snippet matrix_with_path_check ""
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  filter:
+    runs-on: [ubuntu-24.04]
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            auth:
+              - 'apps/auth/**'
+              - 'libs/**'
+
+      - name: Set matrix
+        id: set-matrix
+        run: |
+          SERVICES=()
+          if [[ "${{ steps.filter.outputs.auth }}" == "true" ]]; then
+            SERVICES+=("auth")
+          fi
+
+          if [ ${#SERVICES[@]} -eq 0 ]; then
+            echo "No services changed, matrix will be empty"
+            echo "matrix={\"service\":[]}" >> $GITHUB_OUTPUT
+          else
+            JSON_ARRAY=$(printf '"%s",' "${SERVICES[@]}" | sed 's/,$//')
+            echo "matrix={\"service\":[${JSON_ARRAY}]}" >> $GITHUB_OUTPUT
+            echo "Services to build: ${SERVICES[*]}"
+          fi
+
+  build:
+    name: Build ${{ matrix.service }}
+    needs: filter
+    if: ${{ fromJSON(needs.filter.outputs.matrix).service[0] }}
+    runs-on: [ubuntu-24.04]
+    timeout-minutes: 10
+
+    strategy:
+      matrix: ${{ fromJSON(needs.filter.outputs.matrix) }}
+      max-parallel: 2
+
+    steps:
+      - name: build
+        run: |
+          make docker-build-${{ matrix.service }}
+endsnippet

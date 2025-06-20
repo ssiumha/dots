@@ -39,3 +39,10 @@ CREATE USER 'user'@'%' IDENTIFIED BY 'password';
 GRANT ALL PRIVILEGES ON dbname.* TO 'devuser'@'%';
 FLUSH PRIVILEGES;
 endsnippet
+
+snippet docker_mysql_with_charset "command line"
+docker run --rm -it --network host \
+  mysql:8.0.21 \
+  mysql -h 127.0.0.1 -P 3306 -u user -p \
+  --default-character-set=utf8mb4
+endsnippet

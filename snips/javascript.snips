@@ -97,3 +97,28 @@ jest.mock('../app/module', () => ({
   getRepository: jest.fn().mockResolvedValue('mocked')
 }))
 endsnippet
+
+snippet simple_error_handler "to server log"
+const oldOnError = window.onerror
+window.onerror = function(message, source, lineno, colno, error) {
+  fetch('/api/js_report', {
+    method: 'POST',
+    headers: {
+      'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      source: source,
+      message: message,
+      lineno: lineno,
+      colno: colno,
+      stack: error.stack,
+      cause: error.cause,
+    })
+  }).catch(_ => {
+    console.log('report failed')
+  })
+
+  return oldOnError && oldOnError(message, source, lineno, colno, error);
+}
+endsnippet

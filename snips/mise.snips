@@ -169,3 +169,12 @@ _.file = '.env'
 env = { APP_ENV = "local" }
 run = "bundle exec ruby app.rb {{vars.e2e_args}}"
 endsnippet
+
+snippet tool_logdy ""
+# using: tail -f file.log | logdy -p 18080 --ui-ip 0.0.0.0
+"ubi:logdyhq/logdy-core" = { version = "latest", rename_exe = "logdy" }
+endsnippet
+
+snippet db_ui_env ""
+DB_UI_LOCAL="mysql://root:password@127.0.0.1"
+endsnippet

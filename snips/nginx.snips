@@ -88,3 +88,29 @@ server {
     proxy_pass http://localhost:3000;
   }
 }
+
+snippet log_format "with custom format"
+http {
+  # xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 100.100.1.1, 192.168.100.1 - - [01/Apr/2025:00:00:00 +0000] "GET / HTTP/1.1" 403 153 "-" "curl/8.7.1"
+  log_format custom '$request_id $proxy_add_x_forwarded_for - $remote_user [$time_local] '
+                    '"$request" $status $body_bytes_sent '
+                    '"$http_referer" "$http_user_agent"';
+  access_log /dev/stdout custom;
+  error_log /dev/stderr warn;
+
+
+  location / {
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Request-ID $request_id;
+  }
+}
+endsnippet
+
+snippet allow_deny ""
+  location / {
+    real_ip_header X-Forwarded-For;
+    real_ip_recursive on;
+    allow 192.168.10.0/24;
+    deny all;
+  }
+endsnippet

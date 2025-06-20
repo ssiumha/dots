@@ -1,3 +1,16 @@
+snippet base_template ""
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TITLE</title>
+  </head>
+  <body>
+  </body>
+</html>
+endsnippet
+
 snippet dialog_form "method dialog"
 <dialog open>
   <p>will close its current dialog when submitted</p>

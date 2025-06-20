@@ -151,7 +151,16 @@ COPY --chown=omp:omp --chmod=500 <<EOF /docker-entrypoint.sh
 set -e
 
 if [ -n "\$SOPS_AGE_KEY" ]; then
-  sops exec-env ${TARGET_ENV} "\$*"
+  # sops exec-env ${TARGET_ENV} "\$*"
+  eval "\$(
+  sops --decrypt ${TARGET_ENV} | grep -v '^#' \
+    | while IFS='=' read -r key value; do
+      if [ -z "\${!key}" ]; then
+        echo "export \$key=\$value"
+      fi
+    done
+  )"
+  exec "\$*"
 else
   exec "\$@"
 fi
