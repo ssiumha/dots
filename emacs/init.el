@@ -6,13 +6,13 @@
 (global-tab-line-mode -1) ; window level tab
 
 (show-paren-mode 1)
-(tab-bar-mode 1) ; frame level tab
+; (tab-bar-mode 1) ; frame level tab
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 
-(setq tab-bar-show 1
-      tab-bar-close-button-show nil
+(setq ; tab-bar-show 1
+      ; tab-bar-close-button-show nil
       show-paren-style 'expression
       shift-select-mode nil
       inhibit-startup-screen t
@@ -67,8 +67,14 @@
 (use-package smartparens
              :ensure t)
 
+(use-package async
+             :ensure t
+             :config
+             (async-bytecomp-package-mode 1))
+
 (use-package recnetf
              :ensure nil
+             :defer t
              :hook (after-init . recentf-mode)
              :custom
              (recentf-max-saved-items 20)
@@ -94,18 +100,26 @@
 
 (use-package org
              :ensure nil
-             :defer t
              ; :hook
              ; (org-mode . (lambda () (set-face-attribute 'org-table nil :family "D2Coding" :height 180)))
+             :hook (org-mode . my/org-highlight-days)
              :config
              (require 'org-tempo)
-             (setq org-cycle-max-level 2
+             (setq org-cycle-max-level nil
                    org-startup-indented t ; +STARTUP: indent
                    org-confirm-babel-evaluate nil ; Evaluate code block without confirmation
                    org-log-done t ; or 'note
                    ; org-persist-directory "~/.local/emacs/org-persist"
                    org-persist-autoload t
+                   org-time-stamp-formats '("<%Y-%m-%d %a>" . "<%Y-%m-%d %a %H:%M>")
+                   org-agenda-files '("~/org" "~/org/projects" "~/org/areas")
                    org-agenda-format-date "%Y-%m-%d %a")
+
+             (setq org-todo-keyword-faces
+                   '(("HOLD" . (:foreground "gold" :weight bold))))
+
+             (setq org-src-preserve-indentation t
+                   org-src-tab-acts-natively t)
 
              (org-babel-do-load-languages 'org-babel-load-languages
                                           '((ruby . t)
@@ -122,7 +136,129 @@
              (org-link-set-parameters "send-tmux"
                                       :follow (lambda (path)
                                                       (start-process "send-tmux" nil "tmux" "send-keys" path input "Enter")))
+
+             (defun my/org-highlight-days ()
+               "Highlight 'SA' and 'SU' in red, 'FR' in yellow in headers formatted like 'YYYY-MM-DD DAY'."
+               (font-lock-add-keywords
+                nil
+                '(("\\(^\\*+ \\)\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\) \\(SA\\|SU\\)"
+                   (3 '(:inherit org-level-1 :foreground "red" :weight bold) t))
+                  ("\\(^\\*+ \\)\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\) \\(FR\\)"
+                   (3 '(:inherit org-level-1 :foreground "yellow" :weight bold) t))) 'append))
+
+             (defun my/org-goto-today()
+               "Go to or create today's entry under Daily."
+               (interactive)
+               (let ((today (format-time-string "%Y-%m-%d %a")))
+                 (goto-char (point-min))
+                 (cond
+                  ;; Case 1: Today's entry already exists - go to it
+                  ((re-search-forward (concat "^\\*\\* " today) nil t)
+                   (beginning-of-line)
+                   (org-reveal)
+                   (org-cycle))
+
+                  ;; Case 2: Daily header exists but no today's entry - add it
+                  ((re-search-forward "^\\* Daily" nil t)
+                   (org-reveal)
+                   (forward-line)
+                   (insert "** " today "\n\n")
+                   (forward-line -2)
+                   (org-cycle))
+
+                  ;; Case 3: No Daily header - create everything
+                  (t
+                   (insert "* Daily\n** " today "\n\n")
+                   (forward-line -2)
+                   (org-cycle))))
+               )
+
+             ; org-hook
+             (defun my/org-add-created-property ()
+               (interactive)
+               (when (not (org-entry-get nil "CREATED"))
+                 (org-set-property "CREATED"
+                                   (format-time-string "%Y-%m-%d %a %H:%M"))))
+             ; - TODO 생성시 CREATED 삽입
+             (add-hook 'org-insert-heading-hook
+                       (lambda ()
+                         (when (and (org-get-todo-state)
+                                    (not (org-entry-get nil "CREATED")))
+                           (org-set-property "CREATED"
+                                             (format-time-string "%Y-%m-%d %a %H:%M")))))
+
              )
+
+(use-package org-capture
+             :after org
+             :config
+             ; %? | 커서 위치
+             ; %U | inactive timestamp
+             ; %a | org-store-link
+             (defun my/org-capture-project-template ()
+               (insert
+                "* Overview\n"
+                "* Schedule\n"
+                ":PROPERTIES:\n"
+                ":LOGGING: done\n"
+                ":END:\n"
+                "** DEADLINE: <2025-01-01 Mon>\n"
+                "** SCHEDULED: <2025-01-01 Mon +w1> 월요일 주간 미팅\n"
+                "* Tasks\n"
+                "* Meeting Notes\n"
+                "* Planning\n"
+                "* Guidelines\n"
+                "** Commit Message Rule\n"
+                "- feat: A new feature\n"
+                "- fix: A bug fix\n"
+                "** Deployment Process\n"
+                "1. Ensure all tests pass\n"
+                "2. Merge to main branch\n"
+                "** Branching Strategy\n"
+                "- Use `main` for production-ready code\n"
+                "* References\n"
+                "| link | tag | description |\n"
+                "|------|-----|-------------|\n"
+                "| [Meeting Notes](https://example.com/meeting-notes) | meeting-notes | Notes from weekly meetings |\n"
+                "* Research\n"))
+
+             (setq org-capture-templates
+                   '(("t" "Task" entry
+                      (file+headline (lambda() (buffer-file-name)) "Tasks")
+                      "* TODO %?\nCREATED: %U\n%a\n"
+                      :prepend t)
+
+                     ("p" "init project" entry
+                      (file (lambda() (buffer-file-name)) "Tasks")
+                      (function my/org-capture-project-template)
+                      :prepend t)
+
+                     ("m" "Meeting" entry
+                      (file+headline (lambda() (buffer-file-name)) "Meeting Notes")
+                       "*** %U %?\n:PROPERTIES:\n:Created: %U\n:END:\n- [배경]\n- [정보]\n- [질문]\n- [요구사항]\n- [결정]\n- [논의]\n- [TODO]\n- [후속]\n- [보류]"
+                       :prepend t
+                       :immediate-finish t
+                       :jump-to-captured t)
+
+                     ("d" "add to daily log" entry
+                      ; (file+olp+datetree "~/org/index.org" "Daily")
+                      (file+function "~/org/index.org" org-reverse-datetree-goto-date-in-file)
+                      "* %a: %? (%<%H:%M>)"
+                      :tree-type day
+                      :prepend t)
+                     )
+                   )
+             )
+
+(use-package org-reverse-datetree
+             :after org
+             :config
+             (setq-default org-reverse-datetree-level-formats
+                   '("%Y"                    ; year
+                     (lambda (time) (format-time-string "%Y-%m %B" (org-reverse-datetree-monday time))) ; month
+                     ; "%Y W%W"                ; week
+                     "%Y-%m-%d %a"           ; date
+                     )))
 
 (use-package org-bullets
              :ensure t
@@ -209,12 +345,7 @@
 ;              ; (fzf-with-entries (list "a" "b" "c") 'print)
 ;              )
 
-(use-package evil-collection
-             :after evil
-             :ensure t
-             :config
-             (evil-collection-init))
-
+(setq evil-want-keybinding nil)
 (use-package evil
              :ensure t
 
@@ -249,8 +380,17 @@
                               (kbd "C-S-k") 'sp-backward-up-sexp
                               (kbd "C-S-j") 'sp-down-sexp
                               (kbd "C-w t") 'my/org-open-link-or-new-tab
-                              (kbd "SPC p p") 'counsel-file-jump-from-git-root
+                              (kbd "SPC /") 'swiper
+                              (kbd "SPC p p") 'counsel-projectile-find-file ; 'counsel-file-jump-from-git-root
+                              (kbd "SPC p o") 'counsel-projectile-find-file-org
                               (kbd "SPC p [") 'counsel-recentf
+                              (kbd "SPC o o") 'my/org-goto-today
+                              (kbd "SPC o i") (lambda () (interactive) (find-file "~/org/index.org"))
+                              (kbd "SPC o r") (lambda () (interactive)
+                                                (let ((default-directory (expand-file-name "~/org/resources/"))
+                                                      (counsel-find-file-ignore-regexp "\\`\\.")
+                                                      (ivy-extra-directories nil))
+                                                  (call-interactively 'counsel-find-file)))
                               )
 
              (evil-define-key 'insert 'global
@@ -264,7 +404,26 @@
                               (kbd "}") #'org-next-visible-heading
                               (kbd "(") #'org-backward-heading-same-level
                               (kbd ")") #'org-forward-heading-same-level
-                              (kbd "C-w g f") #'org-open-at-point)
+                              (kbd "C-w g f") #'org-open-at-point
+                              (kbd "C-c j") 'counsel-org-goto
+                              (kbd "C-c J") 'counsel-org-goto-all
+                              (kbd "C-c c") 'counsel-org-capture
+                              (kbd "SPC a") 'org-agenda
+                              (kbd "SPC c i") 'org-clock-in
+                              (kbd "SPC c o") 'org-clock-out
+                              (kbd "SPC c q") 'org-clock-quit
+                              (kbd "SPC c r") 'org-clock-report
+                              )
+
+             (evil-define-key 'normal markdown-mode-map
+                              (kbd "C-c i") (lambda ()
+                                              (interactive)
+                                              (let* ((default-directory "~/org/resources/")
+                                                      (files (directory-files default-directory nil "^[^.]"))
+                                                      (input (completing-read "Insert link to: " files nil nil)))
+                                                (insert (format "[[%s]]"
+                                                                (file-relative-name (expand-file-name input "~/org/resources/"))))))
+                              )
 
              ; j -> org-agenda-goto-date
              ; k -> org-agenda-capture
@@ -300,6 +459,19 @@
              (evil-ex-define-cmd "q" 'evil-q)
              )
 
+(use-package evil-collection
+             :after evil
+             :config
+             (evil-collection-init))
+
+(use-package evil-org
+             :ensure t
+             :after org
+             :hook (org-mode . (lambda () evil-org-mode))
+             :config
+             (require 'evil-org-agenda)
+             (evil-org-agenda-set-keys))
+
 ; M-o ivy-dispatching-done
 (use-package ivy
              :ensure t
@@ -319,6 +491,26 @@
              :ensure t
              :config
              (ivy-prescient-mode 1))
+
+(use-package swiper
+             :ensure t)
+
+(use-package projectile
+             :ensure t
+             :config
+             (projectile-mode +1))
+
+(use-package counsel-projectile
+             :ensure t
+             :after (counsel projectile)
+             :config
+             (counsel-projectile-mode)
+
+             (defun counsel-projectile-find-file-org ()
+               (interactive)
+               (let ((default-directory (expand-file-name "~/org")))
+                 (counsel-projectile-find-file)))
+             )
 
 (use-package counsel
              :ensure t
