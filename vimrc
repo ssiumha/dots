@@ -144,7 +144,7 @@ call plug#begin(expand('$HOME/.local/vim/plugged'))
 
 Plug 'junegunn/fzf' ", { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
-  let $FZF_DEFAULT_COMMAND="fd -tf --hidden --no-ignore-vcs --follow --exclude 'tmp/' --exclude 'dist/' --exclude '.bundle/'"
+  let $FZF_DEFAULT_COMMAND="fd -tf --hidden --no-ignore-vcs --follow --exclude 'tmp/' --exclude 'dist/' --exclude '.bundle/' --exclude '.venv/'"
   let g:fzf_preview_window = ['down,50%,<70(down,40%)', 'ctrl-/']
   if exists('$TMUX')
     let g:fzf_layout = { 'tmux': '90%,70%' }
@@ -304,7 +304,7 @@ Plug 'kana/vim-metarw' " TODO: webdav
 
 Plug 'tpope/vim-dadbod'
 Plug 'kristijanhusak/vim-dadbod-ui'
-" Plug 'kristijanhusak/vim-dadbod-completion' "Optional
+Plug 'kristijanhusak/vim-dadbod-completion' "Optional
 
 Plug 'hrsh7th/vim-vsnip'
   let g:vsnip_snippet_dir = expand('$HOME/dots/vim/snippets')
@@ -401,6 +401,7 @@ Plug 'diepm/vim-rest-console', { 'for': 'rest' }
         \   'json': 'jq',
         \}
 
+" Plug 'augmentcode/augment.vim'
 Plug 'github/copilot.vim'
   let g:copilot_filetypes = {
         \ '*': v:true,
@@ -437,6 +438,8 @@ endif
 "----------------
 " plug:after ale
 "----------------
+let g:ale_linters['*'] = ['codespell']
+
 let g:ale_linters['typescript'] = ['biome']
 let g:ale_fixers['typescript'] = ['my_biome']
 
@@ -462,6 +465,16 @@ func! s:stripAnsiColorCode()
   execute "%!perl -MTerm::ANSIColor=colorstrip -ne 'print colorstrip $_'"
 endfunc
 command! AnsiStrip :call s:stripAnsiColorCode()
+
+" TODO
+inoremap </ </<C-r>=MatchTag()<CR>
+function! MatchTag()
+  " let l:line = getline('.')
+  " let l:before_cursor = strpart(l:line, 0, col('.') - 2) " 현재 줄에서 </ 전까지 텍스트 가져오기
+  " let l:match = matchstr(l:before_cursor, '<\zs\w\+\ze[^>]*$') " 열린 태그 찾기
+  " return empty(l:match) ? '' : l:match . '>'
+  return ""
+endfunction
 
 "----------------
 " methods

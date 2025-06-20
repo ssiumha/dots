@@ -73,7 +73,7 @@ require('packer').startup(function(use)
         ['<C-p>'] = cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Insert }),
         ['<PageUp>'] = cmp.mapping.scroll_docs(-4),
         ['<PageDown>'] = cmp.mapping.scroll_docs(4),
-        ['<CR>']  = cmp.mapping.confirm({ select = true }),
+        ['<CR>'] = cmp.mapping.confirm({ select = true }),
         -- ['<Tab>'] = cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Select }),
         -- ['<S-Tab>'] = cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Select }),
       },
@@ -311,7 +311,7 @@ require("mason-lspconfig").setup {
           },
         },
       }
-    end,
+    end
   }
 }
 
@@ -332,8 +332,8 @@ require'nvim-treesitter.configs'.setup {
   },
 
   matchup = {
-    enable = true
-    -- disable = { 'ruby' }
+    enable = true,
+    disable = { 'ruby' },
   },
 
   textobjects = {
