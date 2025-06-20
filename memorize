@@ -70,6 +70,7 @@ tmux send-keys -t $(tmux split-window -d -P -F "#{pane_id}" 'ssh temp0') 'ls' En
 for i in {0..6}; do tmux send-keys -t $(tmux split-window -d -P -F "#{pane_id}" "ssh temp$i") 'ls' Enter; tmux select-layout tiled; done
 tmux capture-pane -J -p -S - -t $TMUX_PANE > /tmp/pane.log  ## tmux save to logs ;; -S - : from start ;; -p : to stdout ;; -J : wrapped lines join ;; -t : target. %123
 tmux new -s 'session-name' -d 'command'  ## simple run background using tmux
+tmux new-session -d -s 'dev'; tmux new-window -t dev: -n 'some-name' 'command'
 
 | cut -c-$COLUMNS
 | while read -r line; do echo $line; done
@@ -80,8 +81,13 @@ jounalctl -u $UNIT -n 100 -f
 
 sudo apt install -y libssl-dev libbz2-dev libreadline-dev libffi-dev liblzma-dev libsqlite3-dev  ## python build dependency in ubuntu
 
+sqlite3 ./products.db -cmd '.mode json' 'select * from products;' | jq
+
 rsync --progress --stats -avr /mnt/from/ /mnt/to/  ## from/xx.txt -> to/xx.txt ;; from 뒤에 / 붙으면 파일만, 없으면 폴더 그 자체가 대상 ;; -a : recursive, link(sym), permission, times, group, owner, Devices ;; --max-size 100m : 크기를 넘는 파일은 전송안함 ;; --bwlimit 10m : 전송속도 제한 ;; --exclude-from - <<EOF : *.zip, *.html 등 stdin, heredoc, file 형태로 제외할 파일 지정 ;; --partial : 파일 전송을 부분적으로 보관
 rsync -Pvr --exclude=node_modules --exclude=vendor /mnt/from /mnt/to  ## from/xx.txt -> to/from/xx.txt
+
+# rclone
+rclone bisync resources-dev: ./resources --conflict-resolve larger --conflict-loser pathname --no-update-modtime  ## require --resync when first run
 
 # bash : bulk edit
 rg --color=never -l ${SEARCH} | xargs perl -i -pe 's/${SEARCH}/xxx/g'  ## find all replace
@@ -133,6 +139,9 @@ ruby -r active_support/all -e 'puts "asdf".camelize.underscore'
 | ruby -e 'puts [STDIN.read].pack("H*")'  ## hex to string 2. (Hex, Char, Short, Long, ascii etc..)
 | ruby -e 'puts Time.at(STDIN.read.gsub(/[^\d]/, "").to_i)'  ## epoch, unix time
 | ruby -rcsv -rcgi -e 'CSV.parse(STDIN, headers: true).each { |row| row[2].split("?").last.then { CGI.parse _1 }.then { puts _1.fetch "q", nil } }'  ## CSV parse & get query param
+
+| ruby -rtime -pe 'BEGIN{$stdout.sync=true}; print "[#{Time.now.iso8601}] "'  ## timestamp prefix log
+| perl -MPOSIX -pe 'print "[" . strftime("%Y-%m-%dT%H:%M:%S%z", localtime) . "] "'  ## timestamp prefix log
 
 echo "\nActiveRecord::Base.establish_connection(adapter: 'postgresql', host: 'localhost', port: 5432, username: 'postgres', password: 'postgres', database: 'dev');\nclass User < ApplicationRecord; self.table_name = 'users' end;\nUser.all\n"; bundle exec rails c  ## attach specific database
 find test -name '*.rb' -type f -mtime -30m -exec ls -t {} + | head -n 1 1>&2 | xargs bundle exec rails test  ## test recently modified file
@@ -239,7 +248,9 @@ aws sts get-caller-identity --query Account --output text  ## get aws account id
 aws ecr get-login-password --region ${AWS_REGION} | docker login --password-stdin --username AWS ${ECR_REGISTRY}
 aws ecr get-login-password | docker login --password-stdin --username AWS ${AWS_ID}.dkr.ecr.ap-northeast-2.amazonaws.com
 curl -H "X-aws-ec2-metadata-token: $(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")" -v "http://169.254.169.254/latest/meta-data/placement/availability-zone-id"  ## IMDSv2 get aws instance az, metadata: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-data-retrieval.html
-curl http://checkip.amazonaws.com/  ## get current ip
+curl https://checkip.amazonaws.com/  ## get current ip
+curl https://checkip.global.api.aws/ ## get current ip
+curl https://ipinfo.io ## get current ip info
 curl http://ip-ranges.amazonaws.com/ip-ranges.json  ## available AWS public ip pool
 aws eks describe-addon-versions --kubernetes-version 1.23 --addon-name coredns --output yaml | grep 'addonVersion:' | head  ## kube-proxy, vpc-cni, coredns, aws-ebs-csi-driver
 aws ec2 describe-instances --query 'Reservations[*].Instances[*].[Tags[?Key==`Name`].Value|[0],InstanceId,InstanceType,PrivateIpAddress,PublicIpAddress,State.Name]' --output text
@@ -271,6 +282,7 @@ sudo wg-quick down ./wg0.conf
 kubectl get pod -A -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,IMAGE:.spec.containers[].image'
 kubectl get node --sort-by='.metadata.creationTimestamp'
 kubectl get nodes -o custom-columns='NAME:.metadata.name,STATUS:.status.conditions[-1:].type,ZONE:.metadata.labels.topology\.kubernetes\.io/zone,NODE_GROUP:.metadata.labels.eks\.amazonaws\.com/nodegroup' | v -
+kubectl get deploy -A -o json | jq -r '.items[] | .metadata | "kubectl rollout restart -n \(.namespace) deploy/\(.name)"' | v
 NS=apps envsubst < service.yml | kubectl apply -f -
 kubectl auth can-i "*" "*"  ## 권한 체크
 kubectl api-resources --verbs=list  ## all resources
