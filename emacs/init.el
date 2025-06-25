@@ -566,6 +566,10 @@
              :ensure t
              :bind ("C-x g" . magit-status))
 
+(use-package markdown-mode
+             :config
+             (setq markdown-fontify-code-blocks-natively t))
+
 ; (org-element-context) -> (link (:type ifle :path ./test.org :format bracket :raw-link ./test.or ...))
 ; (org-element-property :type (org-element-context)) -> "file"
 (defun my/org-open-link-or-new-tab ()
