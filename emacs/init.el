@@ -192,8 +192,12 @@
 (use-package org-capture
              :after org
              :config
+             (setq org-id-link-to-org-use-id t)
+             ;; org-store-link 실행 시 ID 자동 생성
+             (add-hook 'org-store-link-functions 'org-id-store-link)
+
              ; %? | 커서 위치
-             ; %U | inactive timestamp
+             ; %U | inactive timestamp -> [2025-06-23 Mon 10:59]
              ; %a | org-store-link
              (defun my/org-capture-project-template ()
                (insert
@@ -225,7 +229,7 @@
              (setq org-capture-templates
                    '(("t" "Task" entry
                       (file+headline (lambda() (buffer-file-name)) "Tasks")
-                      "* TODO %?\nCREATED: %U\n%a\n"
+                      "* TODO %?\n:PROPERTIES:\n:Created: %U\n:END:\n%a\n"
                       :prepend t)
 
                      ("p" "init project" entry
@@ -235,7 +239,7 @@
 
                      ("m" "Meeting" entry
                       (file+headline (lambda() (buffer-file-name)) "Meeting Notes")
-                       "*** %U %?\n:PROPERTIES:\n:Created: %U\n:END:\n- [배경]\n- [정보]\n- [질문]\n- [요구사항]\n- [결정]\n- [논의]\n- [TODO]\n- [후속]\n- [보류]"
+                       "* %U %?\n:PROPERTIES:\n:Created: %U\n:END:\n** [배경]\n** [정보]\n** [질문]\n** [요구사항]\n** [결정]\n** [논의]\n** [TODO]\n** [후속]\n** [보류]"
                        :prepend t
                        :immediate-finish t
                        :jump-to-captured t)
