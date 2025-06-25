@@ -1,9 +1,13 @@
 #!/bin/bash
 
 cat ~/.config/claude/projects/**/*.jsonl \
+  ~/.claude/projects/**/*.jsonl \
+  | jq 'select(.timestamp != null
+               and .message != null
+               and .message.usage != null)' \
   | jq -r '{
     timestamp: .timestamp[:10],
-    usage: .message.usage, model: .message.model
+    usage: .message.usage, model: .message.model,
   } | select(.usage != null)' \
   | jq -s 'group_by(.timestamp) | map({
     key: .[0].timestamp,
@@ -16,10 +20,8 @@ cat ~/.config/claude/projects/**/*.jsonl \
     }
   }) | from_entries' \
   | jq --arg today "$(date +%Y-%m-%d)" \
-    'with_entries(if .key == $today then .key == "today" else . end) |
+    'with_entries(if .key == $today then .key = "today" else . end) |
     with_entries(.value.total_tokens = (
       .value.input_tokens +
-      .value.output_tokens +
-      .value.cache_creation_input_tokens +
-      .value.cache_read_input_tokens))'
+      .value.output_tokens))'
 
