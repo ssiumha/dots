@@ -3,13 +3,13 @@
 # This script is multiple claude communication using tmux script
 
 # Usage:
-#   claude-team send boss1 "Please review the latest report."
-#   claude-team send worker1 "Please complete the task by EOD."
+#   agents send boss1 "Please review the latest report."
+#   agents send worker1 "Please complete the task by EOD."
 #
 #   recipient: president, boss1, worker1, worker2, etc.
 
 LOG_FILE="/tmp/claude_team.log"
-SESSION_NAME="claude-team"
+SESSION_NAME="agents"
 
 log() {
   local message="$1"
@@ -19,13 +19,13 @@ log() {
 
 # usage:
 #   recipient is <window>.<pane-index>. pane-index defaults to 1 if not specified
-#   - claude-team send <recipient> <message>
-send_message() {
+#   - agents send <recipient> <message>
+send_message_to_member() {
   local recipient="$1"
   local message="$2"
 
   if [[ -z "$recipient" || -z "$message" ]]; then
-    echo "Usage: claude-team send <recipient> <message>"
+    echo "Usage: agents send <recipient> <message>"
     return 1
   fi
 
@@ -54,6 +54,16 @@ send_message() {
   tmux send-keys -t "$target_name" "$message" C-m
   sleep 0.5
   tmux send-keys -t "$target_name" C-m
+}
+
+# pane_id is like '%111'
+send_tmux_buffer() {
+  local pane_id="$1"
+  local message="$2"
+
+  echo "$message" | \
+    tmux load-buffer - && tmux paste-buffer -t "$pane_id"
+  tmux send-keys -t "$pane_id" C-m
 }
 
 list_team_members() {
@@ -134,7 +144,11 @@ main() {
   case "$1" in
     send)
       shift
-      send_message "$@"
+      send_message_to_member "$@"
+      ;;
+    send-pane)
+      shift
+      send_tmux_buffer "$@"
       ;;
     add)
       shift
@@ -147,7 +161,7 @@ main() {
       list_team_members
       ;;
     *)
-      echo "Usage: claude-team send <recipient> <message>"
+      echo "Usage: agents send <recipient> <message>"
       exit 1
       ;;
   esac
