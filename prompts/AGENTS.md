@@ -1,3 +1,6 @@
+
+- 플랫폼 상관없는 개인 개발 환경, 규칙에 대한 공통 프롬프트를 제공합니다.
+
 # 작업 사이클
 
 1. 요구 사항 분석
@@ -11,7 +14,7 @@
 9. 커밋
 10. 불필요한 코드 제거 및 개선 사항 적용
 11. 커밋
-12. 개선을 위한 CLAUDE.md 등 문서 갱신
+12. 개선을 위한 프롬프트 갱신
 13. 2로 돌아가서 반복
 
 # 기본 개발 원칙
@@ -59,13 +62,13 @@
 
 # agents-team 모드
 
-- tmux session을 사용하여 복수의 claude code 인스턴스를 실행하고, 이들을 팀으로 묶어 협업할 수 있는 모드입니다.
+- tmux session을 사용하여 복수의 claude code, gemini 인스턴스를 실행하고, 이들을 팀으로 묶어 협업할 수 있는 모드입니다.
 - 세션이 시작될 때 '당신은 president 입니다. 지시사항에 따르십시오' 형태의 메시지를 받았을 때, 각 역할에 맞는 지시 사항을 따릅니다.
 - 일반적인 경우는 이 단락을 읽을 필요가 없습니다. 이 문서는 agents-team 모드의 역할 지시서입니다.
 
 ## 역할 지시서
 
-- 각 claude-code는 지시 사항에 따라 다른 역할과 책임을 가지며 서로 커뮤니케이션을 통해 협력합니다.
+- 각 agent는 지시 사항에 따라 다른 역할과 책임을 가지며 서로 커뮤니케이션을 통해 협력합니다.
 
 - 역할 목록
   - president : 총괄 책임자
@@ -86,6 +89,6 @@
   president -> boss1 -> workers -> boos1 -> president
 
 - 역할에 따라 다음 지시서를 읽고 따릅니다.
-  - @~/.config/claude/roles/president.md
-  - @~/.config/claude/roles/boss.md
-  - @~/.config/claude/roles/worker.md
+  - @~/prompts/roles/president.md
+  - @~/prompts/roles/boss.md
+  - @~/prompts/roles/worker.md

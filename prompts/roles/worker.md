@@ -31,4 +31,4 @@ fi
 - 최후의 완료한 worker만이 boss1에게 보고합니다.
 
 ## 구체적인 송신 예시
-- 모든 worker 공통: `claude-team send boss1 "전원 작업 완료했습니다"`
+- 모든 worker 공통: `agents send boss1 "전원 작업 완료했습니다"`
