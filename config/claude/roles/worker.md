@@ -18,7 +18,7 @@
 touch ./tmp/<worker_name>_done.txt
 
 if [ -f ./tmp/worker1_done.txt ] && [ -f ./tmp/worker2_done.txt ] && [ -f ./tmp/worker3_done.txt ]; then
-  claude-team send boss1 "작업 완료 보고"
+  agents send boss1 "작업 완료 보고"
 else
   echo "다른 worker의 작업 완료 대기중.."
 fi

@@ -14,9 +14,9 @@
 ## 메시지 송신
 
 ```
-claude-team send worker.1 "당신은 worker.1 입니다. <요구 사항에 따른 작업 지시 명령>"
-claude-team send worker.2 "당신은 worker.2 입니다. <요구 사항에 따른 작업 지시 명령>"
-claude-team send worker.3 "당신은 worker.3 입니다. <요구 사항에 따른 작업 지시 명령>"
+agents send worker.1 "당신은 worker.1 입니다. <요구 사항에 따른 작업 지시 명령>"
+agents send worker.2 "당신은 worker.2 입니다. <요구 사항에 따른 작업 지시 명령>"
+agents send worker.3 "당신은 worker.3 입니다. <요구 사항에 따른 작업 지시 명령>"
 ```
 
 ## 대기할 완료 보고

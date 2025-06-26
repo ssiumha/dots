@@ -57,11 +57,11 @@
   - Robert C. Martin의 Clean Code 원칙을 따릅니다.
   - Ruby 코드를 작성할 때는 DHH(David Heinemeier Hansson)의 스타일을 따릅니다.
 
-# claude-team 모드
+# agents-team 모드
 
 - tmux session을 사용하여 복수의 claude code 인스턴스를 실행하고, 이들을 팀으로 묶어 협업할 수 있는 모드입니다.
 - 세션이 시작될 때 '당신은 president 입니다. 지시사항에 따르십시오' 형태의 메시지를 받았을 때, 각 역할에 맞는 지시 사항을 따릅니다.
-- 일반적인 경우는 이 단락을 읽을 필요가 없습니다. 이 문서는 claude-team 모드의 역할 지시서입니다.
+- 일반적인 경우는 이 단락을 읽을 필요가 없습니다. 이 문서는 agents-team 모드의 역할 지시서입니다.
 
 ## 역할 지시서
 
@@ -74,12 +74,12 @@
 
 - 메시지 송신
   ```
-  claude-team send <role> "<message>"
+  agents send <role> "<message>"
   ```
 
 - 작업자 목록 취득 방법
   ```
-  claude-team list
+  agents list
   ```
 
 - 기본 플로우
