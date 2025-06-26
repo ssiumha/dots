@@ -1,19 +1,69 @@
-# Development Rules
-- Define the smallest unit of revision work as a 'task', and the set of tasks for a goal as a 'plan'
+# 작업 사이클
 
-- All work should start with an assessment of the current situation and a plan.
+1. 요구 사항 분석
+2. 테스트 케이스 작성
+3. 커밋
+4. 코드 작성
+5. 테스트 실행
+6. 커밋
+7. 코드 리뷰
+8. 리팩토링
+9. 커밋
+10. 불필요한 코드 제거 및 개선 사항 적용
+11. 커밋
+12. 개선을 위한 CLAUDE.md 등 문서 갱신
+13. 2로 돌아가서 반복
 
-- Break down large or complex tasks into smaller tasks by identifying the core of the problem
+# 기본 개발 원칙
 
-- Look for the simplest behaviour and the least amount of code possible.
+- 코드를 작성할 때는 항상 요구 사항을 먼저 이해하고, TDD 원칙을 따라 개발합니다.
+  - RED: 실패하는 테스트를 작성합니다.
+  - GREEN: 테스트를 통과하는 최소한의 코드를 작성합니다.
+  - REFACTOR: 코드를 리팩토링하여 가독성과 유지보수성을 향상시킵니다.
+  - 테스트 작성 전에 기존 테스트 목록을 확인해야 합니다.
+    - 테스트 코드 또한 코드로 취급하며 도메인, 모델, 동작에 따른 디렉토리 구조를 구성합니다.
+  - 동시에 여러 테스트를 작성하지 않습니다. 하나의 테스트를 작성하고, 이를 통과시킨 후 다음 테스트를 작성합니다.
+  - 외부 API를 사용하는 것이 아니라면 절대로 모킹(mocking)이나 스텁(stubbing)을 사용하지 않습니다.
+    - 데이터베이스를 사용할 경우, testcontainers를 사용하여 테스트 환경을 구성합니다.
+  - 기능 테스트와 유닛 테스트가 동일한 로직을 검증하는 경우, 가능하면 유닛 테스트를 생략하는 방향이 좋습니다.
+  - 테스트는 다음과 같은 스타일을 따릅니다:
+    - 테스트 이름은 문서처럼 읽히도록 자연어에 가까운 형태로 작성합니다
+    - Specification by Example 스타일을 따릅니다. issue 단위로 테스트를 만들어서는 안 됩니다.
+    - Arrange-Act-Assert 패턴을 따릅니다.
+    - describe, context, it 블록을 사용한 BDD 스타일을 따릅니다.
+    - 테스트는 가독성과 명확성을 위해 중복을 허용합니다
+    - 테스트가 실패할 경우 어떤 조건이 실패했는지 메시지를 통해 명확하게 전달합니다.
+    - 가령 refactored_model_sepc 같은 이름의 파일을 작성하지 않습니다. 이는 구현에 집중된 테스트이기 때문입니다.
 
-- Do not mock or stub any code, but rather use the actual code to test.
+- 어떤 문제를 해결하기 위해 코드를 작성할 때는 항상 다음과 같은 원칙을 따릅니다:
+  - 문제를 해결하기 위한 최소한의 코드만 작성합니다.
+  - 문제의 핵심을 파악하고, 이를 해결하기 위한 가장 간단한 방법을 찾습니다.
+  - 복잡한 문제를 해결하기 위해서는 문제를 작은 단위로 나누어 해결합니다.
 
-- Follow the principles of Clean Code (by Robert C. Martin)
+- 작업 단위에 따라 작은 단위로 git 커밋을 작성합니다.
+  - 커밋 메시지는 다음과 같은 형식을 따릅니다:
+    ```
+    <작업 단위>: <작업 내용>
+    ```
+  - 예시: `add: 새로운 기능 추가`, `fix: 버그 수정`, `refactor: 코드 리팩토링`
+  - 커밋을 하기 전에 다음 사항을 확인합니다:
+    - lint를 통과했는지 확인합니다.
+    - test를 통과했는지 확인합니다. 만약 RED 상태일 경우는 실패 상태로 커밋합니다.
+    - `git status`를 통해 변경 사항을 확인합니다.
+    - `git diff`를 통해 변경된 내용을 확인합니다.
+  - 바이너리 파일이나 임시 파일은 커밋하지 않습니다. .gitignore 파일을 사용하여 제외합니다.
 
-- Write Ruby code in the DHH (David Heinemeier Hansson) style
+- 코드를 작성할 때는 항상 다음과 같은 스타일을 따릅니다:
+  - Robert C. Martin의 Clean Code 원칙을 따릅니다.
+  - Ruby 코드를 작성할 때는 DHH(David Heinemeier Hansson)의 스타일을 따릅니다.
 
-# 역할 지시서
+# claude-team 모드
+
+- tmux session을 사용하여 복수의 claude code 인스턴스를 실행하고, 이들을 팀으로 묶어 협업할 수 있는 모드입니다.
+- 세션이 시작될 때 '당신은 president 입니다. 지시사항에 따르십시오' 형태의 메시지를 받았을 때, 각 역할에 맞는 지시 사항을 따릅니다.
+- 일반적인 경우는 이 단락을 읽을 필요가 없습니다. 이 문서는 claude-team 모드의 역할 지시서입니다.
+
+## 역할 지시서
 
 - 각 claude-code는 지시 사항에 따라 다른 역할과 책임을 가지며 서로 커뮤니케이션을 통해 협력합니다.
 
@@ -35,85 +85,7 @@
 - 기본 플로우
   president -> boss1 -> workers -> boos1 -> president
 
-
-- 역할에 따라 맞는 이하 문단의 지시 사항을 따릅니다.
-
-## president 지시
-
-### 역할
-
-프로젝트 전체의 총괄 관리자입니다.
-
-####  '당신은 president 입니다. 지시사항에 따르십시오' 라는 메시지를 받았을 때 실행할 내용
-
-1. boss1에게 프로젝트 개시지시를 송신
-2. 완료 보고를 대기
-
-#### 메시지 송신
-
-```
-claude-team send boss1 "당신은 boss1 입니다. <요구 사항에 따른 프로젝트 개시 지시 명령>"
-```
-
-#### 대기할 완료 보고
-boss1로부터 '전원 완료 보고'를 수신할 때까지 대기합니다.
-
-
-## boss1 지시
-
-### 역할
-
-팀 멤버의 총괄 관리자입니다.
-
-### president로부터 지시를 받았을 때 실행할 내용
-
-1. worker1,2,3 에게 <요구 사항에 따른 작업 지시 명령>을 송신
-2. 모든 worker의 작업 완료 보고를 대기
-3. president에게 '전원 완료 보고'를 송신
-
-#### 메시지 송신
-
-```
-claude-team send worker1 "당신은 worker1 입니다. <요구 사항에 따른 작업 지시 명령>"
-claude-team send worker2 "당신은 worker2 입니다. <요구 사항에 따른 작업 지시 명령>"
-claude-team send worker3 "당신은 worker3 입니다. <요구 사항에 따른 작업 지시 명령>"
-```
-
-#### 대기할 완료 보고
-아무 worker로부터 '작업 완료 보고'를 수신할 때까지 대기합니다.
-
-
-## worker의 지시
-
-### 역할
-
-구체적인 작업의 실행 및 완료 확인, 보고를 담당합니다.
-
-### boss1로부터 지시를 받았을 때 실행할 내용
-
-1. 지시 사항에 따라 작업을 수행합니다.
-2. 자신의 완료 파일을 작성합니다: ./tmp/<worker_name>_done.txt
-3. 다른 worker의 완료를 확인합니다.
-4. 전원 완료했고, 자신이 마지막으로 완료했다면 boss1에게 '작업 완료 보고'를 송신합니다.
-
-#### 실행 커맨드
-
-```
-touch ./tmp/<worker_name>_done.txt
-
-if [ -f ./tmp/worker1_done.txt ] && [ -f ./tmp/worker2_done.txt ] && [ -f ./tmp/worker3_done.txt ]; then
-  claude-team send boss1 "작업 완료 보고"
-else
-  echo "다른 worker의 작업 완료 대기중.."
-fi
-```
-
-#### 중요한 포인트
-
-- 자신의 worker 번호에 맞는 적절한 완료 파일을 작성합니다.
-- 전원 완료를 확인한 worker가 보고책임자가 됩니다.
-- 최후의 완료한 worker만이 boss1에게 보고합니다.
-
-#### 구체적인 송신 예시
-- 모든 worker 공통: `claude-team send boss1 "전원 작업 완료했습니다"`
-
+- 역할에 따라 다음 지시서를 읽고 따릅니다.
+  - @~/.config/claude/roles/president.md
+  - @~/.config/claude/roles/boss.md
+  - @~/.config/claude/roles/worker.md
