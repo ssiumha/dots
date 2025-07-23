@@ -52,6 +52,9 @@ brew "wtfutil"
 brew "pipet" # is a cli web scraper
 brew "xan" # is csv magician
 
+brew "libreoffice"
+brew "unoconv" # is a convert between different document formats
+
 ################################
 # Local tools
 brew "trippy" # network diagnositc tool
