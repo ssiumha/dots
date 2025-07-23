@@ -1,0 +1,19 @@
+#!/bin/bash
+
+untracked_files=$(git ls-files --others --exclude-standard)
+
+if [ -z "$untracked_files" ]; then
+  echo "No untracked files found."
+else
+  echo "Untracked files found:"
+  echo "$untracked_files"
+
+  read -p "Do you want to remove these files? (y/n): " confirm
+
+  if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+    echo "$untracked_files" | xargs rm -rf
+    echo "Untracked files removed."
+  else
+    echo "No files were removed."
+  fi
+fi

@@ -67,6 +67,7 @@
   ds = diff --staged
   dss = !DELTA_FEATURES=+side-by-side git diff --staged
 
+  rm-untracked = !$HOME/.config/git/alias/rm-untracks
   gr = !$HOME/.config/git/alias/gr
   gra = !$HOME/.config/git/alias/gr --all
 
