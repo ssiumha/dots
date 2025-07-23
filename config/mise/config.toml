@@ -4,6 +4,8 @@ experimental = true # with python virtaulenv activation
 python_venv_auto_create = true
 idiomatic_version_file_enable_tools = ["ruby"]
 
+auto_install = false
+
 [env]
 
 [tools]
@@ -23,7 +25,7 @@ dasel = "latest"
 gum = "latest"
 watchexec = "latest" # mise watch -t
 
-ruby = ["system", "3.3.0"]
+ruby = "latest"
 
 ubi = "latest"
 "ubi:neilotoole/sq" = "latest"
@@ -36,6 +38,8 @@ sops = "latest"
 # "ubi:mr-karan/doggo" = "latest"
 # "ubi:danielgatis/imgcat" = "latest"
 # "ubi:dotenvx/dotenvx" = "latest"
+
+# "cargo:similarity-ts" = "latest"
 
 [alias]
 usage = "https://github.com/jdx/mise-usage.git"
