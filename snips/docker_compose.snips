@@ -322,6 +322,13 @@ networks:
     external: true
 endsnippet
 
+snippet docker_mysql_with_charset "command line"
+docker run --rm -it --network host \
+  mysql:8.0.21 \
+  mysql -h 127.0.0.1 -P 3306 -u user -p \
+  --default-character-set=utf8mb4
+endsnippet
+
 snippet use_service "services.<name>.deploy; using replicas"
     deploy:
       replicas: ${COMPOSE_USE_SERVICE:-0}
@@ -572,3 +579,4 @@ services:
   app:
     logging: *logging
 endsnippet
+
