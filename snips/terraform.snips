@@ -142,6 +142,45 @@ provider "aws" {
 }
 endsnippet
 
+snippet base_vpc_module_6_0 ""
+data "aws_availability_zones" "available" {
+}
+
+locals {
+  terraform_env = "dev"
+
+  # use ap-northeast-2a, ap-northeast-2b
+  availability_zone_names = slice(data.aws_availability_zones.available.names, 0, 2)
+}
+
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "6.0.1"
+
+  name = "dev"
+  cidr = "10.0.0.0/16"
+
+  azs              = local.availability_zone_names
+  private_subnets  = ["10.0.1.0/24", "10.0.2.0/24"]
+  public_subnets   = ["10.0.101.0/24", "10.0.102.0/24"]
+  database_subnets = ["10.0.201.0/24", "10.0.202.0/24"]
+
+  # DNS/IGW/NAT: 모듈이 RT까지 자동 구성
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+  create_igw           = true
+
+  # 프라이빗 서브넷 인터넷 아웃바운드 허용(NAT)
+  enable_nat_gateway   = true
+  single_nat_gateway   = true  # 비용 절감(필요 시 AZ별 NAT로 바꾸려면 false)
+
+  tags = {
+    Terraform = "true"
+    Environment = local.terraform_env
+  }
+}
+endsnippet
+
 snippet base_vpc_module ""
 data "aws_availability_zones" "available" {
 }
@@ -173,6 +212,91 @@ module "vpc" {
   tags = {
     Terraform = "true"
     Environment = local.terraform_env
+  }
+}
+endsnippet
+
+snippet base_aurora_pg ""
+# 계정 정보는 기본적으로 AWS Secrets Manager에 저장
+#  aws rds describe-db-clusters \
+#    --db-cluster-identifier dev-aurora \
+#    --query "DBClusters[0].MasterUserSecret.SecretArn" \
+#    --output text \
+#  | xargs aws secretsmanager get-secret-value \
+#    --query SecretString \
+#    --output text \
+#    --secret-id
+module "aurora" {
+  source  = "terraform-aws-modules/rds-aurora/aws"
+  version = "9.15.0"
+
+  name              = "${local.terraform_env}-aurora"
+  engine            = "aurora-postgresql"
+  engine_version    = "17.4"
+  instance_class    = "db.t4g.medium" # 2 vCPU, 4 GiB RAM
+  instances         = {
+    writer = {},
+    reader1 = {}
+  }  # 1 writer + 1 reader
+
+  vpc_id                  = module.vpc.vpc_id
+  db_subnet_group_name    = module.vpc.database_subnet_group
+  create_db_subnet_group  = false
+  security_group_rules    = {}     # 모듈 SG 쓰지 않고 직접 SG 관리할 경우
+
+  master_username         = "${local.terraform_env}admin"
+
+  backup_retention_period = 2      # 개발용은 짧게
+  deletion_protection     = true
+
+  create_db_parameter_group = true
+  db_parameter_group_family = "aurora-postgresql17"  # 엔진 버전에 맞춤
+
+  manage
+
+  tags = {
+    Terraform   = "true"
+    Environment = local.terraform_env
+  }
+}
+endsnippet
+
+snippet base_ec2 ""
+resource "aws_key_pair" "bastion_keypair" {
+  key_name   = "bastion_keypair"
+  public_key = file("~/.ssh/id_ed25519.pub")
+}
+
+data "aws_ami" "amazon_linux_arm" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["al2023-ami-*-arm64"]
+  }
+}
+
+# instance type: AMI랑 호환되는 타입을 선택해야 함
+# - t4g.micro: 2 vCPU, 1 GiB RAM, ARM64
+# - m5.large: 2 vCPU, 8 GiB RAM, x86_64
+resource "aws_instance" "bastion" {
+  ami             = data.aws_ami.amazon_linux_arm.id
+  instance_type   = "t4g.micro"
+  subnet_id       = module.vpc.public_subnets[0]
+  key_name        = aws_key_pair.bastion_keypair.key_name
+
+  vpc_security_group_ids = [aws_security_group.bastion.id]
+
+  associate_public_ip_address = true
+
+  root_block_device {
+    volume_size = 32
+    volume_type = "gp3"
+  }
+
+  tags = {
+    Name = "bastion"
   }
 }
 endsnippet

@@ -57,6 +57,15 @@ show tcp_keepalives_interval;
 show tcp_keepalives_count;
 endsnippet
 
+snippet psql_update_table_column ""
+# 컬럼에 대소문자가 포함되면, 따옴표로 감싸야 함
+UPDATE table_name
+SET "column_name" = 'value',
+    "some_date" = '2025-01-01 00:00:00+00',
+    "updated_at" = now()
+WHERE id = 1;
+endsnippet
+
 
 
 snippet mysql_command_environment "can use: mysql -e"
