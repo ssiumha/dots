@@ -14,10 +14,15 @@
 .idea
 .ignore
 .note
+
+## AI
 .aider*
 .clinerules
 .ai
-.claude
+.roast
+.serena
+claude-swarm.yml
+**/.claude/settings.local.json
 
 ## asdf, env
 .direnv/
@@ -28,7 +33,6 @@ mise.toml
 .mise/
 .mise
 .tool-versions
-justfile
 
 ## vim
 tags
