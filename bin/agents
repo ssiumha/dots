@@ -61,7 +61,7 @@ send_tmux_buffer() {
   local pane_id="$1"
   local message="$2"
 
-  echo "$message" | \
+  echo "from:$TMUX_PANE> $message" | \
     tmux load-buffer - && tmux paste-buffer -t "$pane_id"
   tmux send-keys -t "$pane_id" C-m
 }
