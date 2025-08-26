@@ -75,6 +75,10 @@ export K9SCONFIG="$XDG_CONFIG_HOME/k9s"
 export DENO_INSTALL_ROOT="$XDG_CACHE_HOME/deno"
 export KREW_ROOT="$XDG_DATA_HOME/krew"
 
+export HOMEBREW_NO_AUTO_UPDATE=1
+
+export CLADUE_SWARM_HOME="$XDG_DATA_HOME/cladue-swarm"
+
 [[ "$TERM_PROGRAM" = "vscode" ]] && export EDITOR="code --wait"
 
 #### LS
@@ -114,6 +118,8 @@ ksw() {
 
 alias j="just"
 alias jl="JUST_JUSTFILE=justfile.local just"
+
+alias vdb="v +DBUI"
 
 alias mux="tmuxinator"
 
