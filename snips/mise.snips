@@ -122,6 +122,19 @@ snippet task_with_arguments ""
 run = "docker compose logs {{arg(i=0)}}"
 endsnippet
 
+snippet task_db_with_tunnel "require ssh tunnel"
+[tasks."pj:db:dev"]
+run = """
+#!/bin/bash
+export PGPASSWORD=$(rbw get SOME_DEV_DB)
+export DB_UI_REMOTE_DEV='postgres://username@localhost:15432/dbname?sslmode=require'
+ssh -N some-dev-bastion-tunnel &
+PID=$!
+nvim +DBUI
+kill $PID
+"""
+endsnippet
+
 snippet arguments ""
 # mise run test foo bar --e2e-args baz
 run = [
@@ -179,6 +192,13 @@ snippet tool_logdy ""
 "ubi:logdyhq/logdy-core" = { version = "latest", rename_exe = "logdy" }
 endsnippet
 
-snippet db_ui_env ""
+snippet db_ui_env "postgres"
 DB_UI_LOCAL="mysql://root:password@127.0.0.1"
+
+# using ssh tunnel
+DB_UI_TUNNEL="postgres://root@localhost:15432/postgres"
+PGPASSWORD="special_chars_password" # or encoding
+
+[tasks]
+"pj:db:tunnel".run = 'ssh -Nv -L 15432:aurora.cluster.ap-northeast-2.rds.amazonaws.com:5432 user@host'
 endsnippet

@@ -246,6 +246,10 @@ module "aurora" {
 
   master_username         = "${local.terraform_env}admin"
 
+  # 초기화할 때, false 상태여도 true로 동작하는 문제가 있어서 옵션을 끄길 원한다면 생성 후 수동으로 변경 필요
+  manage_master_user_password_rotation = true
+  master_user_password_rotation_automatically_after_days = 30
+
   backup_retention_period = 2      # 개발용은 짧게
   deletion_protection     = true
 
@@ -614,4 +618,103 @@ snippet ignore_changes "can ignore specific attribute changes"
   lifecycle {
     ignore_changes = [desired_count]
   }
+endsnippet
+
+snippet route53_a_record ""
+resource "aws_route53_record" "root" {
+  zone_id = data.aws_route53_zone.example_com.zone_id
+  name    = ""
+  type    = "A"
+
+  alias {
+    name                   = data.aws_lb.alb.dns_name
+    zone_id                = data.aws_lb.alb.zone_id
+    evaluate_target_health = true
+  }
+}
+endsnippet
+
+snippet route53_wildcard_with_acm "require 10~30 min"
+data "aws_route53_zone" "example_com" {
+  name         = "example.com."
+  private_zone = false
+}
+
+resource "aws_acm_certificate" "wildcard" {
+  domain_name       = "example.com"
+  validation_method = "DNS"
+
+  subject_alternative_names = [
+    "*.example.com",
+  ]
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_route53_record" "wildcard_validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.wildcard.domain_validation_options :
+    dvo.domain_name => {
+      name   = dvo.resource_record_name
+      type   = dvo.resource_record_type
+      record = dvo.resource_record_value
+    }
+  }
+
+  zone_id = data.aws_route53_zone.example.com.zone_id
+  name    = each.value.name
+  type    = each.value.type
+  ttl     = 60
+  records = [each.value.record]
+}
+
+resource "aws_acm_certificate_validation" "wildcard" {
+  certificate_arn         = aws_acm_certificate.wildcard.arn
+  validation_record_fqdns = [for r in aws_route53_record.wildcard_validation : r.fqdn]
+}
+
+
+## ALB Listener - add extra cert and rule
+data "aws_lb" "alb" {
+  tags = {
+    "copilot-application" = "app"
+    "copilot-environment" = "prod"
+  }
+}
+
+data "aws_lb_listener" "https_443" {
+  load_balancer_arn = data.aws_lb.alb.arn
+  port              = 443
+}
+
+data "aws_alb_target_group" "web_tg" {
+  tags = {
+    "copilot-application" = "app"
+    "copilot-environment" = "prod"
+    "copilot-service"     = "web"
+  }
+}
+
+resource "aws_lb_listener_certificate" "extra" {
+  listener_arn    = data.aws_lb_listener.https_443.arn
+  certificate_arn = aws_acm_certificate.wildcard.arn
+}
+
+resource "aws_lb_listener_rule" "redirect_to_web" {
+  listener_arn = data.aws_lb_listener.https_443.arn
+  priority     = 1000
+
+  action {
+    type             = "forward"
+    target_group_arn = data.aws_alb_target_group.web_tg.arn
+  }
+
+  condition {
+    host_header {
+      values = ["example.com"]
+    }
+  }
+}
 endsnippet

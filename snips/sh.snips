@@ -591,3 +591,14 @@ trap 'echo -e "\nStopping..."; for PID in "${PIDS[@]}"; do kill $PID 2>/dev/null
 
 wait
 endsnippet
+
+snippet mac_nfd_to_nfc "hangul"
+python3 -c "
+import unicodedata, os, glob
+for f in glob.glob('*'):
+    nfc = unicodedata.normalize('NFC', f)
+    if f != nfc and os.path.exists(f):
+        os.rename(f, nfc)
+        print(f'✓ {f} -> {nfc}')
+"
+endsnippet
