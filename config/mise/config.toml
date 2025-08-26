@@ -28,8 +28,8 @@ watchexec = "latest" # mise watch -t
 ruby = "latest"
 
 ubi = "latest"
-"ubi:neilotoole/sq" = "latest"
-"ubi:alexpasmantier/television" = { version = "latest", exe = "tv" }
+sq = "latest"
+tv = { version = "latest", exe = "tv" }
 sops = "latest"
 # rust = "latest"
 # "cargo:jwt-cli" = "latest"
@@ -43,6 +43,13 @@ sops = "latest"
 
 [alias]
 usage = "https://github.com/jdx/mise-usage.git"
+sq = 'ubi:neilotoole/sq'
+tv = 'ubi:alexpasmantier/television'
+claude = "npm:@anthropic-ai/claude-code"
+gemini = "npm:@google/gemini-cli"
+codex = "npm:@openai/codex"
+claude_swarm = "gem:claude_swarm"
+roast = "gem:roast-ai"
 
 [tasks."yarn:latest"]
 description = "set yarn version to latest"
