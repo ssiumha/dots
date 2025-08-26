@@ -248,6 +248,32 @@ function CloseAllFunctionFolds()
   end
 end
 
+-- TODO
+function CloseAllStyleFolds()
+  local ts_utils = require('nvim-treesitter.ts_utils')
+  local parser = vim.treesitter.get_parser(0, "typescript")
+  local tree = parser:parse()[1]
+  local root = tree:root()
+
+  local query = vim.treesitter.query.parse("typescript", [[
+    (
+      (jsx_attribute
+        name: (property_identifier) @style_name
+        value: (jsx_expression
+                (object
+                  (pair)*)) @fold
+        (#eq? @style_name "style"))
+    )
+  ]])
+
+  for _, match in query:iter_matches(root, 0) do
+    local node = match[1]
+    local start_row, _, _, _ = node:range()
+    vim.api.nvim_win_set_cursor(0, { start_row + 1, 0 })
+    vim.cmd("normal! zc")
+  end
+end
+
 -------------------
 -- williamboman/mason.nvim
 -- neovim/nvim-lspconfig
@@ -555,20 +581,23 @@ vim.api.nvim_set_hl(0, 'markdownH4', { fg = '#ECEFF4' })
 vim.api.nvim_set_hl(0, 'markdownH5', { fg = '#ECEFF4' })
 vim.api.nvim_set_hl(0, 'markdownH6', { fg = '#ECEFF4' })
 
-require('render-markdown').setup({
-  heading = {
-    enabled = true,
-    width = 'block',
-    border = true,
-    above = '',
-  },
-  indent = {
-    enabled = true,
-    width = 2,
-    skip_level = 1,
-    skip_heading = true,
-  },
-})
+
+if not vim.g.neovide then
+  require('render-markdown').setup({
+    heading = {
+      enabled = true,
+      width = 'block',
+      border = true,
+      above = '',
+    },
+    indent = {
+      enabled = true,
+      width = 2,
+      skip_level = 1,
+      skip_heading = true,
+    },
+  })
+end
 
 --------------------------------------
 -- lukas-reineke/indent-blankline.nvim

@@ -98,7 +98,7 @@ autocmd ColorScheme * highlight Folded cterm=NONE ctermbg=236 ctermfg=145 gui=it
 
 " highlight FoldColumn cterm=NONE ctermbg=NONE guibg=NONE
 
-set foldminlines=5
+set foldminlines=3
 set fillchars=fold:\ ,vert:│
 " set foldcolumn=2
 " set foldtext=MyFoldText()
@@ -144,7 +144,12 @@ call plug#begin(expand('$HOME/.local/vim/plugged'))
 
 Plug 'junegunn/fzf' ", { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
-  let $FZF_DEFAULT_COMMAND="fd -tf --hidden --no-ignore-vcs --follow --exclude 'tmp/' --exclude 'dist/' --exclude '.bundle/' --exclude '.venv/'"
+  let $FZF_DEFAULT_COMMAND="fd -tf --hidden --no-ignore-vcs" .
+        \ " --follow --exclude 'tmp/' --exclude 'dist/' --exclude '.bundle/' --exclude '.venv/'" .
+        \ " --exclude '.expo/'"
+  if exists('$FZF_APPEND_COMMAND')
+    let $FZF_DEFAULT_COMMAND .= ' ' . $FZF_APPEND_COMMAND
+  endif
   let g:fzf_preview_window = ['down,50%,<70(down,40%)', 'ctrl-/']
   if exists('$TMUX')
     let g:fzf_layout = { 'tmux': '90%,70%' }
@@ -182,13 +187,42 @@ Plug 'junegunn/fzf.vim'
   imap <c-x><c-f> <plug>(fzf-complete-path)
   imap <c-x><c-l> <plug>(fzf-complete-line)
 
-  " TODO
-  " func! FzfAction(list, action) abort
+  ":call FzfPick([
+  " \ ['Build',     '프로젝트 빌드',       ':make build'],
+  " \ ['Open Note', '오늘 노트 열기',     'edit ~/notes/today.md'],
+  " \ ['DB Sync',   '개발 DB 동기화',     '!./scripts/db_sync.sh'],
+  " \ ['Echo',      'Funcref 테스트',     {-> execute('echo "ok"')}],
+  " \ ])
+  function! FzfPick(items) abort
+    let s:_items = a:items
+    let l:src = []
+    for l:i in range(len(a:items)-1)
+      let l:it = a:items[l:i]
+      call add(l:src, printf('%d\t%s\t%s', l:i, get(l:it,0,''), get(l:it,1,'')))
+    endfor
+    call fzf#run(fzf#wrap({
+    \ 'source':  l:src,
+    \ 'options': '--delimiter=\t --with-nth=2,3 --nth=2,3 --prompt=Actions❯ ',
+    \ 'sink':    function('s:FzfOnSelect'),
+    \ }))
+  endfunction
+  function! s:FzfOnSelect(line) abort
+    let l:idx = str2nr(matchstr(a:line, '^\d\+'))
+    let l:item = get(s:_items, l:idx, [])
+    if empty(l:item) | return | endif
+    let l:act = l:item[2]
+    if type(l:act) == v:t_func
+      call call(l:act, [])
+    elseif type(l:act) == v:t_string
+      execute (l:act =~# '^:' ? l:act[1:] : l:act)
+    endif
+  endfunction
 
 Plug 'voldikss/vim-floaterm'
   let g:floaterm_width = 0.95
   let g:floaterm_height = 0.8
 
+  " 기본적으로 stdout을 out -> lambda 함수를 통해 사용 가능
   " FloatermCmd('ls', { out -> setline('.', out) })
   " FloatermCmd('fzf', { out -> append(line('.') - 1, out) })
   " FloatermCmd('fzf', { path -> execute('read ' . path) }, 'filepath')
@@ -197,12 +231,21 @@ Plug 'voldikss/vim-floaterm'
     try
       let l:tempfile = tempname()
       let [shell, shellslash, shellcmdflag, shellxquote] = floaterm#util#use_sh_or_cmd()
-      let newcmd = [&shell, &shellcmdflag, a:cmd . ' > ' . l:tempfile]
+
+      if type(a:cmd) == type([])
+        let l:sourcefile = tempname()
+        call writefile(a:cmd, l:sourcefile)
+        let newcmd = [&shell, &shellcmdflag, 'source ' . l:sourcefile . ' > ' . l:tempfile]
+      else
+        let newcmd = [&shell, &shellcmdflag, a:cmd . ' > ' . l:tempfile]
+      endif
       " @param job [number] ex) 3
       " @param data [number] ex) 0
       " @param event [string] ex) 'exit'
       " @param opener [string] ex) 'split'
-      let jobopts = { 'on_exit': funcref({ job, data, event, opener -> a:action(a:return_type == 'filepath' ? l:tempfile : readfile(l:tempfile)) }) }
+      let jobopts = {}
+      let jobopts['on_exit'] = funcref({ job, data, event, opener -> a:action(a:return_type == 'filepath' ? l:tempfile : readfile(l:tempfile)) })
+      let jobopts['on_stderr'] = funcref({ job, data, event -> execute('echo ' . a:data)  })
       let config = {}
       let bufnr = floaterm#terminal#open(-1, newcmd, jobopts, config)
     finally
@@ -211,7 +254,9 @@ Plug 'voldikss/vim-floaterm'
   endfunc
 
   command! -nargs=* -complete=customlist,floaterm#cmdline#complete -bang -range MySnip
-        \ call FloatermCmd(printf('$HOME/dots/bin/snip %s %s', &ft, expand('%:p')), { path -> execute('read ' . path) }, 'filepath')
+        \ call FloatermCmd(
+        \   printf('$HOME/dots/bin/snip %s %s', &ft, expand('%:p')),
+        \   { path -> execute('read ' . path) }, 'filepath')
   nnoremap <space>f <esc>:MySnip<cr>
 
 Plug 'mileszs/ack.vim'
@@ -305,6 +350,10 @@ Plug 'kana/vim-metarw' " TODO: webdav
 Plug 'tpope/vim-dadbod'
 Plug 'kristijanhusak/vim-dadbod-ui'
 Plug 'kristijanhusak/vim-dadbod-completion' "Optional
+  let g:db_ui_table_helpers = {}
+  let g:db_ui_table_helpers['postgres'] = {}
+  let g:db_ui_table_helpers['postgres']['Show Databases'] = 'SELECT datname FROM pg_database WHERE datistemplate = false;'
+
 
 Plug 'hrsh7th/vim-vsnip'
   let g:vsnip_snippet_dir = expand('$HOME/dots/vim/snippets')
@@ -362,13 +411,20 @@ Plug 'dense-analysis/ale'
 
 " TODO
 " Plug 'tpope/vim-endwise'
+" Plug 'tpope/vim-speeddating'
 
 " Edit
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-surround'
+  let g:surround_40 = "(\r)"
+  let g:surround_91 = "[\r]"
+
+Plug 'tpope/vim-abolish'
 Plug 'AndrewRadev/tagalong.vim' " auto fix matched tag
 Plug 'cohama/lexima.vim' " auto close parentheses
+  let g:lexima_enable_space_rules = 0
+
 Plug 'wellle/targets.vim' " extend text objects
 
 Plug 'itchyny/vim-qfedit'
@@ -409,6 +465,7 @@ Plug 'github/copilot.vim'
   " let g:copilot_no_tab_map = v:true
   " imap <silent><script><expr> <tab> copilot#Accept("\<CR>")
 
+Plug 'flazz/vim-colorschemes'
 call plug#end()
 
 "----------------
@@ -538,23 +595,21 @@ if has('ide') "ideavimrc
 endif
 
 if exists('g:neovide')
-  let g:neovide_transparency = 0.9
-  nnoremap <D-v> "+p
-  inoremap <D-v> <c-r>+
-  tnoremap <D-v> <c-r>+
-
-  autocmd VimEnter * if argc() == 0
-        \| exe 'cd ' . g:gtd#dir | exe 'GtdReview'
-        \| endif
+  source ~/dots/vim/note.vim
 endif
 
 if has('gui_macvim')
-  set guifont=Menlo:h14
+  set guifont=Menlo:h17
   set nospell nowrap concealcursor=
 
-  autocmd VimEnter * if argc() == 0
-        \| exe 'cd ~/docs' | edit index.md
-        \| endif
+  let &undodir = expand('$HOME/.cache/macvim/undo')
+  let &backupdir = expand('$HOME/.cache/macvim/backup')
+  let &directory = expand('$HOME/.cache/macvim/swap')
+
+  source ~/dots/vim/note.vim
+  " autocmd VimEnter * if argc() == 0
+  "       \| exe 'cd ~/docs' | edit index.md
+  "       \| endif
 
   " :h macvim-prefs
   "
