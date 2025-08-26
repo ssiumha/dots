@@ -192,9 +192,14 @@
 (use-package org-capture
              :after org
              :config
+
              (setq org-id-link-to-org-use-id t)
              ;; org-store-link 실행 시 ID 자동 생성
              (add-hook 'org-store-link-functions 'org-id-store-link)
+             (defun org-id-new (&optional prefix)
+               (concat "oid-" (string-trim-right
+                               (base64-encode-string (format-time-string "%Y%m%d%H%M%S%6N") t) "=")))
+
 
              ; %? | 커서 위치
              ; %U | inactive timestamp -> [2025-06-23 Mon 10:59]
