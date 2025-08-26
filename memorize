@@ -71,9 +71,12 @@ for i in {0..6}; do tmux send-keys -t $(tmux split-window -d -P -F "#{pane_id}" 
 tmux capture-pane -J -p -S - -t $TMUX_PANE > /tmp/pane.log  ## tmux save to logs ;; -S - : from start ;; -p : to stdout ;; -J : wrapped lines join ;; -t : target. %123
 tmux new -s 'session-name' -d 'command'  ## simple run background using tmux
 tmux new-session -d -s 'dev'; tmux new-window -t dev: -n 'some-name' 'command'
+tmux split-window -d -c '~/tmp' 'ping 8.8.8.8' && tmux select-layout even-vertical  ## create bulk split window
 
 | cut -c-$COLUMNS
 | while read -r line; do echo $line; done
+
+unoconv -f pdf -o output.pdf input.docx  ## convert docx to pdf
 
 systemctl --type=service --state=active
 systemctl --type=service --state=running
@@ -447,6 +450,14 @@ PGPASSWORD='postgres' psql -h localhost -U postgres -d $DB -c 'select * from tab
 PGPASSWORD='postgres' psql -h localhost -U postgres -d $DB -c 'insert into "table_name" ("col1", "col2", ...) '" values ('val1', 'val2', ...)"  ## insert
 PGPASSWORD='postgres' psql -h localhost -U postgres -d $DB ## multiline <<SQL
 
+# rbw
+rbw add SOME_DEV_DB 'devuser' --uri 'databaseurl.com' --folder 'some'
+rbw get SOME_DEV_DB  ## pw only
+rbw get SOME_DEV_DB -f username
+rbw get SOME_DEV_DB --raw | jq '[.name, .data.username, .data.password, .data.uris[0].uri]' ## json
+rbw edit SOME_DEV_DB  ## pw only
+rbw get --full SOME_DEV_DB  ## all info
+
 # network
 echo 'https://url' | tee >(nslookup) >(dig) >(xargs ping -c3)  ## test network url full
 dog 'https://url'  ## alternative dig
@@ -460,6 +471,7 @@ open -na 'Visual Studio Code' .
 
 # mac
 sudo defaults write /Library/Preferences/FeatureFlags/Domain/UIKit.plist redesigned_text_cursor -dict-add Enabled -bool NO  ## disable input source switch popup
+xattr -d com.apple.quarantine ~/Applications/Note.app  ## allow external app
 
 # ssh
 ssh -t remote "./mise x -- k9s"
