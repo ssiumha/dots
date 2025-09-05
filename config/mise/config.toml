@@ -50,10 +50,14 @@ gemini = "npm:@google/gemini-cli"
 codex = "npm:@openai/codex"
 claude_swarm = "gem:claude_swarm"
 roast = "gem:roast-ai"
+copilot = "aqua:aws/copilot-cli"
 
 [tasks."yarn:latest"]
 description = "set yarn version to latest"
 run = "yarn set version latest"
+
+[tasks."uvx:specify"]
+run = "uvx --from git+https://github.com/github/spec-kit.git specify"
 
 [tasks."setup:devcontainer"]
 description = "setup devcontainer"
