@@ -1,0 +1,29 @@
+require 'rake/testtask'
+
+desc "Run tests (Docker required)"
+Rake::TestTask.new(:test) do |t|
+  t.test_files = FileList['test/test.rb']
+  t.verbose = true
+end
+
+desc "Build Docker image"
+task :docker_build do
+  # Skip if image exists
+  if system("docker image inspect vim-webdav-test > /dev/null 2>&1")
+    puts "Docker image already exists"
+  else
+    sh "docker build -t vim-webdav-test -f test/Dockerfile ."
+  end
+end
+
+desc "Clean up Docker containers and images"
+task :docker_clean do
+  sh "docker ps -a | grep vim-webdav-test | awk '{print $1}' | xargs -r docker rm -f || true"
+  sh "docker rmi -f vim-webdav-test || true"
+end
+
+# Build before test
+task :test => :docker_build
+
+# Default task
+task :default => :test

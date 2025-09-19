@@ -121,6 +121,7 @@ let &directory = expand('$HOME/.cache/vim/swap')
 " let g:ruby_host_prog = '$HOME/.local/bin/neovim-ruby-host'
 
 set runtimepath^=~/dots/vim
+set packpath^=~/dots/vim
 
 "----------------
 " complete
@@ -239,13 +240,15 @@ Plug 'voldikss/vim-floaterm'
       else
         let newcmd = [&shell, &shellcmdflag, a:cmd . ' > ' . l:tempfile]
       endif
+
       " @param job [number] ex) 3
       " @param data [number] ex) 0
       " @param event [string] ex) 'exit'
       " @param opener [string] ex) 'split'
       let jobopts = {}
-      let jobopts['on_exit'] = funcref({ job, data, event, opener -> a:action(a:return_type == 'filepath' ? l:tempfile : readfile(l:tempfile)) })
-      let jobopts['on_stderr'] = funcref({ job, data, event -> execute('echo ' . a:data)  })
+      let jobopts['on_exit'] = funcref({ job, data, event, opener ->
+            \   a:action(a:return_type == 'filepath' ? l:tempfile : readfile(l:tempfile))
+            \ })
       let config = {}
       let bufnr = floaterm#terminal#open(-1, newcmd, jobopts, config)
     finally
@@ -255,7 +258,7 @@ Plug 'voldikss/vim-floaterm'
 
   command! -nargs=* -complete=customlist,floaterm#cmdline#complete -bang -range MySnip
         \ call FloatermCmd(
-        \   printf('$HOME/dots/bin/snip %s %s', &ft, expand('%:p')),
+        \   printf('%s %s %s', expand('$HOME/dots/bin/snip'), &ft, expand('%:p')),
         \   { path -> execute('read ' . path) }, 'filepath')
   nnoremap <space>f <esc>:MySnip<cr>
 
