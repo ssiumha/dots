@@ -8,13 +8,14 @@ import sys
 from pathlib import Path
 
 
-def convert_pdf_to_markdown(pdf_path: Path, output_path: Path = None) -> None:
+def convert_pdf_to_markdown(pdf_path: Path, output_path: Path = None, export_images: bool = False) -> None:
     """
     Convert PDF to Markdown format.
 
     Args:
         pdf_path: Path to input PDF file
         output_path: Path to output Markdown file (default: <pdf_name>.md)
+        export_images: Export each page as JPG image (default: False)
     """
     if not pdf_path.exists():
         raise FileNotFoundError(f"PDF file not found: {pdf_path}")
@@ -23,6 +24,10 @@ def convert_pdf_to_markdown(pdf_path: Path, output_path: Path = None) -> None:
         output_path = pdf_path.with_suffix('.md')
 
     print(f"Converting {pdf_path} to {output_path}...")
+
+    # Export pages as images if requested
+    if export_images:
+        export_pdf_pages_as_images(pdf_path, output_path)
 
     try:
         # Try PyMuPDF4LLM first (best quality)
@@ -108,6 +113,44 @@ def convert_table_to_markdown(table: list) -> str:
     return "\n".join(lines)
 
 
+def export_pdf_pages_as_images(pdf_path: Path, output_path: Path) -> None:
+    """
+    Export each PDF page as a JPG image.
+
+    Args:
+        pdf_path: Path to input PDF file
+        output_path: Path to output Markdown file (used to determine image folder)
+    """
+    import fitz  # PyMuPDF
+
+    # Create images folder
+    images_folder = output_path.parent / f"{output_path.stem}_pages"
+    images_folder.mkdir(exist_ok=True)
+
+    # Open PDF
+    doc = fitz.open(pdf_path)
+    total_pages = len(doc)
+
+    print(f"Exporting {total_pages} pages as images to {images_folder}/")
+
+    # Export each page
+    for page_num in range(total_pages):
+        page = doc[page_num]
+
+        # Render page to image (300 DPI for good quality)
+        mat = fitz.Matrix(300/72, 300/72)  # 72 DPI -> 300 DPI
+        pix = page.get_pixmap(matrix=mat)
+
+        # Save as JPG
+        image_path = images_folder / f"page_{page_num + 1:03d}.jpg"
+        pix.save(str(image_path), "jpeg")
+
+    doc.close()
+
+    print(f"✓ Exported {total_pages} pages to {images_folder}/")
+    print(f"  Images: page_001.jpg to page_{total_pages:03d}.jpg")
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -123,11 +166,16 @@ def main():
         type=Path,
         help="Path to output Markdown file (default: <pdf_name>.md)"
     )
+    parser.add_argument(
+        "--export-images",
+        action="store_true",
+        help="Export each page as JPG image to <basename>_pages/ folder"
+    )
 
     args = parser.parse_args()
 
     try:
-        convert_pdf_to_markdown(args.pdf_file, args.output)
+        convert_pdf_to_markdown(args.pdf_file, args.output, args.export_images)
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
