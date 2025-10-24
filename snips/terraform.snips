@@ -121,6 +121,8 @@ terraform {
 
 provider "aws" {
   region  = var.region
+  allowed_account_ids = ["000000000000"]
+  forbidden_account_ids = ["000000000000"]
 }
 
 provider "azurerm" {
@@ -281,6 +283,16 @@ data "aws_ami" "amazon_linux_arm" {
   }
 }
 
+data "aws_ami" "amazon_linux_x86" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["al2023-ami-*-x86_64"]
+  }
+}
+
 # instance type: AMI랑 호환되는 타입을 선택해야 함
 # - t4g.micro: 2 vCPU, 1 GiB RAM, ARM64
 # - m5.large: 2 vCPU, 8 GiB RAM, x86_64
@@ -294,6 +306,8 @@ resource "aws_instance" "bastion" {
 
   associate_public_ip_address = true
 
+  private_ip = "999.999.999.999" # 필요 시 고정 IP 할당
+
   root_block_device {
     volume_size = 32
     volume_type = "gp3"
@@ -301,6 +315,11 @@ resource "aws_instance" "bastion" {
 
   tags = {
     Name = "bastion"
+  }
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes = [ami, instance_type] # ami 갱신 등으로 인한 교체 방지
   }
 }
 endsnippet

@@ -78,6 +78,21 @@ snippet psql_drop_database "ignore other sessions"
 -- DROP DATABASE dbname;
 endsnippet
 
+snippet psql_insert "string use only single quote"
+insert into table_name
+(column1, column2) values
+('value1', DEFAULT),
+('value3', 'value4')
+;
+endsnippet
+
+snippet psql_copy_to_csv "export table to csv"
+\copy table_name TO '/tmp/table_name.csv' WITH (FORMAT CSV, HEADER true);
+endsnippet
+
+snippet psql_copy_from_table "import table from csv"
+\copy table_name FROM '/tmp/table_name.csv' WITH (FORMAT CSV, HEADER true);
+endsnippet
 
 
 snippet mysql_command_environment "can use: mysql -e"

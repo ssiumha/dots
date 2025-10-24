@@ -506,6 +506,9 @@ services:
       traefik.http.routers.api-admin.middlewares: basic-auth-web
 endsnippet
 
+snippet traefik_certbot "with certbot"
+endsnippet
+
 snippet localstack "test aws"
 services:
   localstack:

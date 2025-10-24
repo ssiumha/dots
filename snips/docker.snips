@@ -26,3 +26,38 @@ go() {
   docker run --rm -v "$(pwd):/app" -w /app golang:latest go "$@"
 }
 endsnippet
+
+snippet docker_certbot "manual register TXT"
+# ./volumes/certbot/live/example.com/
+#   - cert.pem
+#   - privkey.pem
+#   - fullchain.pem
+#   - chain.pem
+docker run --rm -it \
+  -v ./volumes/certbot/:/etc/letsencrypt \
+  -v ./volumes/certbot/lib:/var/lib/letsencrypt \
+  certbot/certbot certonly \
+    --manual --preferred-challenges dns \
+    -d example.com -d '*.example.com' \
+    -m you@example.com --agree-tos --no-eff-email
+endsnippet
+
+snippet caddy_test_cert ""
+# can create certificates with mkcert
+# CAROOT="$(pwd)/pki" mkcert -ecdsa \
+#   -cert-file server.crt -key-file server.key \
+#   "api.internal.local" "*.svc.cluster.local" 10.0.0.10 ::1
+echo ':443 {
+  root * /site
+  file_server browse
+  tls /certs/server.crt /certs/server.key
+}' | docker run --rm -i -p 8443:443 \
+  -v "$PWD":/site:ro \
+  -v "$PWD":/certs:ro \
+  caddy:2 caddy run --config - --adapter caddyfile
+
+# testing
+curl --cacert pki/rootCA.pem \
+  --resolve api.internal.local:8443:127.0.0.1 \
+  https://api.internal.local:8443/
+endsnippet

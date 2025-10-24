@@ -4,3 +4,45 @@ creation_rules:
     encrypted_regex: "^(password|api_key)$"
     pgp: 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
 endsnippet
+
+snippet traefik_config_base "./config/traefik.yaml:/etc/traefik/traefik.yaml:ro"
+api:
+  dashboard: true
+  insecure: true
+
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: ":443"
+
+providers:
+  docker:
+    exposedByDefault: false
+    endpoint: "unix:///var/run/docker.sock"
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
+
+log:
+  level: INFO
+
+accessLog: {}
+endsnippet
+
+snippet traefik_config_dynamic "./config/dynamic/:/etc/traefik/dynamic:ro"
+tls:
+  certificates:
+    - certFile: /certs/live/example.com/fullchain.pem
+      keyFile: /certs/live/example.com/privkey.pem
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /certs/live/example.com/fullchain.pem
+        keyFile: /certs/live/example.com/privkey.pem%
+endsnippet
