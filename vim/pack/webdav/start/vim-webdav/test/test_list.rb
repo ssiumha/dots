@@ -1,71 +1,9 @@
 #!/usr/bin/env ruby
-# WebDAV plugin test suite using Docker + tmux
+# WebDAV list and navigation tests
 
-require 'minitest/autorun'
-require 'securerandom'
-require_relative 'tmux_helper'
-require_relative 'screen_helper'
+require_relative 'test_base'
 
-class TestWebDAV < Minitest::Test
-  include TmuxHelper
-  include ScreenHelper
-
-  def setup
-    @container = "vim-webdav-test-#{SecureRandom.hex(4)}"
-
-    # Start container
-    system("docker run --rm -d --name #{@container} vim-webdav-test", out: '/dev/null')
-    wait_for_container
-
-    # Start mock server
-    docker_exec("cd /root/.vim/pack/webdav/start/vim-webdav/test && ruby mock-server.rb > /dev/null 2>&1 &")
-    wait_for_server
-
-    # Create tmux session
-    docker_exec("tmux new-session -d -s test")
-  end
-
-  def wait_for_container(timeout = 2)
-    start = Time.now
-    while Time.now - start < timeout
-      output = docker_exec("echo 'ready'")
-      return if output.strip == "ready"
-      sleep 0.05
-    end
-    raise "Container not ready"
-  end
-
-  def wait_for_server(timeout = 2)
-    start = Time.now
-    while Time.now - start < timeout
-      output = docker_exec("curl -s -o /dev/null -w '%{http_code}' http://localhost:9999 || echo '000'")
-      return if output.strip != "000"
-      sleep 0.05
-    end
-    raise "Mock server not ready"
-  end
-
-  def teardown
-    system("docker rm -f #{@container}", out: '/dev/null')
-  end
-
-  # Test plugin loads
-  def test_plugin_loads
-    start_vim("WEBDAV_DEFAULT_URL" => "http://localhost:9999")
-    vim_cmd("if exists('g:loaded_webdav') | echo 'LOADED' | endif")
-    assert_includes capture, "LOADED"
-  end
-
-  # Test commands exist
-  def test_commands_exist
-    start_vim("WEBDAV_DEFAULT_URL" => "http://localhost:9999")
-    vim_cmd("if exists(':WebDAVList') == 2 | echo 'LIST_EXISTS' | endif")
-    assert_includes capture, "LIST_EXISTS"
-
-    vim_cmd("if exists(':WebDAVGet') == 2 | echo 'GET_EXISTS' | endif")
-    assert_includes capture, "GET_EXISTS"
-  end
-
+class TestWebDAVList < TestWebDAVBase
   # Test WebDAVList shows files
   def test_webdav_list_shows_files
     start_vim("WEBDAV_DEFAULT_URL" => "http://localhost:9999")
@@ -73,7 +11,7 @@ class TestWebDAV < Minitest::Test
 
     # Check sorted order: ../ first, then directories, then files
     assert_screen_includes <<~SCREEN
-      " WebDAV: /test/
+      " WebDAV: http://localhost:9999/test/
       ../
       aaa_folder/
       folder1/
@@ -111,32 +49,6 @@ class TestWebDAV < Minitest::Test
     assert_match(/modifiable.is.off|Cannot make changes/i, output)
   end
 
-  # Test WebDAVGet retrieves content
-  def test_webdav_get_content
-    start_vim("WEBDAV_DEFAULT_URL" => "http://localhost:9999")
-    vim_cmd("WebDAVGet /test/file1.txt")
-
-    # Check content appears as a block
-    assert_screen_block <<~CONTENT
-      This is test file content.
-      Line 2
-      Line 3
-    CONTENT
-  end
-
-  # Test Korean filename
-  def test_korean_filename
-    start_vim("WEBDAV_DEFAULT_URL" => "http://localhost:9999")
-    vim_cmd("WebDAVGet /test/한글.md")
-    sleep 0.5  # Wait for content to load
-
-    assert_screen_block <<~CONTENT
-      # 한글 문서
-
-      테스트 내용입니다.
-    CONTENT
-  end
-
   # Test error without URL
   def test_error_without_url
     start_vim()  # Start without env var
@@ -153,7 +65,7 @@ class TestWebDAV < Minitest::Test
 
     # Use pattern with ... to skip lines (../ is now at top)
     assert_screen_pattern <<~PATTERN
-      " WebDAV: /test/
+      " WebDAV: http://localhost:9999/test/
       ../
       ...
       한글.md
@@ -165,7 +77,7 @@ class TestWebDAV < Minitest::Test
     start_vim("WEBDAV_DEFAULT_URL" => "http://localhost:9999")
     vim_cmd("WebDAVList /test/")
 
-    assert_header '" WebDAV: /test/'
+    assert_header '" WebDAV: http://localhost:9999/test/'
     assert_files_listed '../', 'aaa_folder/', 'folder1/', 'zzz_folder/', '001_file.txt', 'file1.txt', '한글.md'
   end
 
@@ -175,7 +87,7 @@ class TestWebDAV < Minitest::Test
     start_vim("WEBDAV_DEFAULT_URL" => "http://localhost:9999/test/deep")
     vim_cmd("WebDAVList /")  # Root of the deep path
 
-    assert_header '" WebDAV: /'
+    assert_header '" WebDAV: http://localhost:9999/test/deep/'
     assert_files_listed '../', 'anotherfolder/', 'subfolder/', 'aaa.md', 'file.txt', 'zzz.txt'
   end
 
@@ -185,7 +97,7 @@ class TestWebDAV < Minitest::Test
     vim_cmd("WebDAVList /subfolder/")
 
     assert_screen_includes <<~SCREEN
-      " WebDAV: /subfolder/
+      " WebDAV: http://localhost:9999/test/deep/subfolder/
       ../
       nested.txt
     SCREEN
@@ -201,7 +113,7 @@ class TestWebDAV < Minitest::Test
     lines = output.split("\n").take_while { |l| !l.start_with?("~") }.select { |l| !l.empty? }
 
     # Extract the file list (skip header and ../, and any status lines)
-    files_and_dirs = lines[2..-1].reject { |l| l == "../" || l.include?("All") || l.include?("more lines") }  # Skip header and ../ on line 2
+    files_and_dirs = lines[2..-1].reject { |l| l == "../" || l.include?("All") || l.include?("more lines") }
 
     # Check that all directories come before all files
     dir_indices = files_and_dirs.each_index.select { |i| files_and_dirs[i].end_with?("/") }
