@@ -1,0 +1,258 @@
+*webdav.txt*  WebDAV file editing for Vim
+
+Author: ssiumha
+License: MIT
+Version: 1.0
+
+==============================================================================
+CONTENTS                                                    *webdav-contents*
+
+    1. Introduction ............................ |webdav-introduction|
+    2. Requirements ............................ |webdav-requirements|
+    3. Installation ............................ |webdav-installation|
+    4. Configuration ........................... |webdav-configuration|
+    5. Commands ................................ |webdav-commands|
+    6. Usage ................................... |webdav-usage|
+    7. Conflict Resolution ..................... |webdav-conflicts|
+    8. Safety Features ......................... |webdav-safety|
+    9. Troubleshooting ......................... |webdav-troubleshooting|
+   10. About ................................... |webdav-about|
+
+==============================================================================
+1. INTRODUCTION                                         *webdav-introduction*
+
+vim-webdav is a plugin that enables direct editing of files on a WebDAV
+server from within Vim. It provides features such as directory browsing,
+file reading/writing, and conflict detection.
+
+Key Features:
+  • WebDAV directory browsing
+  • File read/write operations (save with `:w`)
+  • ETag/Last-Modified based conflict detection
+  • Korean filename support
+  • Safe overwrite prevention
+
+==============================================================================
+2. REQUIREMENTS                                         *webdav-requirements*
+
+Required:
+  • Vim 8.0 or later
+  • curl (must be installed on system)
+  • perl (for URL encoding)
+  • Access to a WebDAV server
+
+==============================================================================
+3. INSTALLATION                                         *webdav-installation*
+
+Using Vim 8 package manager:
+>
+    mkdir -p ~/.vim/pack/webdav/start
+    cd ~/.vim/pack/webdav/start
+    git clone <repository-url> vim-webdav
+<
+
+Using a plugin manager (e.g., vim-plug):
+>
+    Plug 'username/vim-webdav'
+<
+
+==============================================================================
+4. CONFIGURATION                                       *webdav-configuration*
+
+Environment Variables                             *webdav-environment-vars*
+
+Configure WebDAV server connection via environment variables:
+
+    WEBDAV_DEFAULT_URL          WebDAV server URL (required)
+                                Example: http://example.com:9999
+
+    WEBDAV_DEFAULT_USER         Username (optional, for authentication)
+
+    WEBDAV_DEFAULT_PASS         Password (optional, for authentication)
+
+Example:
+>
+    export WEBDAV_DEFAULT_URL="http://localhost:9999"
+    export WEBDAV_DEFAULT_USER="admin"
+    export WEBDAV_DEFAULT_PASS="password"
+<
+
+Add to .bashrc or .zshrc for persistent configuration.
+
+==============================================================================
+5. COMMANDS                                                 *webdav-commands*
+
+                                                            *:WebDAVList*
+:WebDAVList [path]
+    Display directory listing from WebDAV server.
+    If [path] is omitted, displays root directory (/).
+
+    Example: >
+        :WebDAVList /documents
+        :WebDAVList /
+<
+    Navigation:
+      <CR>        Open file or navigate to directory (new tab)
+      ../         Navigate to parent directory
+
+
+                                                            *:WebDAVGet*
+:WebDAVGet {path}
+    Retrieve a file from WebDAV server and open it as an editable buffer.
+    The file stores ETag/Last-Modified information for conflict detection.
+
+    Example: >
+        :WebDAVGet /documents/readme.txt
+        :WebDAVGet /notes/한글문서.md
+<
+
+                                                            *:WebDAVPut*
+:WebDAVPut
+    Save the current buffer contents to the WebDAV server.
+    Typically invoked automatically when using `:w` command.
+
+    Note: Fails if buffer is not a WebDAV-managed buffer.
+
+==============================================================================
+6. USAGE                                                       *webdav-usage*
+
+Basic Workflow                                         *webdav-workflow*
+
+1. Browse directories:
+>
+    :WebDAVList /documents
+<
+   Press <CR> to open files or navigate directories.
+
+2. Edit files:
+>
+    :WebDAVGet /documents/file.txt
+<
+   Edit as you would any normal Vim buffer.
+
+3. Save files:
+>
+    :w
+<
+   Or explicitly:
+>
+    :WebDAVPut
+<
+
+Buffer Variables                                       *webdav-buffer-vars*
+
+When opening a WebDAV file, these buffer variables are automatically set:
+
+    b:webdav_managed         Marks buffer as WebDAV-managed (1)
+    b:webdav_original_path   Original file path
+    b:webdav_url             WebDAV server URL
+    b:webdav_etag            Current file ETag
+    b:webdav_last_modified   Last modification time
+
+These variables are managed automatically. Do not modify them manually.
+
+==============================================================================
+7. CONFLICT RESOLUTION                                     *webdav-conflicts*
+
+Conflict Detection                             *webdav-conflict-detection*
+
+vim-webdav implements optimistic locking using ETag and Last-Modified
+headers.
+
+When saving if the server file has been modified:
+  1. Receives HTTP 412 Precondition Failed response
+  2. Displays error: "Conflict: 서버 파일이 변경되었습니다"
+  3. Automatically opens server's latest version in a new tab
+
+Conflict Resolution Procedure:
+  1. Left tab (previous): Your local changes
+  2. Right tab (current): Server's latest version
+  3. Manually merge the changes
+  4. Edit and save in the server version tab with `:w`
+
+==============================================================================
+8. SAFETY FEATURES                                           *webdav-safety*
+
+Data Loss Prevention                               *webdav-data-protection*
+
+vim-webdav provides multiple safety mechanisms:
+
+1. Version Tracking Required
+   Cannot open or save files without ETag or Last-Modified headers.
+   Error: "Cannot safely edit file without conflict detection"
+
+2. Path Protection
+   Can only save to the path stored in b:webdav_original_path.
+   Prevents accidentally overwriting different files.
+
+3. Server URL Validation
+   Cannot save to a different server than where the file was opened.
+   Error: "WebDAV URL mismatch. Cannot save to different server."
+
+4. Buffer Isolation
+   Only WebDAV buffers receive special handling.
+   Normal file `:w` operations are unaffected.
+
+==============================================================================
+9. TROUBLESHOOTING                                   *webdav-troubleshooting*
+
+Common Issues                                         *webdav-common-issues*
+
+Q: Getting "Error: Set WEBDAV_DEFAULT_URL" error.
+A: Environment variable WEBDAV_DEFAULT_URL is not set.
+   See |webdav-configuration| to configure environment variables.
+
+Q: Getting "Cannot safely edit file without conflict detection" error.
+A: WebDAV server is not returning ETag or Last-Modified headers.
+   Check server configuration or use a different WebDAV server.
+
+Q: Korean filenames don't work properly.
+A: Verify perl's URI::Escape module is installed:
+>
+    perl -MURI::Escape -e 'print "OK\n"'
+<
+
+Q: Getting WebDAV errors when saving normal files.
+A: This should not happen. May be a bug - please report.
+   Check if b:webdav_managed is set on normal buffers:
+>
+    :echo exists('b:webdav_managed')
+<
+   Should return 0 for normal files.
+
+Q: Conflict occurred but I want to force save.
+A: Force save is not supported for safety reasons.
+   Check server's latest version and manually merge before saving.
+
+Debugging                                                *webdav-debugging*
+
+Check buffer state:
+>
+    :echo b:webdav_managed
+    :echo b:webdav_original_path
+    :echo b:webdav_etag
+<
+
+Test curl directly:
+>
+    curl -i http://localhost:9999/test/file.txt
+<
+
+==============================================================================
+10. ABOUT                                                     *webdav-about*
+
+vim-webdav was developed to enable direct editing of WebDAV server files
+from within Vim.
+
+Project Structure:
+  plugin/webdav.vim         Main plugin file
+  doc/webdav.txt            This documentation
+  test/                     Test files
+
+Bug Reports and Contributions:
+Please report bugs or suggest features via GitHub issues.
+
+License: MIT
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:

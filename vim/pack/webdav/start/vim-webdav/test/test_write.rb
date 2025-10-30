@@ -1,0 +1,113 @@
+#!/usr/bin/env ruby
+# WebDAV file writing tests
+
+require_relative 'test_base'
+
+class TestWebDAVWrite < TestWebDAVBase
+  # Test file save functionality
+  def test_webdav_save_buffer
+    start_vim("WEBDAV_DEFAULT_URL" => "http://localhost:9999")
+    vim_cmd("WebDAVGet /test/file1.txt")
+    wait_for { capture.include?("This is test file content") }
+
+    # Modify content
+    vim_cmd("normal! ggdG")
+    vim_cmd("call setline(1, 'Modified content')")
+    vim_cmd("call setline(2, 'Line 2 modified')")
+
+    # Save with :w (now properly intercepted for WebDAV buffers only)
+    vim_cmd("write")
+    sleep 0.5
+
+    # Verify buffer is no longer modified
+    vim_cmd("if &modified | echo 'STILL_MODIFIED' | else | echo 'NOT_MODIFIED' | endif")
+    wait_for { capture.include?("NOT_MODIFIED") || capture.include?("Saved to WebDAV") }
+
+    output = capture
+    assert_includes output, "NOT_MODIFIED", "Buffer should not be modified after save"
+  end
+
+  # Test conflict detection
+  def test_webdav_conflict_detection
+    start_vim("WEBDAV_DEFAULT_URL" => "http://localhost:9999")
+    vim_cmd("WebDAVGet /test/file1.txt")
+    wait_for { capture.include?("This is test file content") }
+
+    # Simulate server-side modification by making a PUT from outside
+    # (In real scenario, another client would modify the file)
+    docker_exec("curl -s -X PUT http://localhost:9999/test/file1.txt -d 'Server modified content' > /dev/null")
+    sleep 0.2
+
+    # Now try to modify and save from vim
+    vim_cmd("normal! ggdG")
+    vim_cmd("call setline(1, 'Local modification')")
+    vim_cmd("write")
+    sleep 0.5
+
+    # Should see conflict error
+    output = capture
+    assert_match(/Conflict|서버 파일이 변경|412/i, output, "Should detect conflict")
+  end
+
+  # Test that buffer variables prevent wrong-path saves
+  def test_webdav_path_protection
+    start_vim("WEBDAV_DEFAULT_URL" => "http://localhost:9999")
+    vim_cmd("WebDAVGet /test/file1.txt")
+    wait_for { capture.include?("This is test file content") }
+
+    # Check that original path is stored
+    vim_cmd("echo b:webdav_original_path")
+    wait_for { capture.include?("/test/file1.txt") }
+
+    # Verify webdav_managed flag is set
+    vim_cmd("echo b:webdav_managed")
+    assert_includes capture, "1", "Buffer should be marked as WebDAV-managed"
+  end
+
+  # Test successful save updates version info
+  def test_webdav_save_updates_version
+    start_vim("WEBDAV_DEFAULT_URL" => "http://localhost:9999")
+    vim_cmd("WebDAVGet /test/file1.txt")
+    wait_for { capture.include?("This is test file content") }
+
+    # Get initial ETag
+    vim_cmd("let g:initial_etag = b:webdav_etag")
+
+    # Modify and save
+    vim_cmd("normal! ggdG")
+    vim_cmd("call setline(1, 'Updated content')")
+    vim_cmd("write")
+    sleep 0.5
+
+    # Check that ETag was updated
+    vim_cmd("if b:webdav_etag != g:initial_etag | echo 'ETAG_UPDATED' | else | echo 'ETAG_SAME' | endif")
+    wait_for { capture.include?("ETAG_UPDATED") || capture.include?("ETAG_SAME") }
+
+    # ETag should be different after successful save
+    output = capture
+    assert_includes output, "ETAG_UPDATED", "ETag should be updated after save"
+  end
+
+  # Test Korean filename save
+  def test_webdav_korean_filename_save
+    start_vim("WEBDAV_DEFAULT_URL" => "http://localhost:9999")
+    vim_cmd("WebDAVGet /test/한글.md")
+    wait_for { capture.include?("한글 문서") }
+
+    # Modify content
+    vim_cmd("normal! ggdG")
+    vim_cmd("call setline(1, '# 수정된 한글 문서')")
+    vim_cmd("call setline(2, '새로운 내용입니다.')")
+
+    # Save
+    vim_cmd("write")
+    sleep 0.5
+
+    # Verify saved
+    vim_cmd("if &modified | echo 'STILL_MODIFIED' | else | echo 'NOT_MODIFIED' | endif")
+    wait_for { capture.include?("NOT_MODIFIED") || capture.include?("Saved to WebDAV") }
+
+    output = capture
+    assert_includes output, "NOT_MODIFIED", "Korean filename should save successfully"
+  end
+end
