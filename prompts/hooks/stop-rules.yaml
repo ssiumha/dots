@@ -1,0 +1,55 @@
+# Stop Hook Quality Check Rules
+# Claude 응답 완료 후 수정된 파일을 분석하여 품질 체크
+
+checks:
+  # 테스트 커버리지 체크
+  test_coverage:
+    enabled: true
+
+    # 체크할 소스 파일 패턴
+    patterns:
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.js"
+      - "**/*.jsx"
+      - "**/*.rb"
+      - "**/*.py"
+
+    # 제외할 파일 패턴 (이미 테스트 파일인 경우)
+    exclude_patterns:
+      - "**/*.test.*"
+      - "**/*.spec.*"
+      - "**/test_*.rb"
+      - "**/test_*.py"
+      - "**/__tests__/**"
+
+    message: "Tests updated?"
+
+  # living-docs 업데이트 체크
+  living_docs:
+    enabled: true
+
+    # 중요한 변경으로 간주할 조건
+    # (현재는 파일 2개 이상 수정 시)
+    threshold:
+      min_files: 2
+
+    message: "Should living-docs be updated?"
+
+# 향후 확장 가능한 체크 항목들 (주석 처리)
+#
+# error_handling:
+#   enabled: false
+#   patterns:
+#     - "async function"
+#     - "await "
+#     - "prisma."
+#   message: "Error handling added?"
+#
+# security:
+#   enabled: false
+#   patterns:
+#     - "req.query"
+#     - "req.params"
+#     - "req.body"
+#   message: "Input validation added?"

@@ -1,0 +1,111 @@
+# UserPromptSubmit Hook Rules
+# 프롬프트 제출 시 자동으로 활성화되는 규칙들
+
+# Skill Activation Rules (skill-*)
+skill-living-docs:
+  # 문서/지식베이스/TODO 관련 키워드
+  keywords:
+    - "문서"
+    - "도큐먼트"
+    - "documentation"
+    - "docs"
+    - "TODO"
+    - "할일"
+    - "작업"
+    - "지식베이스"
+    - "knowledge"
+    - "의사결정"
+    - "decision"
+    - "정책"
+    - "policy"
+    - "요구사항"
+    - "requirement"
+    - "명세"
+    - "spec"
+    - "adr"
+    - "기록"
+    - "record"
+
+  # Claude에게 표시할 활성화 메시지
+  trigger_message: |
+    🎯 SKILL ACTIVATION CHECK
+
+    Detected keywords related to documentation/knowledge management.
+    Consider using the 'living-docs' skill for:
+    - Managing project knowledge base
+    - Creating/updating TODO items
+    - Recording decisions (ADR)
+    - Documenting requirements and specifications
+
+# Writing Guide Reminders (reminder-*)
+reminder-claude-md-guide:
+  keywords:
+    - "CLAUDE.md"
+    - "claude.md"
+    - "클로드 문서"
+    - "프로젝트 설정"
+    - "프로젝트 문서"
+
+  trigger_message: |
+    📋 CLAUDE.md Writing Guide
+
+    ## What to Include (Project-Specific Content)
+    - Quick commands (build, start, test, deploy)
+    - Service-specific configuration
+    - Authentication/testing workflows
+    - Project-specific quirks and conventions
+
+    ## What to Exclude (Move to Skills Instead)
+    - Coding standards (formatting, naming conventions)
+    - Framework patterns (React, Vue, Angular, etc.)
+    - API/Backend patterns (routing, controllers, services)
+    - Error handling guidelines
+    - Database/ORM patterns
+    - Testing guidelines and best practices
+    - Performance optimization principles
+
+    ## Recommended Structure
+    - Root CLAUDE.md: Universal rules pointing to repo-specific docs
+    - Repo claude.md: Quick start + references (PROJECT_KNOWLEDGE.md, TROUBLESHOOTING.md)
+
+    ## Your Task
+    1. Write ONLY project-specific content in CLAUDE.md
+    2. Identify generic coding standards that should become skills
+    3. Suggest creating missing skills if needed (e.g., "typescript-standards", "react-patterns")
+    4. Keep CLAUDE.md clean - NO skill lists or recommendations in the file itself
+
+# Test Guidelines Skill Activation
+skill-test-guidelines:
+  keywords:
+    - "테스트"
+    - "test"
+    - "testing"
+    - "유닛 테스트"
+    - "unit test"
+    - "통합 테스트"
+    - "integration test"
+    - "테스트 작성"
+    - "테스트 코드"
+
+  trigger_message: |
+    🧪 TEST GUIDELINES SKILL
+
+    Detected test-related keywords. Consider using the 'test-guidelines' skill for:
+    - Writing new test files
+    - Reviewing existing tests
+    - Test quality improvement
+    - Fixture/Factory patterns
+    - Mock usage guidelines (requires user approval)
+
+# 향후 추가 예시 (주석)
+# skill-pdf-tools:
+#   keywords:
+#     - "pdf"
+#     - "문서변환"
+#   trigger_message: "🎯 Use pdf-tools skill"
+#
+# reminder-api-design:
+#   keywords:
+#     - "API 설계"
+#     - "엔드포인트"
+#   trigger_message: "📋 API Design Guidelines..."
