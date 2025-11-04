@@ -13,12 +13,9 @@ class TestWebDAVBase < Minitest::Test
   def setup
     @container = "vim-webdav-test-#{SecureRandom.hex(4)}"
 
-    # Start container
+    # Start container (nginx starts automatically)
     system("docker run --rm -d --name #{@container} vim-webdav-test", out: '/dev/null')
     wait_for_container
-
-    # Start mock server
-    docker_exec("cd /root/.vim/pack/webdav/start/vim-webdav/test && ruby mock-server.rb > /dev/null 2>&1 &")
     wait_for_server
 
     # Create tmux session
