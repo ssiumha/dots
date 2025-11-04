@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# mise description="Check target domain inspect"
+#MISE description="Check target domain inspect"
 
 require_relative '../common'
 

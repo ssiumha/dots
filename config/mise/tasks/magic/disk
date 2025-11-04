@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# mise description="Check OS Disk"
+#MISE description="Check OS Disk"
 
 require_relative '../common'
 
