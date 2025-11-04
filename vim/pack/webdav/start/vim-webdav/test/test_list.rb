@@ -27,9 +27,11 @@ class TestWebDAVList < TestWebDAVBase
     start_vim("WEBDAV_DEFAULT_URL" => "http://localhost:9999")
     vim_cmd("WebDAVList /test/")
 
-    # Move to file1.txt line and press Enter (now on line 7 with ../ at top)
-    send_keys("7G")  # Go to line 7 (file1.txt after ../ and folders)
-    send_enter
+    # Move to file1.txt line and press Enter
+    send_keys("/file1.txt")  # Search for file1.txt
+    send_enter  # Execute search
+    wait_for_text("file1.txt", 1)
+    send_enter  # Open file
     wait_for { capture.include?("This is test file content") }
 
     # Check if file opened
@@ -112,8 +114,8 @@ class TestWebDAVList < TestWebDAVBase
     # Get content lines excluding vim chrome
     lines = output.split("\n").take_while { |l| !l.start_with?("~") }.select { |l| !l.empty? }
 
-    # Extract the file list (skip header and ../, and any status lines)
-    files_and_dirs = lines[2..-1].reject { |l| l == "../" || l.include?("All") || l.include?("more lines") }
+    # Extract the file list (skip header, ../, action items, and any status lines)
+    files_and_dirs = lines[2..-1].reject { |l| l == "../" || l.start_with?("+") || l.include?("All") || l.include?("more lines") }
 
     # Check that all directories come before all files
     dir_indices = files_and_dirs.each_index.select { |i| files_and_dirs[i].end_with?("/") }

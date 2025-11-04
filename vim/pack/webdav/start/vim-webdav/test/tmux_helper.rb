@@ -42,4 +42,20 @@ module TmuxHelper
     end
     raise "Timeout waiting for condition"
   end
+
+  # Wait for specific text to appear on screen
+  def wait_for_text(text, timeout = 2)
+    wait_for(timeout) { capture.include?(text) }
+  end
+
+  # Wait for specific text to disappear from screen
+  def wait_until_gone(text, timeout = 2)
+    wait_for(timeout) { !capture.include?(text) }
+  end
+
+  # Wait for screen content to change
+  def wait_for_screen_change(timeout = 1)
+    initial = capture
+    wait_for(timeout) { capture != initial }
+  end
 end

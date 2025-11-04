@@ -21,7 +21,7 @@ class TestWebDAVRead < TestWebDAVBase
   def test_korean_filename
     start_vim("WEBDAV_DEFAULT_URL" => "http://localhost:9999")
     vim_cmd("WebDAVGet /test/한글.md")
-    sleep 0.5  # Wait for content to load
+    wait_for_text("한글 문서", 1)  # Wait for content to load
 
     assert_screen_block <<~CONTENT
       # 한글 문서
