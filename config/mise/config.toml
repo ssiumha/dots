@@ -19,6 +19,7 @@ fd = "latest"
 bat = "latest"
 dust = "latest"
 jq = "latest"
+xq = "latest"
 fx = "latest"
 just = "latest"
 dasel = "latest"
@@ -44,6 +45,7 @@ sops = "latest"
 [alias]
 usage = "https://github.com/jdx/mise-usage.git"
 sq = 'ubi:neilotoole/sq'
+xq = 'ubi:sibprogrammer/xq'
 tv = 'ubi:alexpasmantier/television'
 claude = "npm:@anthropic-ai/claude-code"
 gemini = "npm:@google/gemini-cli"

@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# mise description="Get ECR Image list"
+#MISE description="Get ECR Image list"
 
 require_relative '../common'
 

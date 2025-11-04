@@ -1,5 +1,5 @@
 #!/bin/bash
-# mise description="Test shortcut menu in fzf"
+#MISE description="Test shortcut menu in fzf"
 
 (
 KEYMAP="cat <<-EOF | column -t -s $';'
