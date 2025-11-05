@@ -1,30 +1,30 @@
-$ARGUMENTS
+living-docs skill을 실행하여 프로젝트 지식을 문서화합니다.
 
-기본적으로 직전 커밋된 내용에 대한 문서 작업을 진행합니다
+## 사용 방법
 
-문서는 코드와 프로젝트의 색인이자 다음 작업에 도움을 주기 위한 참고 자료입니다.
-작은 단위의 mermaid 도식 정도만 포함하고 기능별로 세분화된 문서를 쓰지 않습니다.
+```
+/docs
+```
 
-주의사항:
-  - 문서 크기가 너무 크지 않도록 주의하고, 필요하다면 문서를 작게 나눕니다.
+## 수행 작업
 
-주로 표현할 내용:
-  - 프로젝트의 전반적인 내용을 파악할 수 있는 거시적인 내용
-  - mermaid를 사용한 도식
-  - 엔티티의 관계와 flow
+이 명령은 living-docs skill을 활성화하여 다음을 수행합니다:
 
-포함해선 안되는 내용:
-  - 불확실한 미래 계획이나 불필요한 일정 추산 등의 내용은 포함하지 않습니다.
-  - 문서에 코드나 API 명세가 포함되서는 안됩니다.
-  - 임팩트, 일정 흐름, 우선순위 등의 내용은 포함하지 않습니다.
+- **의사결정 기록 (ADR)**: 중요한 기술적 결정사항 문서화
+- **TODO 항목 관리**: 작업 목록 생성 및 업데이트
+- **지식베이스 업데이트**: 아키텍처, 패턴, 주의사항 기록
+- **요구사항 문서화**: 기능 명세 및 정책 문서 작성
 
-다음과 같은 구성을 고려할 수도 있습니다:
-  - code_style_conventions.md
-  - development_patterns.md
-  - project_overview.md
-  - suggested_commands.md
-  - task_completion_checklist.md
-  - design_patterns_guidelines.md
+## 자동 프로젝트 인식
 
-  - diagrams.md (mermaid)
-  - domains.md
+living-docs skill은 현재 작업 디렉토리를 기반으로 프로젝트를 자동 인식합니다.
+
+문서는 `~/docs/{project}/` 디렉토리에 저장됩니다:
+- `decisions/`: ADR 문서
+- `knowledge/`: 지식베이스 문서
+- `todos/`: TODO 목록
+
+## 참고
+
+- 자세한 사용법: living-docs skill 참조
+- 템플릿 구조: `~/dots/prompts/skills/living-docs/templates/`
