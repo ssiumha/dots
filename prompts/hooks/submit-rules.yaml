@@ -6,6 +6,7 @@ skill-living-docs:
   # 문서/지식베이스/TODO 관련 키워드
   keywords:
     - "문서"
+    - "문서화"
     - "도큐먼트"
     - "documentation"
     - "docs"
@@ -25,6 +26,27 @@ skill-living-docs:
     - "adr"
     - "기록"
     - "record"
+    - "확인"
+    - "체크"
+    # 작업 완료/변경 관련 키워드 (stop-rules.yaml에서 이동)
+    - "완료"
+    - "구현"
+    - "추가"
+    - "수정"
+    - "변경"
+    - "개발"
+    - "done"
+    - "complete"
+    - "finish"
+    - "implement"
+    - "add"
+    - "modify"
+    - "change"
+    - "update"
+    - "refactor"
+    - "리팩토링"
+    - "feature"
+    - "기능"
 
   # Claude에게 표시할 활성화 메시지
   trigger_message: |
@@ -36,6 +58,9 @@ skill-living-docs:
     - Creating/updating TODO items
     - Recording decisions (ADR)
     - Documenting requirements and specifications
+
+    💡 Tip: If you completed significant work (2+ files modified),
+    consider updating living-docs with architectural decisions or lessons learned.
 
 # Writing Guide Reminders (reminder-*)
 reminder-claude-md-guide:
@@ -96,6 +121,31 @@ skill-test-guidelines:
     - Test quality improvement
     - Fixture/Factory patterns
     - Mock usage guidelines (requires user approval)
+
+# Security Review Skill Activation
+skill-review-security:
+  keywords:
+    - "보안"
+    - "security"
+    - "리뷰"
+    - "review"
+    - "검토"
+    - "체크"
+    - "취약점"
+    - "vulnerability"
+
+  trigger_message: |
+    🔒 SECURITY REVIEW SKILL
+
+    Detected security/review keywords. Consider using the 'review-security' skill for:
+    - Security review of changed files
+    - OWASP Top 10 checks
+    - Credential and secrets detection
+    - SQL injection and XSS prevention
+    - Authentication/authorization verification
+    - Full project security scan
+
+    💡 Tip: Use after completing features or before deployment
 
 # 향후 추가 예시 (주석)
 # skill-pdf-tools:

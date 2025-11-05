@@ -54,13 +54,11 @@ begin
   puts JSON.generate(input_data)
 
 rescue => e
-  # 에러 발생 시 원본 그대로 반환 (Hook이 실패해도 사용자 경험 방해 안함)
-  $stderr.puts "Hook error: #{e.message}"
-  begin
-    input_data = JSON.parse($stdin.read)
-  rescue
-    input_data = { 'prompt' => '' }
-  end
-  puts JSON.generate(input_data)
+  # 에러 발생 시 빈 JSON 반환 (Hook이 실패해도 사용자 경험 방해 안함)
+  $stderr.puts "Submit hook error: #{e.message}"
+  $stderr.puts e.backtrace.first(3).join("\n")
+
+  # stdin은 이미 읽혔으므로 다시 읽지 않고 빈 JSON 반환
+  puts JSON.generate({})
   exit 0
 end
