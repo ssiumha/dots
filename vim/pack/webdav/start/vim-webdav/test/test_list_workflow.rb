@@ -16,7 +16,6 @@ class TestWebDAVListWorkflow < TestWebDAVBase
     # Step 2: Navigate to file1.txt and press Enter
     send_keys("/file1.txt")  # Search for file1.txt
     send_enter  # Execute search
-    sleep 0.1  # Minimal wait for search positioning
     send_enter  # Press Enter to open file
     wait_for_text("This is test file content", 2)
 
@@ -27,14 +26,12 @@ class TestWebDAVListWorkflow < TestWebDAVBase
     # Step 4: Edit the file (use send_keys for proper buffer editing)
     send_keys("gg")  # Go to first line
     send_keys("dG")  # Delete to end
-    sleep 0.1  # Minimal sleep for mode transition
     send_keys("i")  # Enter insert mode
     send_keys("Workflow test: modified from list")
     send_keys("\e")  # Exit insert mode
     send_keys("o")  # Open new line
     send_keys("Line 2 of workflow test")
     send_keys("\e")  # Exit insert mode
-    sleep 0.1  # Minimal wait for mode transition
 
     # Step 5: Check buffer is marked as modified
     vim_cmd("echo &modified")
@@ -44,7 +41,6 @@ class TestWebDAVListWorkflow < TestWebDAVBase
 
     # Step 6: Save the file with :w
     vim_cmd("write")
-    wait_for_screen_change(1)  # Wait for save to complete
 
     # Step 7: Verify save succeeded
     vim_cmd("echo &modified")
@@ -65,10 +61,8 @@ class TestWebDAVListWorkflow < TestWebDAVBase
 
     # Step 9: Also verify by reopening in Vim
     vim_cmd("bdelete!")
-    wait_for_screen_change(1)
 
     vim_cmd("tabnew")
-    wait_for_screen_change(1)
 
     vim_cmd("WebDAVGet /test/file1.txt")
     wait_for_text("Workflow test: modified from list", 2)
@@ -87,7 +81,6 @@ class TestWebDAVListWorkflow < TestWebDAVBase
     # Navigate to folder1/ and open it
     send_keys("/folder1")  # Search for folder1
     send_enter  # Execute search
-    sleep 0.1  # Minimal wait for search positioning
     send_enter  # Open folder
     wait_for_text("/test/folder1/", 2)
 
@@ -99,7 +92,6 @@ class TestWebDAVListWorkflow < TestWebDAVBase
     # If there are files in folder1, open one
     # For now just verify we can navigate back
     send_keys("2G")  # Go to ../
-    sleep 0.1  # Minimal sleep for cursor movement
     send_enter
     wait_for_text("/test/", 2)
 
@@ -117,9 +109,7 @@ class TestWebDAVListWorkflow < TestWebDAVBase
 
     # Press Enter on header line (line 1)
     send_keys("1G")
-    sleep 0.1  # Minimal sleep for cursor movement
     send_enter
-    sleep 0.1  # Minimal wait for Enter action
 
     # Should still be in list (not open anything)
     output = capture

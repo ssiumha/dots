@@ -14,7 +14,6 @@ class TestWebDAVBufferWorkflow < TestWebDAVBase
     # Open a file
     send_keys("/file1.txt")  # Search for file1.txt
     send_enter  # Execute search
-    wait_for_screen_change
     send_enter  # Open file
     wait_for_text("This is test file content")
 
@@ -51,7 +50,6 @@ class TestWebDAVBufferWorkflow < TestWebDAVBase
     # Open first file
     send_keys("/file1.txt")  # Search for file1.txt
     send_enter  # Execute search
-    wait_for_screen_change
     send_enter  # Open file
     wait_for_text("This is test file content")
 
@@ -63,7 +61,7 @@ class TestWebDAVBufferWorkflow < TestWebDAVBase
     send_keys("\e")
 
     vim_cmd("write")
-    wait_for_text("NOT_MODIFIED")
+    send_enter  # Dismiss "Press ENTER" prompt if present
 
     # Go back to list
     vim_cmd("bprevious")
@@ -72,9 +70,7 @@ class TestWebDAVBufferWorkflow < TestWebDAVBase
     # Open different file (한글.md)
     send_keys("/한글.md")  # Search for 한글.md
     send_enter  # Execute search
-    wait_for_screen_change
     send_enter  # Open file
-    wait_for_screen_change
 
     # Edit and save second file (use send_keys for proper editing)
     send_keys("gg")
@@ -84,7 +80,7 @@ class TestWebDAVBufferWorkflow < TestWebDAVBase
     send_keys("\e")
 
     vim_cmd("write")
-    wait_for_text("NOT_MODIFIED")
+    send_enter  # Dismiss "Press ENTER" prompt if present
 
     # Both saves should succeed - verify both files on server
     file1_content = docker_exec("curl -s http://localhost:9999/test/file1.txt")

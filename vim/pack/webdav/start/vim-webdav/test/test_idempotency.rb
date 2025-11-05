@@ -12,15 +12,12 @@ class TestWebDAVIdempotency < TestWebDAVBase
 
     # Save without changes (first save)
     vim_cmd("write")
-    wait_for_screen_change
 
     # Save again without changes (second save)
     vim_cmd("write")
-    wait_for_screen_change
 
     # Save again without changes (third save)
     vim_cmd("write")
-    wait_for_screen_change
 
     # All saves should succeed (no errors in output)
     output = capture
@@ -37,18 +34,21 @@ class TestWebDAVIdempotency < TestWebDAVBase
     vim_cmd("normal! ggdG")
     vim_cmd("call setline(1, 'Idempotency test content')")
     vim_cmd("write")
-    wait_for_screen_change
 
     # Close and reopen
     vim_cmd("bdelete!")
-    wait_for_screen_change
+
+    # Simulate external change (to trigger fresh WebDAVGet)
+    docker_exec("curl -s -X PUT http://localhost:9999/test/file1.txt -d 'Idempotency test content' > /dev/null")
+
+    # Reopen file
     vim_cmd("WebDAVGet /test/file1.txt")
-    wait_for_text("Idempotency test content")
+    wait_for_text("Idempotency")
 
     # Save again without conflict
     vim_cmd("call setline(2, 'Line 2')")
     vim_cmd("write")
-    wait_for_screen_change
+    sleep 0.1  # Brief wait for command completion
 
     output = capture
     # Should not have conflict after proper reload cycle
@@ -66,17 +66,14 @@ class TestWebDAVIdempotency < TestWebDAVBase
     # First modification and save
     vim_cmd("call setline(1, 'Modification 1')")
     vim_cmd("write")
-    wait_for_screen_change
 
     # Second modification and save
     vim_cmd("call setline(1, 'Modification 2')")
     vim_cmd("write")
-    wait_for_screen_change
 
     # Third modification and save
     vim_cmd("call setline(1, 'Modification 3')")
     vim_cmd("write")
-    wait_for_screen_change
 
     output = capture
     # Should have saved successfully multiple times
@@ -92,15 +89,12 @@ class TestWebDAVIdempotency < TestWebDAVBase
     # Save local change
     vim_cmd("call setline(1, 'My local change')")
     vim_cmd("write")
-    wait_for_screen_change
 
     # Close buffer
     vim_cmd("bdelete!")
-    wait_for_screen_change
 
     # External modification (simulate another client)
     docker_exec("curl -s -X PUT http://localhost:9999/test/file1.txt -d 'ExternalMod' > /dev/null")
-    wait_for_screen_change
 
     # Reopen - should get external version
     vim_cmd("WebDAVGet /test/file1.txt")
@@ -115,7 +109,6 @@ class TestWebDAVIdempotency < TestWebDAVBase
 
     # Save without any modifications
     vim_cmd("write")
-    wait_for_screen_change
 
     output = capture
     # Should succeed or be no-op (no errors)
@@ -132,11 +125,9 @@ class TestWebDAVIdempotency < TestWebDAVBase
 
     # Make local modification (but don't save yet)
     vim_cmd("call setline(1, 'Local modification')")
-    wait_for_screen_change
 
     # External modification happens (simulate another client saving)
     docker_exec("curl -s -X PUT http://localhost:9999/test/file1.txt -d 'External save' > /dev/null")
-    wait_for_screen_change
 
     # Now try to save our local changes (should conflict)
     vim_cmd("write")

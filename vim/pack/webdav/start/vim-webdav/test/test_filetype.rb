@@ -12,7 +12,6 @@ class TestWebDAVFiletype < TestWebDAVBase
 
     # Check filetype
     vim_cmd("echo &filetype")
-    wait_for_screen_change
 
     output = capture
     assert_includes output, "webdavlist", "WebDAVList should set filetype=webdavlist"
@@ -26,13 +25,11 @@ class TestWebDAVFiletype < TestWebDAVBase
 
     # Check filetype is webdav
     vim_cmd("echo &filetype")
-    wait_for_screen_change
     output = capture
     assert_includes output, "webdav", "WebDAVGet should set filetype=webdav"
 
     # Check syntax is markdown
     vim_cmd("echo &syntax")
-    wait_for_screen_change
     output = capture
     assert_includes output, "markdown", "Markdown file should have syntax=markdown"
   end
@@ -45,13 +42,11 @@ class TestWebDAVFiletype < TestWebDAVBase
 
     # Check filetype
     vim_cmd("echo &filetype")
-    wait_for_screen_change
     output = capture
     assert_includes output, "webdav", "Should set filetype=webdav"
 
     # Check syntax is text (or empty)
     vim_cmd("echo &syntax")
-    wait_for_screen_change
     output = capture
     # text syntax might be empty or "text"
     assert output.include?("text") || output.include?("webdav"), "Text file should have appropriate syntax"
@@ -65,19 +60,16 @@ class TestWebDAVFiletype < TestWebDAVBase
 
     # Check buftype
     vim_cmd("echo &buftype")
-    wait_for_screen_change
     output = capture
     assert_includes output, "nofile", "WebDAVList should have buftype=nofile"
 
     # Check modifiable
     vim_cmd("echo &modifiable")
-    wait_for_screen_change
     output = capture
     assert_includes output, "0", "WebDAVList should be non-modifiable"
 
     # Check swapfile
     vim_cmd("echo &swapfile")
-    wait_for_screen_change
     output = capture
     assert_includes output, "0", "WebDAVList should have noswapfile"
   end
@@ -90,13 +82,11 @@ class TestWebDAVFiletype < TestWebDAVBase
 
     # Check buftype (should be empty for normal editing)
     vim_cmd("echo &buftype")
-    wait_for_screen_change
     output = capture
     refute_includes output, "nofile", "WebDAVGet should have empty buftype for editing"
 
     # Check swapfile
     vim_cmd("echo &swapfile")
-    wait_for_screen_change
     output = capture
     assert_includes output, "0", "WebDAV files should have noswapfile"
   end
@@ -109,7 +99,6 @@ class TestWebDAVFiletype < TestWebDAVBase
 
     # Check if ftplugin set did_ftplugin
     vim_cmd("echo exists('b:did_ftplugin')")
-    wait_for_screen_change
     output = capture
     assert_includes output, "1", "ftplugin should be loaded"
   end
@@ -122,12 +111,10 @@ class TestWebDAVFiletype < TestWebDAVBase
 
     # Check if syntax is loaded
     vim_cmd("echo exists('b:current_syntax')")
-    wait_for_screen_change
     output = capture
     assert_includes output, "1", "Syntax should be defined"
 
     vim_cmd("echo b:current_syntax")
-    wait_for_screen_change
     output = capture
     assert_includes output, "webdavlist", "Syntax name should be webdavlist"
   end
@@ -156,7 +143,6 @@ class TestWebDAVFiletype < TestWebDAVBase
 
       # Check syntax
       vim_cmd("echo &syntax")
-      wait_for_screen_change
       output = capture
 
       assert_includes output, expected_syntax, "File #{filename} should have syntax=#{expected_syntax}"
@@ -171,7 +157,6 @@ class TestWebDAVFiletype < TestWebDAVBase
 
     # Check list filetype
     vim_cmd("echo &filetype")
-    wait_for_screen_change
     output = capture
     assert_includes output, "webdavlist", "List should have filetype=webdavlist"
 
@@ -184,12 +169,10 @@ class TestWebDAVFiletype < TestWebDAVBase
 
     # Check file filetype and syntax
     vim_cmd("echo &filetype")
-    wait_for_screen_change
     output = capture
     assert_includes output, "webdav", "File should have filetype=webdav"
 
     vim_cmd("echo &syntax")
-    wait_for_screen_change
     output = capture
     assert_includes output, "markdown", "Markdown file should have syntax=markdown"
   end

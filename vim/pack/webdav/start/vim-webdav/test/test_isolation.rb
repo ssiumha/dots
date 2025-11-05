@@ -10,15 +10,11 @@ class TestWebDAVIsolation < TestWebDAVBase
 
     # Create and edit a normal file
     vim_cmd("edit /tmp/normal-file.txt")
-    wait_for_screen_change
     vim_cmd("call append(0, 'NormalFileContent')")
-    wait_for_screen_change
     vim_cmd("call append(1, 'Line2')")
-    wait_for_screen_change
 
     # Save normally
     vim_cmd("write")
-    wait_for_screen_change
 
     # Verify buffer is not WebDAV-managed
     vim_cmd("if exists('b:webdav_managed') && b:webdav_managed | echo 'IS_WEBDAV' | else | echo 'NOT_WEBDAV' | endif")
@@ -35,11 +31,8 @@ class TestWebDAVIsolation < TestWebDAVBase
 
     # Open normal file first
     vim_cmd("edit /tmp/normal.txt")
-    wait_for_screen_change
     vim_cmd("call append(0, 'NormalFile')")
-    wait_for_screen_change
     vim_cmd("write")
-    wait_for_screen_change
 
     # Open WebDAV file in new buffer
     vim_cmd("WebDAVGet /test/file1.txt")
@@ -55,7 +48,6 @@ class TestWebDAVIsolation < TestWebDAVBase
 
     # Switch back to normal buffer
     vim_cmd("bprevious")
-    wait_for_screen_change
 
     # Verify normal buffer is still not managed
     vim_cmd("echo exists('b:webdav_managed')")
@@ -76,19 +68,14 @@ class TestWebDAVIsolation < TestWebDAVBase
 
     # Modify WebDAV buffer
     vim_cmd("call append(0, 'WebDAVModified')")
-    wait_for_screen_change
 
     # Open normal file in new buffer
     vim_cmd("edit /tmp/normal.txt")
-    wait_for_screen_change
     vim_cmd("call append(0, 'NormalContent')")
-    wait_for_screen_change
 
     # Check we can switch back and forth without errors
     vim_cmd("bprevious")
-    wait_for_screen_change
     vim_cmd("bnext")
-    wait_for_screen_change
 
     output = capture
     # Just verify no errors occurred during buffer switching
@@ -101,17 +88,12 @@ class TestWebDAVIsolation < TestWebDAVBase
 
     # Set up a user autocmd for normal files
     vim_cmd("let g:user_autocmd_ran = 0")
-    wait_for_screen_change
     vim_cmd("autocmd BufWritePre /tmp/*.txt let g:user_autocmd_ran = 1")
-    wait_for_screen_change
 
     # Test with normal file
     vim_cmd("edit /tmp/testfile.txt")
-    wait_for_screen_change
     vim_cmd("call append(0, 'TestLine')")
-    wait_for_screen_change
     vim_cmd("write")
-    wait_for_screen_change
 
     # Check if user autocmd ran
     vim_cmd("if g:user_autocmd_ran == 1 | echo 'USER_AUTOCMD_OK' | else | echo 'USER_AUTOCMD_FAIL' | endif")
@@ -135,11 +117,9 @@ class TestWebDAVIsolation < TestWebDAVBase
 
     # Close the buffer
     vim_cmd("bdelete!")
-    wait_for_screen_change
 
     # Open a new normal buffer - should be clean
     vim_cmd("enew")
-    wait_for_screen_change
 
     # Verify no WebDAV variables leaked
     vim_cmd("if exists('b:webdav_managed') | echo 'LEAKED' | else | echo 'CLEAN' | endif")
@@ -155,13 +135,10 @@ class TestWebDAVIsolation < TestWebDAVBase
 
     # Create normal file
     vim_cmd("edit /tmp/wq-test.txt")
-    wait_for_screen_change
     vim_cmd("call setline(1, 'Testing wq')")
-    wait_for_screen_change
 
     # Use :wq (write and quit)
     vim_cmd("wq")
-    wait_for_screen_change(2)
 
     # Vim should have exited back to shell
     output = capture

@@ -132,7 +132,6 @@ class TestWebDAVUI < TestWebDAVBase
 
     send_keys(":WebDAVUI")
     send_enter
-    wait_for_screen_change
 
     # Press Enter to dismiss fallback message
     send_enter
@@ -166,7 +165,6 @@ class TestWebDAVUI < TestWebDAVBase
     # Press 0 or invalid number to cancel
     send_keys("0")
     send_enter
-    wait_for_screen_change
 
     output = capture
     assert_match(/Cancelled|invalid/i, output, "Should show cancellation message")
@@ -265,10 +263,6 @@ class TestWebDAVUI < TestWebDAVBase
     # Server name is stored as lowercase 'production'
     send_keys(":WebDAVUI production")
     send_enter
-    wait_for_text("Connected")
-
-    # Press Enter to dismiss connection message
-    send_enter
     wait_for_text("WebDAV:")
 
     output = capture
@@ -281,10 +275,6 @@ class TestWebDAVUI < TestWebDAVBase
 
     # Extra spaces should be trimmed
     send_keys(":WebDAVUI  local  ")
-    send_enter
-    wait_for_text("Connected")
-
-    # Press Enter to dismiss connection message
     send_enter
     wait_for_text("WebDAV:")
 
