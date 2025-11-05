@@ -13,7 +13,6 @@ class TestWebDAVEdgeCases < TestWebDAVBase
 
     # Try to read it
     vim_cmd("WebDAVGet /test/empty.txt")
-    wait_for_screen_change
 
     # Should not error, just open empty buffer
     output = capture
@@ -21,7 +20,7 @@ class TestWebDAVEdgeCases < TestWebDAVBase
 
     # Verify it's still WebDAV-managed even though empty
     vim_cmd("echo exists('b:webdav_managed')")
-    wait_for_text(/1/)
+    wait_for_text("1")
     assert_match(/1/, capture, "Empty file should still be WebDAV-managed")
   end
 
@@ -34,11 +33,9 @@ class TestWebDAVEdgeCases < TestWebDAVBase
 
     # Delete all content to make it empty
     vim_cmd("normal! ggdG")
-    wait_for_screen_change
 
     # Try to save empty file
     vim_cmd("write")
-    wait_for_screen_change
 
     output = capture
     # Should succeed
@@ -56,10 +53,8 @@ class TestWebDAVEdgeCases < TestWebDAVBase
     vim_cmd("normal! ggdG")
     vim_cmd("call append(0, '   ')")
     vim_cmd("call append(1, '\\t\\t')")
-    wait_for_screen_change
 
     vim_cmd("write")
-    wait_for_screen_change
 
     output = capture
     refute_match(/Error/i, output, "Saving whitespace-only file should work")
@@ -74,7 +69,6 @@ class TestWebDAVEdgeCases < TestWebDAVBase
 
     # Try to read it (plugin should URL-encode)
     vim_cmd("WebDAVGet /test/file with spaces.txt")
-    wait_for_screen_change
 
     output = capture
     # Should either work or give clear error
@@ -92,10 +86,8 @@ class TestWebDAVEdgeCases < TestWebDAVBase
     # Create a very long line (1000 chars)
     long_string = "x" * 1000
     vim_cmd("call setline(1, '#{long_string}')")
-    wait_for_screen_change
 
     vim_cmd("write")
-    wait_for_screen_change
 
     output = capture
     refute_match(/Error/i, output, "Should handle long lines")
@@ -115,7 +107,6 @@ class TestWebDAVEdgeCases < TestWebDAVBase
 
     # Make some changes (but don't save)
     vim_cmd("call setline(1, 'Modified')")
-    wait_for_screen_change
 
     # Metadata should still exist
     vim_cmd("echo exists('b:webdav_etag')")
@@ -136,7 +127,6 @@ class TestWebDAVEdgeCases < TestWebDAVBase
 
     # Modify content
     vim_cmd("call setline(1, 'Modified content')")
-    wait_for_screen_change
 
     # Check modified flag is set
     vim_cmd("echo &modified")
@@ -145,7 +135,6 @@ class TestWebDAVEdgeCases < TestWebDAVBase
 
     # Save successfully
     vim_cmd("write")
-    wait_for_screen_change
 
     # Check modified flag is cleared
     vim_cmd("echo &modified")
@@ -174,7 +163,6 @@ class TestWebDAVEdgeCases < TestWebDAVBase
 
     # Switch back to first tab
     vim_cmd("tabprevious")
-    wait_for_screen_change
 
     vim_cmd("echo exists('b:webdav_managed')")
     wait_for_text("1")
@@ -191,11 +179,9 @@ class TestWebDAVEdgeCases < TestWebDAVBase
 
     # Modify but don't save
     vim_cmd("call setline(1, 'Local change')")
-    wait_for_screen_change
 
     # Close it
     vim_cmd("bdelete!")
-    wait_for_screen_change
 
     # Reopen same file - should get fresh version from server
     vim_cmd("WebDAVGet /test/file1.txt")
@@ -231,10 +217,8 @@ class TestWebDAVEdgeCases < TestWebDAVBase
 
     # Modify with simple ASCII (Korean input in tmux can be complex)
     vim_cmd("call setline(1, 'Modified')")
-    wait_for_screen_change
 
     vim_cmd("write")
-    wait_for_screen_change
 
     output = capture
     # Just verify no errors with Korean filename
@@ -250,10 +234,8 @@ class TestWebDAVEdgeCases < TestWebDAVBase
 
     # Add content with some special characters (avoid shell escaping issues)
     vim_cmd("call setline(1, 'Line with # $ % chars')")
-    wait_for_screen_change
 
     vim_cmd("write")
-    wait_for_screen_change
 
     output = capture
     refute_match(/Error/i, output, "Should handle special characters in content")

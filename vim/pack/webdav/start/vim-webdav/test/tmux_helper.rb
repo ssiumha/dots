@@ -40,7 +40,8 @@ module TmuxHelper
       return if yield
       sleep 0.02
     end
-    raise "Timeout waiting for condition"
+    screen = capture
+    raise "Timeout waiting for condition\n\nCurrent screen:\n#{screen}"
   end
 
   # Wait for specific text to appear on screen

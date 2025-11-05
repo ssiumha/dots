@@ -14,7 +14,6 @@ class TestWebDAVSafety < TestWebDAVBase
 
     # Check for version tracking headers (simple exists check)
     vim_cmd("echo exists('b:webdav_etag')")
-    wait_for_screen_change
 
     output = capture
     # exists() returns 1 if variable exists, 0 otherwise
@@ -36,7 +35,6 @@ class TestWebDAVSafety < TestWebDAVBase
     vim_cmd("normal! ggdG")
     vim_cmd("call setline(1, 'Dangerous edit')")
     vim_cmd("write")
-    wait_for_screen_change
 
     output = capture
     assert_match(/No version tracking|conflict detection/i, output, "Should refuse save without version tracking")
@@ -57,7 +55,6 @@ class TestWebDAVSafety < TestWebDAVBase
 
     # Verify normal :w works
     vim_cmd("write /tmp/test-normal-write.txt")
-    wait_for_screen_change
 
     # The key point: write should succeed and no WebDAV errors
     output = capture
@@ -72,12 +69,10 @@ class TestWebDAVSafety < TestWebDAVBase
 
     # Maliciously modify the original path
     vim_cmd("let b:webdav_original_path = '/test/different-file.txt'")
-    wait_for_screen_change
 
     # Try to save - should use the stored path (not verify it changed)
     vim_cmd("call setline(1, 'Modified')")
     vim_cmd("write")
-    wait_for_screen_change
 
     # Verify it attempts to save to the modified path (this is expected behavior)
     # The plugin uses whatever is in b:webdav_original_path
@@ -95,13 +90,11 @@ class TestWebDAVSafety < TestWebDAVBase
 
     # Simulate URL change (like user changed environment variable)
     vim_cmd("let b:webdav_url = 'http://different-server:9999'")
-    wait_for_screen_change
 
     # Now change the global URL (simulates WEBDAV_DEFAULT_URL change)
     # This is tricky in tests, but we can verify the check exists
     vim_cmd("call setline(1, 'Modified')")
     vim_cmd("write")
-    wait_for_screen_change
 
     output = capture
     # Should either succeed (if URLs still match) or show mismatch error
@@ -118,20 +111,16 @@ class TestWebDAVSafety < TestWebDAVBase
     # First save - should work
     vim_cmd("call setline(1, 'First')")
     vim_cmd("write")
-    wait_for_screen_change
 
     # Remove safety variable between saves
     vim_cmd("unlet b:webdav_etag")
     vim_cmd("unlet b:webdav_last_modified")
-    wait_for_screen_change
 
     # Second save - should fail safety check
     vim_cmd("call setline(1, 'Second')")
     vim_cmd("write")
-    wait_for_screen_change
 
     output = capture
     assert_match(/No version tracking|conflict detection/i, output, "Safety check should run on every save")
   end
 end
-

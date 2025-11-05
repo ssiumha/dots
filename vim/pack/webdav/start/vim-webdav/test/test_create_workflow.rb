@@ -13,7 +13,7 @@ class TestWebDAVCreateWorkflow < TestWebDAVBase
     # Select +New item (line 3)
     send_keys("3G")
     send_enter
-    wait_for_text("Please enter filename", 2)
+    wait_for_text("New file name", 2)
 
     # Enter filename (without extension)
     send_keys("newfile")
@@ -44,7 +44,7 @@ class TestWebDAVCreateWorkflow < TestWebDAVBase
     # Select +Folder item (line 4)
     send_keys("4G")
     send_enter
-    wait_for_text("Please enter folder name", 2)
+    wait_for_text("New folder name", 2)
 
     # Enter folder name
     send_keys("newfolder")
@@ -70,7 +70,7 @@ class TestWebDAVCreateWorkflow < TestWebDAVBase
     # Select +New item
     send_keys("3G")
     send_enter
-    wait_for_text("Please enter filename", 2)
+    wait_for_text("New file name", 2)
 
     # Enter Korean filename
     send_keys("새파일")
@@ -101,7 +101,7 @@ class TestWebDAVCreateWorkflow < TestWebDAVBase
     # Select +Folder item
     send_keys("4G")
     send_enter
-    wait_for_text("Please enter folder name", 2)
+    wait_for_text("New folder name", 2)
 
     # Enter Korean folder name
     send_keys("새폴더")
@@ -133,9 +133,8 @@ class TestWebDAVCreateWorkflow < TestWebDAVBase
     # Create file in nested folder - search for +New
     send_keys("/+New")
     send_enter  # Execute search
-    wait_for_screen_change(1)
     send_enter  # Activate +New
-    wait_for_text("Please enter filename", 2)
+    wait_for_text("New file name", 2)
 
     # Enter filename
     send_keys("nestedfile")
@@ -161,7 +160,7 @@ class TestWebDAVCreateWorkflow < TestWebDAVBase
     # Create new file
     send_keys("3G")
     send_enter
-    wait_for_text("Please enter filename", 2)
+    wait_for_text("New file name", 2)
     send_keys("editable")
     send_enter
     wait_for_text("editable", 2)
@@ -171,11 +170,9 @@ class TestWebDAVCreateWorkflow < TestWebDAVBase
     send_keys("o")  # New line
     send_keys("Additional content")
     send_keys("\e")  # Exit insert mode
-    wait_for_screen_change(1)
 
     # Save
     vim_cmd("write")
-    wait_for_screen_change(1)
 
     # Verify saved on server
     result = docker_exec("curl -s http://localhost:9999/test/editable.md")
@@ -195,7 +192,7 @@ class TestWebDAVCreateWorkflow < TestWebDAVBase
     # Try to create file but cancel
     send_keys("3G")
     send_enter
-    wait_for_text("Please enter filename", 2)
+    wait_for_text("New file name", 2)
     # Send empty name (cancel)
     send_enter
     wait_for_text("+New", 2)
@@ -224,7 +221,7 @@ class TestWebDAVCreateWorkflow < TestWebDAVBase
     # Try to create folder but cancel
     send_keys("4G")
     send_enter
-    wait_for_text("Please enter folder name", 2)
+    wait_for_text("New folder name", 2)
     # Send empty name (cancel)
     send_enter
     wait_for_text("+Folder", 2)
@@ -250,7 +247,7 @@ class TestWebDAVCreateWorkflow < TestWebDAVBase
     # Create file with name that already has .md
     send_keys("3G")
     send_enter
-    wait_for_text("Please enter filename", 2)
+    wait_for_text("New file name", 2)
     send_keys("test.md")
     send_enter
     wait_for_text("test.md", 2)
@@ -270,7 +267,7 @@ class TestWebDAVCreateWorkflow < TestWebDAVBase
     # Create folder without trailing slash
     send_keys("4G")
     send_enter
-    wait_for_text("Please enter folder name", 2)
+    wait_for_text("New folder name", 2)
     send_keys("noslash")
     send_enter
     wait_for_text("noslash/", 2)

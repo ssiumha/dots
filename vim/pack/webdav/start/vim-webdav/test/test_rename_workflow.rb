@@ -13,11 +13,10 @@ class TestWebDAVRenameWorkflow < TestWebDAVBase
     # Find and select file1.txt (should be around line 7-8 after folders and special items)
     send_keys("/file1.txt")
     send_enter  # Execute search
-    wait_for_screen_change(1)
 
     # Press R to rename
     send_keys("R")
-    wait_for_text("renamed_file", 1)  # Wait for rename prompt
+    wait_for_text("Rename file to:", 2)  # Wait for rename prompt
 
     # Clear default name and enter new name
     send_keys("\u0015")  # Ctrl-U to clear line
@@ -27,7 +26,6 @@ class TestWebDAVRenameWorkflow < TestWebDAVBase
 
     # Dismiss "Press ENTER" prompt if present
     send_enter
-    wait_for_screen_change(1)
 
     # Verify file appears with new name in list
     vim_cmd("echo getline(1, '$')")
@@ -54,11 +52,10 @@ class TestWebDAVRenameWorkflow < TestWebDAVBase
     # Find and select aaa_folder/
     send_keys("/aaa_folder")
     send_enter
-    wait_for_screen_change(1)
 
     # Press R to rename
     send_keys("R")
-    wait_for_text("renamed_folder", 1)  # Wait for rename prompt
+    wait_for_text("Rename folder to:", 2)  # Wait for rename prompt
 
     # Clear default and enter new name (without trailing slash - should be added automatically)
     send_keys("\u0015")  # Ctrl-U
@@ -68,7 +65,6 @@ class TestWebDAVRenameWorkflow < TestWebDAVBase
 
     # Dismiss "Press ENTER" prompt if present
     send_enter
-    wait_for_screen_change(1)
 
     # Verify folder appears with new name
     vim_cmd("echo getline(1, '$')")
@@ -95,11 +91,10 @@ class TestWebDAVRenameWorkflow < TestWebDAVBase
     # Find Korean file
     send_keys("/한글.md")
     send_enter
-    wait_for_screen_change(1)
 
     # Press R to rename
     send_keys("R")
-    wait_for_text("새이름", 1)  # Wait for rename prompt
+    wait_for_text("Rename file to:", 2)  # Wait for rename prompt
 
     # Clear default and enter new Korean name
     send_keys("\u0015")  # Ctrl-U
@@ -109,7 +104,6 @@ class TestWebDAVRenameWorkflow < TestWebDAVBase
 
     # Dismiss "Press ENTER" prompt if present
     send_enter
-    wait_for_screen_change(1)
 
     # Verify renamed
     vim_cmd("echo getline(1, '$')")
@@ -132,7 +126,6 @@ class TestWebDAVRenameWorkflow < TestWebDAVBase
     # Find file1.txt
     send_keys("/file1.txt")
     send_enter
-    wait_for_screen_change(1)
 
     # Press R to rename
     send_keys("R")
@@ -142,7 +135,6 @@ class TestWebDAVRenameWorkflow < TestWebDAVBase
     send_keys("\u0015")  # Ctrl-U to clear default
     send_keys("001_file.txt")
     send_enter
-    wait_for_screen_change(2)  # Wait for operation or conflict prompt
 
     # Check if we see conflict warning
     output = capture
@@ -150,7 +142,6 @@ class TestWebDAVRenameWorkflow < TestWebDAVBase
       # Saw warning - decline overwrite
       send_keys("n")
       send_enter
-      wait_for_screen_change(1)
 
       # Verify file1.txt still exists (rename was cancelled)
       result = docker_exec("curl -s http://localhost:9999/test/file1.txt")
@@ -158,7 +149,6 @@ class TestWebDAVRenameWorkflow < TestWebDAVBase
     else
       # nginx MOVE may have overwritten without warning - verify result
       send_enter  # Dismiss any prompts
-      wait_for_screen_change(1)
 
       # MOVE overwrote the file - this is acceptable behavior for nginx WebDAV
       result = docker_exec("curl -s http://localhost:9999/test/001_file.txt")
@@ -175,7 +165,6 @@ class TestWebDAVRenameWorkflow < TestWebDAVBase
     # Find file
     send_keys("/file1.txt")
     send_enter
-    wait_for_screen_change(1)
 
     # Press R to rename
     send_keys("R")
@@ -183,7 +172,6 @@ class TestWebDAVRenameWorkflow < TestWebDAVBase
 
     # Cancel by entering empty name
     send_enter
-    wait_for_screen_change(1)
 
     # Verify still in list and file unchanged
     vim_cmd("echo &filetype")
@@ -204,7 +192,6 @@ class TestWebDAVRenameWorkflow < TestWebDAVBase
 
     # Try to rename "../" (parent directory)
     send_keys("1G")  # First line (../)
-    wait_for_screen_change(1)
     send_keys("R")
     wait_for_text("Cannot rename special items", 1)
 
@@ -214,7 +201,6 @@ class TestWebDAVRenameWorkflow < TestWebDAVBase
     # Try to rename "+New"
     send_keys("/+New")
     send_enter
-    wait_for_screen_change(1)
     send_keys("R")
     wait_for_text("Cannot rename special items", 1)
 
@@ -224,7 +210,6 @@ class TestWebDAVRenameWorkflow < TestWebDAVBase
     # Try to rename "+Folder"
     send_keys("/+Folder")
     send_enter
-    wait_for_screen_change(1)
     send_keys("R")
     wait_for_text("Cannot rename special items", 1)
 
@@ -241,11 +226,10 @@ class TestWebDAVRenameWorkflow < TestWebDAVBase
     # Find file
     send_keys("/001_file.txt")
     send_enter
-    wait_for_screen_change(1)
 
     # Press R to rename
     send_keys("R")
-    wait_for_text("file with spaces", 1)  # Wait for rename prompt
+    wait_for_text("Rename file to:", 2)  # Wait for rename prompt
 
     # Clear default and enter name with spaces
     send_keys("\u0015")  # Ctrl-U
@@ -255,7 +239,6 @@ class TestWebDAVRenameWorkflow < TestWebDAVBase
 
     # Dismiss "Press ENTER" prompt if present
     send_enter
-    wait_for_screen_change(1)
 
     # Verify renamed
     vim_cmd("echo getline(1, '$')")
@@ -283,11 +266,10 @@ class TestWebDAVRenameWorkflow < TestWebDAVBase
     # Find file1.txt
     send_keys("/file1.txt")
     send_enter
-    wait_for_screen_change(1)
 
     # Press R to rename/move
     send_keys("R")
-    wait_for_text("nested/moved_file", 1)  # Wait for rename prompt
+    wait_for_text("Rename file to:", 2)  # Wait for rename prompt
 
     # Clear default and enter path to nested directory
     send_keys("\u0015")  # Ctrl-U to clear line
@@ -297,7 +279,6 @@ class TestWebDAVRenameWorkflow < TestWebDAVBase
 
     # Dismiss prompt
     send_enter
-    wait_for_screen_change(1)
 
     # Verify file is gone from current directory
     vim_cmd("echo getline(1, '$')")
@@ -308,7 +289,6 @@ class TestWebDAVRenameWorkflow < TestWebDAVBase
     # Navigate to nested directory and verify file is there
     send_keys("/nested")
     send_enter  # Complete search
-    wait_for_screen_change(1)
     send_enter  # Open the folder
     wait_for_text("moved_file.txt", 2)
 
@@ -335,21 +315,18 @@ class TestWebDAVRenameWorkflow < TestWebDAVBase
     # Find 001_file.txt
     send_keys("/001_file.txt")
     send_enter
-    wait_for_screen_change(1)
 
     # Press R to rename/move
     send_keys("R")
-    wait_for_text("/test/nested/absolute_moved", 1)  # Wait for rename prompt
+    wait_for_text("Rename file to:", 2)  # Wait for rename prompt
 
     # Clear default and enter absolute path
     send_keys("\u0015")  # Ctrl-U to clear line
     send_keys("/test/nested/absolute_moved.txt")
     send_enter
-    wait_for_screen_change(2)  # Wait for move operation to complete
 
     # Dismiss prompt
     send_enter
-    wait_for_screen_change(1)
 
     # Verify on server in nested location
     result = docker_exec("curl -s http://localhost:9999/test/nested/absolute_moved.txt")
@@ -369,11 +346,10 @@ class TestWebDAVRenameWorkflow < TestWebDAVBase
     # Find folder
     send_keys("/zzz_folder")
     send_enter
-    wait_for_screen_change(1)
 
     # Press R to rename
     send_keys("R")
-    wait_for_text("folder_with_slash", 1)  # Wait for rename prompt
+    wait_for_text("Rename folder to:", 2)  # Wait for rename prompt
 
     # Clear default and enter new name WITH trailing slash (should handle both)
     send_keys("\u0015")  # Ctrl-U
@@ -383,7 +359,6 @@ class TestWebDAVRenameWorkflow < TestWebDAVBase
 
     # Dismiss "Press ENTER" prompt if present
     send_enter
-    wait_for_screen_change(1)
 
     # Verify folder renamed with single trailing slash
     vim_cmd("echo getline(1, '$')")

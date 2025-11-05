@@ -26,7 +26,6 @@ class TestWebDAVDelete < TestWebDAVBase
 
     # Ensure we're in normal mode and press D to delete
     send_keys("\e")  # Escape to normal mode
-    sleep 0.1
     send_keys("D")
 
     # Wait for deletion and list refresh
@@ -35,7 +34,6 @@ class TestWebDAVDelete < TestWebDAVBase
 
     # Verify file is gone from list
     vim_cmd("echo getline(1, '$')")
-    sleep 0.1
     output = capture
     refute_includes output, test_file, "File should be removed from list"
 
@@ -66,7 +64,6 @@ class TestWebDAVDelete < TestWebDAVBase
 
     # Ensure we're in normal mode and press D to delete
     send_keys("\e")  # Escape to normal mode
-    sleep 0.1
     send_keys("D")
     wait_for_text("Checking if folder", 1.5)  # Wait for empty check
 
@@ -76,7 +73,6 @@ class TestWebDAVDelete < TestWebDAVBase
 
     # Verify folder is gone
     vim_cmd("echo getline(1, '$')")
-    sleep 0.1
     output = capture
     refute_includes output, test_folder, "Empty folder should be deleted"
 
@@ -108,7 +104,6 @@ class TestWebDAVDelete < TestWebDAVBase
 
     # Ensure we're in normal mode and press D to delete
     send_keys("\e")  # Escape to normal mode
-    sleep 0.1
     send_keys("D")
 
     # Wait for error message about non-empty folder
@@ -135,7 +130,6 @@ class TestWebDAVDelete < TestWebDAVBase
     send_keys("1G")  # First line (../)
     wait_for_text("../")
     send_keys("\e")  # Ensure normal mode
-    sleep 0.1
     send_keys("D")
     wait_for_text("Cannot delete", 1)
 
@@ -147,7 +141,6 @@ class TestWebDAVDelete < TestWebDAVBase
     send_enter
     wait_for_text("+New")
     send_keys("\e")  # Ensure normal mode
-    sleep 0.1
     send_keys("D")
     wait_for_text("Cannot delete", 1)
 
@@ -159,7 +152,6 @@ class TestWebDAVDelete < TestWebDAVBase
     send_enter
     wait_for_text("+Folder")
     send_keys("\e")  # Ensure normal mode
-    sleep 0.1
     send_keys("D")
     wait_for_text("Cannot delete", 1)
 
@@ -180,7 +172,6 @@ class TestWebDAVDelete < TestWebDAVBase
 
     # Ensure we're in normal mode and press D to delete
     send_keys("\e")  # Escape to normal mode
-    sleep 0.1
     send_keys("D")
     wait_for_text("Delete", 1)  # Wait for confirmation dialog
 
@@ -218,7 +209,6 @@ class TestWebDAVDelete < TestWebDAVBase
 
     # Ensure we're in normal mode and press D to delete
     send_keys("\e")  # Escape to normal mode
-    sleep 0.1
     send_keys("D")
 
     # Wait for deletion and list refresh
@@ -227,7 +217,6 @@ class TestWebDAVDelete < TestWebDAVBase
 
     # Verify deleted
     vim_cmd("echo getline(1, '$')")
-    sleep 0.1
     output = capture
     refute_includes output, test_file, "Korean file should be deleted"
   end

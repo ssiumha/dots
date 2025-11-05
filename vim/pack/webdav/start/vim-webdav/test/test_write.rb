@@ -17,7 +17,6 @@ class TestWebDAVWrite < TestWebDAVBase
 
     # Save with :w (now properly intercepted for WebDAV buffers only)
     vim_cmd("write")
-    sleep 0.5
 
     # Verify buffer is no longer modified
     vim_cmd("if &modified | echo 'STILL_MODIFIED' | else | echo 'NOT_MODIFIED' | endif")
@@ -36,7 +35,6 @@ class TestWebDAVWrite < TestWebDAVBase
     # Simulate server-side modification by making a PUT from outside
     # (In real scenario, another client would modify the file)
     docker_exec("curl -s -X PUT http://localhost:9999/test/file1.txt -d 'Server modified content' > /dev/null")
-    sleep 0.1
 
     # Now try to modify and save from vim
     vim_cmd("normal! ggdG")
@@ -77,11 +75,9 @@ class TestWebDAVWrite < TestWebDAVBase
     vim_cmd("normal! ggdG")
     vim_cmd("call setline(1, 'Updated content')")
     vim_cmd("write")
-    sleep 0.3
 
     # Check that ETag was updated
     vim_cmd("if exists('b:webdav_etag') && b:webdav_etag != g:initial_etag | echo 'ETAG_UPDATED' | elseif !exists('b:webdav_etag') | echo 'ETAG_NOT_PROVIDED' | else | echo 'ETAG_SAME' | endif")
-    sleep 0.1
 
     # ETag should be different after successful save (if server provides it)
     output = capture
@@ -103,7 +99,6 @@ class TestWebDAVWrite < TestWebDAVBase
 
     # Save
     vim_cmd("write")
-    sleep 0.3
 
     # Verify saved
     vim_cmd("if &modified | echo 'STILL_MODIFIED' | else | echo 'NOT_MODIFIED' | endif")
