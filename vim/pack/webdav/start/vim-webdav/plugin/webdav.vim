@@ -25,6 +25,9 @@ let s:user = s:CleanString($WEBDAV_DEFAULT_USER)
 let s:pass = s:CleanString($WEBDAV_DEFAULT_PASS)
 let s:current_server = ''  " Name of currently connected server
 let s:scan_cache = {}  " Cache for fzf recursive scans: {url: {path: [files]}}
+let s:recent_files = []  " Recent files list: [{path, url, server, timestamp}, ...]
+let s:recent_files_path = !empty($WEBDAV_RECENT_CACHE_PATH) ? expand($WEBDAV_RECENT_CACHE_PATH) : expand('~/.cache/vim-webdav/recent.json')
+let s:recent_files_max = 50  " Maximum number of recent files to keep
 
 " Constants for HTTP response parsing
 let s:HTTP_SEPARATOR_LEN = 4  " Length of \r\n\r\n
@@ -41,6 +44,69 @@ function! s:URLEncode(str)
 
   " Also clean system() output for defense-in-depth
   return s:CleanString(encoded)
+endfunction
+
+" Load recent files from persistent storage
+function! s:LoadRecentFiles()
+  if !filereadable(s:recent_files_path)
+    call s:DebugLog("DEBUG RECENT: No recent files cache found")
+    return
+  endif
+
+  try
+    let json_data = join(readfile(s:recent_files_path), '')
+    let s:recent_files = json_decode(json_data)
+    call s:DebugLog("DEBUG RECENT: Loaded " . len(s:recent_files) . " recent files")
+  catch
+    call s:DebugLog("DEBUG RECENT: Failed to load recent files: " . v:exception)
+    let s:recent_files = []
+  endtry
+endfunction
+
+" Save recent files to persistent storage
+function! s:SaveRecentFiles()
+  try
+    " Ensure cache directory exists
+    let cache_dir = fnamemodify(s:recent_files_path, ':h')
+    if !isdirectory(cache_dir)
+      call mkdir(cache_dir, 'p')
+    endif
+
+    " Write JSON to file
+    let json_data = json_encode(s:recent_files)
+    call writefile([json_data], s:recent_files_path)
+    call s:DebugLog("DEBUG RECENT: Saved " . len(s:recent_files) . " recent files")
+  catch
+    call s:DebugLog("DEBUG RECENT: Failed to save recent files: " . v:exception)
+  endtry
+endfunction
+
+" Track recently opened file
+" Parameters: path, url, server
+function! s:TrackRecentFile(path, url, server)
+  " Create new entry
+  let new_entry = {
+    \ 'path': a:path,
+    \ 'url': a:url,
+    \ 'server': a:server,
+    \ 'timestamp': localtime()
+  \ }
+
+  " Remove duplicates (same path and url)
+  let filtered = filter(copy(s:recent_files), 'v:val.path != a:path || v:val.url != a:url')
+
+  " Add new entry at the beginning (most recent first)
+  let s:recent_files = [new_entry] + filtered
+
+  " Limit to maximum number of entries
+  if len(s:recent_files) > s:recent_files_max
+    let s:recent_files = s:recent_files[0:s:recent_files_max-1]
+  endif
+
+  " Save immediately
+  call s:SaveRecentFiles()
+
+  call s:DebugLog("DEBUG RECENT: Tracked file " . a:path . " (total: " . len(s:recent_files) . ")")
 endfunction
 
 " Parse WebDAV URL with authentication
@@ -810,6 +876,9 @@ function! s:WebDAVGet(path)
 
   " Setup buffer with content and metadata
   call s:SetupWebDAVBuffer(a:path, etag, last_modified, body)
+
+  " Track this file in recent files list
+  call s:TrackRecentFile(a:path, s:url, s:current_server)
 endfunction
 
 " Check if folder is empty (for safe deletion)
@@ -1331,6 +1400,53 @@ function! s:WebDAVFzfOpen(base_path, selection)
   call s:WebDAVGet(full_path)
 endfunction
 
+" Open a recent file (used by both List UI and future fzf integration)
+" Parameters: entry - dictionary with {path, url, server, timestamp}
+function! s:WebDAVRecentOpen(entry)
+  if type(a:entry) != v:t_dict
+    echoerr "Error: Invalid entry type"
+    return
+  endif
+
+  " Validate entry has required fields
+  if !has_key(a:entry, 'path') || !has_key(a:entry, 'url') || !has_key(a:entry, 'server')
+    echoerr "Error: Invalid entry format"
+    return
+  endif
+
+  " Check if server is still configured
+  let servers = s:ScanWebDAVServers()
+  let server_name = a:entry.server
+
+  " Handle empty or default server name
+  if empty(server_name) || server_name == 'default'
+    " Use current connection or default environment variables
+    if empty(s:url)
+      echoerr "Error: No server connection. Use :WebDAVUI to connect"
+      return
+    endif
+    " Continue with current server
+  else
+    " Validate server exists
+    if !has_key(servers, server_name)
+      echoerr "Error: Server '" . server_name . "' not found or not configured"
+      echo "Available servers: " . join(sort(keys(servers)), ', ')
+      return
+    endif
+
+    " Switch to the server if different from current
+    let server_info = servers[server_name]
+    if s:url != a:entry.url
+      call s:SetCurrentServer(server_name, server_info.url, server_info.user, server_info.pass)
+      echo "Switched to server: " . server_name
+    endif
+  endif
+
+  " Open file in new tab
+  tabnew
+  call s:WebDAVGet(a:entry.path)
+endfunction
+
 " Main fzf interface with recursive scanning and caching
 " Usage: :WebDAVFzf [server_name] [path] or :WebDAVFzf [path]
 " :WebDAVFzf! - Force cache refresh
@@ -1411,11 +1527,154 @@ function! s:WebDAVFzf(args, force_refresh)
   \ }))
 endfunction
 
+" Format timestamp as human-readable time ago
+function! s:FormatTimeAgo(timestamp)
+  let now = localtime()
+  let diff = now - a:timestamp
+
+  if diff < 60
+    return 'just now'
+  elseif diff < 3600
+    let minutes = diff / 60
+    return minutes . 'm ago'
+  elseif diff < 86400
+    let hours = diff / 3600
+    return hours . 'h ago'
+  elseif diff < 604800
+    let days = diff / 86400
+    return days . 'd ago'
+  else
+    return strftime('%Y-%m-%d', a:timestamp)
+  endif
+endfunction
+
+" Handle selection from recent files list
+function! s:WebDAVRecentSelect()
+  let line = getline('.')
+
+  " Skip header and empty lines
+  if empty(trim(line)) || line =~ '^"'
+    return
+  endif
+
+  " Get line number (1-indexed, but skip header line)
+  let line_num = line('.') - 2
+
+  if line_num < 0 || line_num >= len(s:recent_files)
+    echo "Invalid selection"
+    return
+  endif
+
+  " Get the entry
+  let entry = s:recent_files[line_num]
+
+  " Open the file
+  call s:WebDAVRecentOpen(entry)
+endfunction
+
+" Show recent files in a list buffer
+function! s:WebDAVRecent()
+  if empty(s:recent_files)
+    echo "No recent WebDAV files"
+    return
+  endif
+
+  " Create new buffer
+  tabnew
+
+  " Configure buffer
+  setlocal buftype=nofile bufhidden=wipe
+  setlocal modifiable
+
+  " Add header
+  call setline(1, '" Recent WebDAV Files')
+
+  " Add each recent file
+  let idx = 2
+  for entry in s:recent_files
+    let time_ago = s:FormatTimeAgo(entry.timestamp)
+    let server_info = empty(entry.server) ? '' : ' (' . entry.server . ')'
+    let line = printf('[%s] %s%s', time_ago, entry.path, server_info)
+    call setline(idx, line)
+    let idx += 1
+  endfor
+
+  " Set filetype and make read-only
+  setlocal filetype=webdavlist
+  setlocal nomodifiable
+
+  " Move cursor to first file
+  normal! gg
+  normal! j
+
+  " Key mapping for opening files
+  nnoremap <buffer> <CR> :call <SID>WebDAVRecentSelect()<CR>
+endfunction
+
+" Handle fzf selection from recent files
+function! s:WebDAVRecentFzfSink(selection)
+  if empty(a:selection)
+    return
+  endif
+
+  " Parse TSV format: [time]\tpath\tserver
+  let parts = split(a:selection, "\t")
+  if len(parts) < 2
+    echoerr "Error: Invalid selection format"
+    return
+  endif
+
+  let path = parts[1]
+
+  " Find matching entry in recent files
+  for entry in s:recent_files
+    if entry.path == path
+      call s:WebDAVRecentOpen(entry)
+      return
+    endif
+  endfor
+
+  echoerr "Error: File not found in recent list: " . path
+endfunction
+
+" Show recent files in fzf
+function! s:WebDAVRecentFzf()
+  if empty(s:recent_files)
+    echo "No recent WebDAV files"
+    return
+  endif
+
+  " Check if fzf is available
+  if !executable('fzf')
+    echoerr "Error: fzf is not installed"
+    return
+  endif
+
+  " Format recent files for fzf (TSV format)
+  let formatted = []
+  for entry in s:recent_files
+    let time_ago = s:FormatTimeAgo(entry.timestamp)
+    let server = empty(entry.server) ? '' : entry.server
+    " Format: [time]\tpath\tserver
+    let line = printf("[%s]\t%s\t%s", time_ago, entry.path, server)
+    call add(formatted, line)
+  endfor
+
+  " Launch fzf
+  call fzf#run(fzf#wrap({
+    \ 'source': formatted,
+    \ 'sink': function('s:WebDAVRecentFzfSink'),
+    \ 'options': ['--prompt', 'Recent> ', '--delimiter', '\t']
+  \ }))
+endfunction
+
 command! -nargs=? WebDAVList call s:WebDAVList(<q-args>)
 command! -nargs=1 WebDAVGet call s:WebDAVGet(<q-args>)
 command! WebDAVPut call s:WebDAVPut()
 command! -nargs=? WebDAVUI call s:WebDAVUI(<q-args>)
 command! -bang -nargs=* WebDAVFzf call s:WebDAVFzf([<f-args>], <bang>0)
+command! WebDAVRecent call s:WebDAVRecent()
+command! WebDAVRecentFzf call s:WebDAVRecentFzf()
 
 " Setup autocmd for WebDAV buffers (ONLY for webdav:// protocol buffers)
 augroup webdav_buffers
@@ -1443,4 +1702,27 @@ if exists('$WEBDAV_TEST_MODE') && $WEBDAV_TEST_MODE == '1'
   function! TestWebDAVFzfOpen(base_path, selection)
     return s:WebDAVFzfOpen(a:base_path, a:selection)
   endfunction
+
+  function! TestGetRecentFiles()
+    return s:recent_files
+  endfunction
+
+  function! TestLoadRecentFiles()
+    call s:LoadRecentFiles()
+  endfunction
+
+  function! TestSaveRecentFiles()
+    call s:SaveRecentFiles()
+  endfunction
+
+  function! TestTrackRecentFile(path, url, server)
+    call s:TrackRecentFile(a:path, a:url, a:server)
+  endfunction
+
+  function! TestWebDAVRecentFzfSink(selection)
+    call s:WebDAVRecentFzfSink(a:selection)
+  endfunction
 endif
+
+" Initialize plugin - load recent files from cache
+call s:LoadRecentFiles()
