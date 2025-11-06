@@ -10,10 +10,18 @@ RUN apk add --no-cache \
     bash \
     ruby \
     nginx \
-    nginx-mod-http-dav-ext
+    nginx-mod-http-dav-ext \
+    fzf \
+    git
 
 # Create vim directory structure
 RUN mkdir -p /root/.vim/pack/webdav/start/vim-webdav
+
+# Install fzf.vim plugin
+RUN mkdir -p /root/.vim/pack/fzf/start && \
+    cd /root/.vim/pack/fzf/start && \
+    git clone --depth 1 https://github.com/junegunn/fzf.vim.git && \
+    git clone --depth 1 https://github.com/junegunn/fzf.git
 
 # Copy plugin files
 COPY plugin /root/.vim/pack/webdav/start/vim-webdav/plugin
