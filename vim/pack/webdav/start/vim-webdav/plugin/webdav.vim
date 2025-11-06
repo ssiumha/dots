@@ -29,6 +29,11 @@ let s:recent_files = []  " Recent files list: [{path, url, server, timestamp}, .
 let s:recent_files_path = !empty($WEBDAV_RECENT_CACHE_PATH) ? expand($WEBDAV_RECENT_CACHE_PATH) : expand('~/.cache/vim-webdav/recent.json')
 let s:recent_files_max = 50  " Maximum number of recent files to keep
 
+" Preview settings
+let g:webdav_preview_enabled = get(g:, 'webdav_preview_enabled', 1)
+let g:webdav_preview_lines = get(g:, 'webdav_preview_lines', 200)
+let g:webdav_preview_use_bat = get(g:, 'webdav_preview_use_bat', 1)
+
 " Constants for HTTP response parsing
 let s:HTTP_SEPARATOR_LEN = 4  " Length of \r\n\r\n
 let s:UNIX_SEPARATOR_LEN = 2  " Length of \n\n
@@ -107,6 +112,50 @@ function! s:TrackRecentFile(path, url, server)
   call s:SaveRecentFiles()
 
   call s:DebugLog("DEBUG RECENT: Tracked file " . a:path . " (total: " . len(s:recent_files) . ")")
+endfunction
+
+" Preview file content for fzf
+" Parameters: path - WebDAV file path
+" Returns: file content (first N lines) or error message
+function! s:WebDAVPreview(path)
+  if empty(s:url)
+    return "Error: No WebDAV server connected"
+  endif
+
+  if empty(a:path)
+    return "Error: No file specified"
+  endif
+
+  " Build full URL
+  let full_url = s:url . a:path
+
+  " Build curl command
+  let curl_cmd = 'curl -s --max-time 5'
+
+  " Add authentication if available
+  if !empty(s:user) && !empty(s:pass)
+    let curl_cmd .= ' -u ' . shellescape(s:user . ':' . s:pass)
+  endif
+
+  " Add URL
+  let curl_cmd .= ' ' . shellescape(full_url)
+
+  " Limit output lines
+  let curl_cmd .= ' | head -n ' . g:webdav_preview_lines
+
+  " Execute curl
+  let output = system(curl_cmd)
+
+  " Check for errors
+  if v:shell_error != 0
+    return "Error: Failed to fetch file (HTTP error or timeout)"
+  endif
+
+  if empty(output)
+    return "(Empty file or binary content)"
+  endif
+
+  return output
 endfunction
 
 " Parse WebDAV URL with authentication
@@ -320,7 +369,7 @@ function! s:SetupWebDAVBuffer(path, etag, last_modified, body)
   " Ensure buftype is empty FIRST (before any content)
   setlocal buftype=
   setlocal noswapfile
-  setlocal bufhidden=hide
+  setlocal bufhidden=wipe
 
   " Load content into buffer
   call setline(1, split(a:body, '\n', 1))
@@ -1519,11 +1568,37 @@ function! s:WebDAVFzf(args, force_refresh)
     return
   endif
 
+  " Build fzf options
+  let fzf_options = ['--prompt', 'WebDAV> ', '--preview-window', 'right:50%']
+
+  " Add preview if enabled
+  if g:webdav_preview_enabled
+    " Build curl command
+    let curl_cmd = 'curl -s --max-time 5'
+
+    " Add authentication if available
+    if !empty(s:user) && !empty(s:pass)
+      let curl_cmd .= ' -u ' . shellescape(s:user . ':' . s:pass)
+    endif
+
+    " Add URL with base_path + selected file
+    let curl_cmd .= ' ' . shellescape(s:url . base_path) . '{}'
+
+    " Use bat if available and enabled, otherwise fallback to head
+    if g:webdav_preview_use_bat && executable('bat')
+      let preview_cmd = curl_cmd . ' | bat --color=always --style=plain --paging=never -l md'
+    else
+      let preview_cmd = curl_cmd . ' | head -n ' . g:webdav_preview_lines
+    endif
+
+    let fzf_options += ['--preview', preview_cmd]
+  endif
+
   " Launch fzf
   call fzf#run(fzf#wrap({
     \ 'source': files,
     \ 'sink': function('s:WebDAVFzfOpen', [base_path]),
-    \ 'options': ['--prompt', 'WebDAV> ', '--preview-window', 'right:50%']
+    \ 'options': fzf_options
   \ }))
 endfunction
 
@@ -1655,16 +1730,42 @@ function! s:WebDAVRecentFzf()
   for entry in s:recent_files
     let time_ago = s:FormatTimeAgo(entry.timestamp)
     let server = empty(entry.server) ? '' : entry.server
-    " Format: [time]\tpath\tserver
-    let line = printf("[%s]\t%s\t%s", time_ago, entry.path, server)
+    " Format: [time]\tpath\tserver\turl (url is hidden but used for preview)
+    let line = printf("[%s]\t%s\t%s\t%s", time_ago, entry.path, server, entry.url)
     call add(formatted, line)
   endfor
+
+  " Build fzf options
+  let fzf_options = ['--prompt', 'Recent> ', '--delimiter', '\t', '--with-nth', '1,2,3']
+
+  " Add preview if enabled
+  if g:webdav_preview_enabled
+    " Build curl command
+    let curl_cmd = 'curl -s --max-time 5'
+
+    " Add authentication if available
+    if !empty(s:user) && !empty(s:pass)
+      let curl_cmd .= ' -u ' . shellescape(s:user . ':' . s:pass)
+    endif
+
+    " Use {4} for URL and {2} for path
+    let curl_cmd .= ' {4}{2}'
+
+    " Use bat if available and enabled, otherwise fallback to head
+    if g:webdav_preview_use_bat && executable('bat')
+      let preview_cmd = curl_cmd . ' | bat --color=always --style=plain --paging=never -l md'
+    else
+      let preview_cmd = curl_cmd . ' | head -n ' . g:webdav_preview_lines
+    endif
+
+    let fzf_options += ['--preview', preview_cmd, '--preview-window', 'right:50%']
+  endif
 
   " Launch fzf
   call fzf#run(fzf#wrap({
     \ 'source': formatted,
     \ 'sink': function('s:WebDAVRecentFzfSink'),
-    \ 'options': ['--prompt', 'Recent> ', '--delimiter', '\t']
+    \ 'options': fzf_options
   \ }))
 endfunction
 

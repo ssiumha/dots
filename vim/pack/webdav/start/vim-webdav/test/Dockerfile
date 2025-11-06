@@ -12,7 +12,8 @@ RUN apk add --no-cache \
     nginx \
     nginx-mod-http-dav-ext \
     fzf \
-    git
+    git \
+    bat
 
 # Create vim directory structure
 RUN mkdir -p /root/.vim/pack/webdav/start/vim-webdav
