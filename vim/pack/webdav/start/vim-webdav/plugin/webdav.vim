@@ -3,19 +3,44 @@ if exists('g:loaded_webdav')
 endif
 let g:loaded_webdav = 1
 
-let s:url = $WEBDAV_DEFAULT_URL
-let s:user = $WEBDAV_DEFAULT_USER
-let s:pass = $WEBDAV_DEFAULT_PASS
+" Helper function to clean string (remove all newlines and trim whitespace)
+" IMPORTANT: Must be defined before any variable initialization that uses it
+function! s:CleanString(str)
+  " Remove all newlines/carriage returns, then trim leading/trailing whitespace
+  return trim(substitute(a:str, '[\r\n]', '', 'g'))
+endfunction
+
+" Helper function for debug logging
+" Usage: call s:DebugLog("message")
+" Enable with: :let g:webdav_debug = 1
+function! s:DebugLog(msg)
+  if get(g:, 'webdav_debug', 0)
+    echom a:msg
+  endif
+endfunction
+
+" Global variables - initialized with cleaned environment variables
+let s:url = s:CleanString($WEBDAV_DEFAULT_URL)
+let s:user = s:CleanString($WEBDAV_DEFAULT_USER)
+let s:pass = s:CleanString($WEBDAV_DEFAULT_PASS)
 let s:current_server = ''  " Name of currently connected server
+let s:scan_cache = {}  " Cache for fzf recursive scans: {url: {path: [files]}}
 
 " Constants for HTTP response parsing
 let s:HTTP_SEPARATOR_LEN = 4  " Length of \r\n\r\n
 let s:UNIX_SEPARATOR_LEN = 2  " Length of \n\n
+
 " Helper function to URL encode a string (but keep slashes)
 function! s:URLEncode(str)
-  " URL encode using perl but keep slashes
-  let encoded = system("echo -n " . shellescape(a:str) . " | perl -MURI::Escape -e '$str = <STDIN>; print uri_escape($str, q{^A-Za-z0-9/._~-})'")
-  return encoded
+  " CRITICAL: Clean input BEFORE encoding (remove newlines, otherwise they become %0A)
+  let clean_str = s:CleanString(a:str)
+
+  " URL encode using perl - pass string as argument to avoid shell pipe issues
+  " This avoids problems with echo -n where '-n' itself can get encoded
+  let encoded = system("perl -MURI::Escape -e 'print uri_escape($ARGV[0], q{^A-Za-z0-9/._~-})' " . shellescape(clean_str))
+
+  " Also clean system() output for defense-in-depth
+  return s:CleanString(encoded)
 endfunction
 
 " Parse WebDAV URL with authentication
@@ -24,26 +49,29 @@ endfunction
 function! s:ParseWebDAVURL(url_string)
   let result = {'url': '', 'user': '', 'pass': ''}
 
+  " Clean input to remove any newlines/whitespace
+  let clean_url = s:CleanString(a:url_string)
+
   " Extract protocol
-  let protocol_match = matchlist(a:url_string, '^\([^:]\+\)://')
+  let protocol_match = matchlist(clean_url, '^\([^:]\+\)://')
   if empty(protocol_match)
     return result
   endif
   let protocol = protocol_match[1]
 
   " Remove protocol from URL
-  let rest = substitute(a:url_string, '^\([^:]\+\)://', '', '')
+  let rest = substitute(clean_url, '^\([^:]\+\)://', '', '')
 
   " Check for authentication (user:pass@)
   " Password can contain : (URL-encoded as %3A), so match everything between first : and last @
   let auth_match = matchlist(rest, '^\([^@:]\+\):\([^@]*\)@\(.*\)$')
   if !empty(auth_match)
-    let result.user = auth_match[1]
-    let result.pass = auth_match[2]
-    let result.url = protocol . '://' . auth_match[3]
+    let result.user = s:CleanString(auth_match[1])
+    let result.pass = s:CleanString(auth_match[2])
+    let result.url = s:CleanString(protocol . '://' . auth_match[3])
   else
     " No authentication in URL
-    let result.url = protocol . '://' . rest
+    let result.url = s:CleanString(protocol . '://' . rest)
   endif
 
   return result
@@ -64,8 +92,8 @@ function! s:ScanWebDAVServers()
       " Extract server name (everything after prefix, converted to lowercase)
       let server_name = tolower(substitute(var_name, '^' . prefix, '', ''))
 
-      " Parse URL with authentication
-      let parsed = s:ParseWebDAVURL(env_vars[var_name])
+      " Parse URL with authentication (clean to remove any whitespace/newlines)
+      let parsed = s:ParseWebDAVURL(s:CleanString(env_vars[var_name]))
 
       if !empty(parsed.url)
         let servers[server_name] = parsed
@@ -78,10 +106,10 @@ endfunction
 
 " Set current WebDAV server connection
 function! s:SetCurrentServer(name, url, user, pass)
-  let s:url = a:url
-  let s:user = a:user
-  let s:pass = a:pass
-  let s:current_server = a:name
+  let s:url = s:CleanString(a:url)
+  let s:user = s:CleanString(a:user)
+  let s:pass = s:CleanString(a:pass)
+  let s:current_server = s:CleanString(a:name)
 endfunction
 
 " Interactive server selection UI
@@ -96,9 +124,9 @@ function! s:WebDAVUI(...)
   if empty(servers)
     " Fallback to default environment variables if available
     if !empty($WEBDAV_DEFAULT_URL)
-      let s:url = $WEBDAV_DEFAULT_URL
-      let s:user = $WEBDAV_DEFAULT_USER
-      let s:pass = $WEBDAV_DEFAULT_PASS
+      let s:url = s:CleanString($WEBDAV_DEFAULT_URL)
+      let s:user = s:CleanString($WEBDAV_DEFAULT_USER)
+      let s:pass = s:CleanString($WEBDAV_DEFAULT_PASS)
       let s:current_server = 'default'
       echo "No WEBDAV_UI_* servers found. Using WEBDAV_DEFAULT_* variables."
       call s:WebDAVList('/')
@@ -330,6 +358,13 @@ function! s:WebDAVRequest(method, path, ...)
   let encoded_path = s:URLEncode(a:path)
   let url = s:url . encoded_path
 
+  " DEBUG: Log URL construction
+  call s:DebugLog("DEBUG REQUEST: method=" . a:method)
+  call s:DebugLog("DEBUG REQUEST: s:url=" . string(s:url))
+  call s:DebugLog("DEBUG REQUEST: a:path=" . string(a:path))
+  call s:DebugLog("DEBUG REQUEST: encoded_path=" . string(encoded_path))
+  call s:DebugLog("DEBUG REQUEST: final url=" . string(url))
+
   if a:method == 'PROPFIND'
     " Check if we need raw response (for checking folder contents)
     let raw_response = a:0 > 0 ? a:1 : 0
@@ -393,6 +428,9 @@ function! s:WebDAVRequest(method, path, ...)
     echoerr "Unknown HTTP method: " . a:method
     return ''
   endif
+
+  " DEBUG: Log final command before execution
+  call s:DebugLog("DEBUG REQUEST: final cmd=" . string(cmd))
 
   return cmd
 endfunction
@@ -723,6 +761,9 @@ function! s:WebDAVGet(path)
   " Use curl for WebDAV GET (with headers)
   let cmd = s:WebDAVRequest('GET', a:path)
 
+  " DEBUG: Show the actual curl command
+  call s:DebugLog("DEBUG: curl command = " . cmd)
+
   " Get response with headers (no need to escape % for system() call)
   let response = system(cmd)
   if v:shell_error != 0
@@ -736,9 +777,21 @@ function! s:WebDAVGet(path)
   let headers = parsed.headers
   let body = parsed.body
 
+  " DEBUG: Show headers received (headers is a string, not a list)
+  let header_lines = split(headers, '\r\?\n')
+  call s:DebugLog("DEBUG: Headers count = " . len(header_lines))
+  for header in header_lines
+    call s:DebugLog("DEBUG: Header - " . header)
+  endfor
+
   " Extract version information from headers
   let etag = s:ExtractHeader(headers, 'ETag')
   let last_modified = s:ExtractHeader(headers, 'Last-Modified')
+
+  " DEBUG: Show extracted values
+  call s:DebugLog("DEBUG: ETag = " . etag)
+  call s:DebugLog("DEBUG: Last-Modified = " . last_modified)
+  call s:DebugLog("DEBUG: Body length = " . len(body))
 
   " SAFETY CHECK: Require at least one version tracking mechanism
   " Exception: Allow empty files without version tracking
@@ -746,6 +799,10 @@ function! s:WebDAVGet(path)
     if !empty(body)
       echoerr "Error: Server does not provide ETag or Last-Modified headers"
       echoerr "Cannot safely edit file without conflict detection"
+      echoerr "DEBUG: Response headers received:"
+      for header in header_lines
+        echoerr "  " . header
+      endfor
       return
     endif
     " Empty file - proceed without version tracking (safe since no data to lose)
@@ -1113,10 +1170,252 @@ function! s:WebDAVResolveConflict()
   echo "Manually merge changes and save again"
 endfunction
 
+" Resolve server name or path from arguments
+" Returns: {'server_name': name or '', 'path': path, 'error': error_msg or ''}
+function! s:ResolveServerAndPath(args)
+  let result = {'server_name': '', 'path': '/', 'error': ''}
+
+  if len(a:args) == 0
+    " No arguments - use current server and root path
+    return result
+  endif
+
+  let first_arg = a:args[0]
+
+  " Check if first argument is a path (starts with /)
+  if first_arg =~ '^/'
+    " It's a path - use current server
+    let result.path = first_arg
+    if len(a:args) > 1
+      let result.error = 'Too many arguments'
+    endif
+  else
+    " It's a server name
+    let servers = s:ScanWebDAVServers()
+
+    if !has_key(servers, first_arg)
+      let result.error = "Server '" . first_arg . "' not found"
+      return result
+    endif
+
+    let result.server_name = first_arg
+
+    " Check for second argument (path)
+    if len(a:args) > 1
+      let result.path = a:args[1]
+      if result.path !~ '^/'
+        let result.error = 'Path must start with /'
+        return result
+      endif
+    endif
+
+    if len(a:args) > 2
+      let result.error = 'Too many arguments'
+    endif
+  endif
+
+  return result
+endfunction
+
+" Recursively scan WebDAV directory tree using BFS
+" Returns: List of file paths (relative to base_path)
+function! s:WebDAVRecursiveScan(base_path)
+  if !s:ValidateURL()
+    return []
+  endif
+
+  " Clean base_path for consistent use in path calculations
+  let clean_base_path = s:CleanString(a:base_path)
+
+  let files = []
+  let queue = [clean_base_path]
+  let visited = {}
+
+  " DEBUG: Log base_path at start
+  call s:DebugLog("DEBUG SCAN START: base_path=" . string(a:base_path))
+  call s:DebugLog("DEBUG SCAN START: clean_base_path=" . string(clean_base_path))
+
+  while len(queue) > 0
+    let current_path = remove(queue, 0)
+
+    " Skip if already visited (avoid infinite loops)
+    if has_key(visited, current_path)
+      continue
+    endif
+    let visited[current_path] = 1
+
+    " PROPFIND Depth: 1 for current directory
+    let cmd = s:WebDAVRequest('PROPFIND', current_path)
+    if empty(cmd)
+      continue
+    endif
+
+    let listing = systemlist(cmd)
+
+    " Process each item in listing
+    for item in listing
+      " Clean item (remove ALL newlines and whitespace, including mid-string)
+      let clean_item = s:CleanString(item)
+      if empty(clean_item)
+        continue
+      endif
+
+      " Build full path and ensure it's clean (current_path might be contaminated from queue)
+      let full_path = s:CleanString(current_path . clean_item)
+
+      if clean_item =~ '/$'
+        " It's a directory - add to queue for BFS
+        call add(queue, full_path)
+      else
+        " It's a file - add to results (store path relative to base)
+        " Use clean_base_path to ensure proper pattern matching
+        let relative_path = substitute(full_path, '^' . escape(clean_base_path, '/'), '', '')
+        " Ensure no trailing whitespace/newlines in final result
+        call add(files, s:CleanString(relative_path))
+      endif
+    endfor
+  endwhile
+
+  " DEBUG: Log first few files
+  if len(files) > 0
+    call s:DebugLog("DEBUG SCAN RESULT: First file=" . string(files[0]))
+    if len(files) > 1
+      call s:DebugLog("DEBUG SCAN RESULT: Second file=" . string(files[1]))
+    endif
+  endif
+
+  return files
+endfunction
+
+" Handle fzf selection
+function! s:WebDAVFzfOpen(base_path, selection)
+  if empty(a:selection)
+    return
+  endif
+
+  " DEBUG: Log inputs
+  call s:DebugLog("DEBUG OPEN: a:base_path=" . string(a:base_path))
+  call s:DebugLog("DEBUG OPEN: a:selection=" . string(a:selection))
+
+  " Use CleanString for consistency (removes all newlines and trims)
+  let clean_selection = s:CleanString(a:selection)
+  let clean_base_path = s:CleanString(a:base_path)
+
+  " Build full path
+  let full_path = clean_base_path . clean_selection
+
+  " DEBUG: Log cleaned values
+  call s:DebugLog("DEBUG OPEN: clean_base_path=" . string(clean_base_path))
+  call s:DebugLog("DEBUG OPEN: clean_selection=" . string(clean_selection))
+  call s:DebugLog("DEBUG OPEN: full_path=" . string(full_path))
+
+  " Debug: Show what we're opening
+  echo "Opening: " . full_path
+
+  " Check if it's a directory (ends with /)
+  if clean_selection =~ '/$'
+    " Directory selected - show error or open list
+    echoerr "Error: Cannot open directory as file: " . full_path
+    echoerr "Use WebDAVList to browse directory contents"
+    return
+  endif
+
+  " Verify it doesn't look like a directory path
+  if full_path =~ '/$'
+    echoerr "Error: Path ends with /  (directory): " . full_path
+    return
+  endif
+
+  " Open file in new tab
+  tabnew
+  call s:WebDAVGet(full_path)
+endfunction
+
+" Main fzf interface with recursive scanning and caching
+" Usage: :WebDAVFzf [server_name] [path] or :WebDAVFzf [path]
+" :WebDAVFzf! - Force cache refresh
+function! s:WebDAVFzf(args, force_refresh)
+  " Parse arguments
+  let resolved = s:ResolveServerAndPath(a:args)
+
+  if !empty(resolved.error)
+    echoerr "Error: " . resolved.error
+    if resolved.error =~ 'not found'
+      let servers = s:ScanWebDAVServers()
+      echo "Available servers: " . join(sort(keys(servers)), ', ')
+    endif
+    return
+  endif
+
+  " Switch server if specified
+  if !empty(resolved.server_name)
+    let servers = s:ScanWebDAVServers()
+    let server = servers[resolved.server_name]
+    call s:SetCurrentServer(resolved.server_name, server.url, server.user, server.pass)
+    echo "Switched to server: " . resolved.server_name
+  endif
+
+  " Validate URL is set
+  if !s:ValidateURL()
+    return
+  endif
+
+  " Ensure path ends with /
+  let base_path = resolved.path
+  if base_path !~ '/$'
+    let base_path .= '/'
+  endif
+
+  " DEBUG: Log FZF start state
+  call s:DebugLog("DEBUG FZF START: s:url=" . string(s:url))
+  call s:DebugLog("DEBUG FZF START: base_path=" . string(base_path))
+
+  " Check cache (key: url + path)
+  let cache_key = s:url
+  if !has_key(s:scan_cache, cache_key)
+    let s:scan_cache[cache_key] = {}
+  endif
+
+  let files = []
+
+  if a:force_refresh || !has_key(s:scan_cache[cache_key], base_path)
+    " Scan directories recursively
+    echo "Scanning " . s:url . base_path . " recursively..."
+    let files = s:WebDAVRecursiveScan(base_path)
+
+    " Cache results
+    let s:scan_cache[cache_key][base_path] = files
+    echo "Found " . len(files) . " files"
+  else
+    " Use cached results
+    let files = s:scan_cache[cache_key][base_path]
+    echo "Using cached results: " . len(files) . " files"
+  endif
+
+  if empty(files)
+    echo "No files found in " . base_path
+    return
+  endif
+
+  " Check if fzf is available
+  if !executable('fzf')
+    echoerr "Error: fzf is not installed"
+    return
+  endif
+
+  " Launch fzf
+  call fzf#run(fzf#wrap({
+    \ 'source': files,
+    \ 'sink': function('s:WebDAVFzfOpen', [base_path]),
+    \ 'options': ['--prompt', 'WebDAV> ', '--preview-window', 'right:50%']
+  \ }))
+endfunction
+
 command! -nargs=? WebDAVList call s:WebDAVList(<q-args>)
 command! -nargs=1 WebDAVGet call s:WebDAVGet(<q-args>)
 command! WebDAVPut call s:WebDAVPut()
 command! -nargs=? WebDAVUI call s:WebDAVUI(<q-args>)
+command! -bang -nargs=* WebDAVFzf call s:WebDAVFzf([<f-args>], <bang>0)
 
 " Setup autocmd for WebDAV buffers (ONLY for webdav:// protocol buffers)
 augroup webdav_buffers
@@ -1126,3 +1425,22 @@ augroup webdav_buffers
   autocmd BufReadCmd webdav://* call s:WebDAVReload()
   " Note: BufWriteCmd is set per-buffer in s:SetupWebDAVBuffer()
 augroup END
+
+" Test helpers - expose script-local functions for testing
+if exists('$WEBDAV_TEST_MODE') && $WEBDAV_TEST_MODE == '1'
+  function! TestWebDAVRecursiveScan(path)
+    return s:WebDAVRecursiveScan(a:path)
+  endfunction
+
+  function! TestResolveServerAndPath(args)
+    return s:ResolveServerAndPath(a:args)
+  endfunction
+
+  function! TestGetScanCache()
+    return s:scan_cache
+  endfunction
+
+  function! TestWebDAVFzfOpen(base_path, selection)
+    return s:WebDAVFzfOpen(a:base_path, a:selection)
+  endfunction
+endif
