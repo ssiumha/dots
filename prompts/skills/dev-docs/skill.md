@@ -25,6 +25,47 @@ description: 대형 작업과 복잡한 기능 개발 시 컨텍스트를 유지
 1. **작업명 결정**
    - kebab-case 형식 (예: feature-user-auth, bugfix-login-timeout)
 
+1.5. **Living Docs 관련 지식 확인 (선택적)**
+
+   작업을 시작하기 전에 프로젝트 지식베이스에서 관련 정보를 검색합니다.
+
+   **사용자 확인:**
+   ```
+   작업을 시작하기 전에 관련 문서를 확인하시겠습니까?
+   [1] 예 (권장, 중복 작업 방지 및 기존 패턴 참고)
+   [2] 아니오 (바로 시작)
+   ```
+
+   **사용자가 '예' 선택 시:**
+
+   living-docs 스킬의 **워크플로우 5 (지식 탐색)** 실행:
+
+   1. **키워드 추출**: 작업명에서 검색어 추출
+      - `feature-user-auth` → `user`, `auth`, `authentication`, `session`
+
+   2. **관련 문서 검색**: living-docs Workflow 5 로직 활용
+      - 구조 파악 (lsd --tree)
+      - 빠른 인덱스 스캔 (Grep 우선, 최소 Read)
+      - 관련 문서만 선택적 Read (상위 3-5개)
+
+   3. **결과 요약**: 카테고리별 정리
+      - 의사결정 (Decisions)
+      - 아키텍처 (Architecture)
+      - 보안/운영 (Security/Operations)
+      - 관련 TODO (중복 확인)
+
+   4. **권장 사항 제안**:
+      - context.md에 추가할 관련 문서
+      - 따라야 할 기존 결정/패턴
+      - 조율 필요한 진행 중 작업
+
+   **사용자가 '아니오' 선택 시:**
+   - 검색 건너뛰고 바로 Step 2로 진행
+
+   **Edge Cases:**
+   - `~/docs/{project}` 없으면 자동 건너뛰기
+   - 검색 결과 없으면 안내 후 진행
+
 2. **작업 디렉토리 생성**
    ```bash
    mkdir -p ~/docs/dev/{project}/active/{task-name}
