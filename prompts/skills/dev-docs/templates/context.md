@@ -39,9 +39,26 @@ updated: {{DATE}}
 
 ## 관련 문서
 
-- Living Docs: [[doc-id]] - [링크 설명]
-- External: [URL] - [설명]
+### Living Docs (프로젝트 지식베이스)
+
+**의사결정 (Decisions):**
+- [[dec-xxx]]: [의사결정 내용]
+
+**아키텍처 (Architecture):**
+- [[know-arch-xxx]]: [아키텍처 패턴/구조]
+
+**보안/운영 (Security/Operations):**
+- [[know-security-xxx]]: [보안 정책/주의사항]
+
+**관련 TODO:**
+- [[todo-xxx]]: [진행 중인 관련 작업]
+
+### External
+- [URL]: [외부 문서 설명]
 - Confluence/Notion: [URL] - [설명]
+
+### 작업 시작 시 검색된 문서
+(Step 1.5 Living Docs 검색 결과를 여기 기록)
 
 ## 주의사항
 

@@ -47,6 +47,14 @@ skill-living-docs:
     - "리팩토링"
     - "feature"
     - "기능"
+    # 문서 건강도 체크 키워드
+    - "찾기 힘들어"
+    - "찾기 어려워"
+    - "중복"
+    - "문서 정리"
+    - "docs 정리"
+    - "docs health"
+    - "정리 필요"
 
   # Claude에게 표시할 활성화 메시지
   trigger_message: |
@@ -58,46 +66,96 @@ skill-living-docs:
     - Creating/updating TODO items
     - Recording decisions (ADR)
     - Documenting requirements and specifications
+    - Automatic document health checks (size, duplication, references)
 
     💡 Tip: If you completed significant work (2+ files modified),
     consider updating living-docs with architectural decisions or lessons learned.
 
-# Writing Guide Reminders (reminder-*)
-reminder-claude-md-guide:
+    💡 Advanced: After modifying documents, automatic health check will detect
+    oversized files (300+ lines), duplicate content (80%+ tag overlap),
+    and suggest refactoring for better organization.
+
+# Claude.md Guide Skill Activation
+skill-claude-md-guide:
   keywords:
     - "CLAUDE.md"
     - "claude.md"
     - "클로드 문서"
     - "프로젝트 설정"
     - "프로젝트 문서"
+    - "리뷰"
+    - "review"
+    - "정리"
 
   trigger_message: |
-    📋 CLAUDE.md Writing Guide
+    📋 CLAUDE.MD GUIDE SKILL
 
-    ## What to Include (Project-Specific Content)
-    - Quick commands (build, start, test, deploy)
-    - Service-specific configuration
-    - Authentication/testing workflows
-    - Project-specific quirks and conventions
+    Detected claude.md-related keywords. Consider using the 'claude-md-guide' skill for:
+    - Reviewing existing claude.md files (length, structure, content analysis)
+    - Identifying content that should be moved to skills (>20 lines of generic patterns)
+    - Detecting missing required sections (quick commands, endpoints, env vars)
+    - Separating project-specific content from generic patterns
+    - Creating new claude.md files from templates
 
-    ## What to Exclude (Move to Skills Instead)
-    - Coding standards (formatting, naming conventions)
-    - Framework patterns (React, Vue, Angular, etc.)
-    - API/Backend patterns (routing, controllers, services)
-    - Error handling guidelines
-    - Database/ORM patterns
-    - Testing guidelines and best practices
-    - Performance optimization principles
+    💡 Tip: Use this skill to keep your claude.md files concise (50-100 lines)
+    and project-specific, moving generic patterns to reusable skills.
 
-    ## Recommended Structure
-    - Root CLAUDE.md: Universal rules pointing to repo-specific docs
-    - Repo claude.md: Quick start + references (PROJECT_KNOWLEDGE.md, TROUBLESHOOTING.md)
+# Dev Docs Skill Activation
+skill-dev-docs:
+  keywords:
+    # 작업 시작
+    - "작업 시작"
+    - "작업시작"
+    - "dev-docs"
+    - "dev docs"
+    - "계획"
+    - "계획 수립"
+    - "플랜"
+    - "플랜 끝"
+    - "계획 완료"
 
-    ## Your Task
-    1. Write ONLY project-specific content in CLAUDE.md
-    2. Identify generic coding standards that should become skills
-    3. Suggest creating missing skills if needed (e.g., "typescript-standards", "react-patterns")
-    4. Keep CLAUDE.md clean - NO skill lists or recommendations in the file itself
+    # 작업 재개
+    - "작업 이어서"
+    - "이어서"
+    - "continue"
+    - "뭐하고 있었지"
+    - "뭐 하고 있었지"
+    - "무엇을 하고 있었지"
+    - "작업 재개"
+
+    # 현황 파악
+    - "진행 중인 작업"
+    - "진행중인 작업"
+    - "작업 목록"
+    - "작업 현황"
+    - "진행 상황"
+    - "진행상황"
+    - "status"
+
+    # 작업 완료
+    - "작업 끝"
+    - "작업 완료"
+    - "작업완료"
+    - "dev-docs 완료"
+    - "아카이브"
+    - "archive"
+
+    # 일반
+    - "컨텍스트"
+    - "context"
+
+  trigger_message: |
+    📘 DEV DOCS SKILL
+
+    Detected dev-docs-related keywords. Consider using the 'dev-docs' skill for:
+    - Starting new development tasks (/dev-start)
+    - Resuming paused tasks with full context (/dev-continue)
+    - Checking status of all active tasks (/dev-status)
+    - Completing tasks and integrating to Living Docs (/dev-complete)
+    - Maintaining context across sessions (plan.md, context.md, tasks.md)
+
+    💡 Tip: Dev Docs prevents "Claude amnesia" for complex, multi-session work.
+    Use it for large features, refactorings, or anything that takes multiple days.
 
 # Test Guidelines Skill Activation
 skill-test-guidelines:
@@ -146,6 +204,73 @@ skill-review-security:
     - Full project security scan
 
     💡 Tip: Use after completing features or before deployment
+
+# DevOps Patterns Skill Activation
+skill-patterns-devops:
+  keywords:
+    # Local CI
+    - "lint"
+    - "linter"
+    - "포맷터"
+    - "formatter"
+    - "justfile"
+    - "just"
+    - "task runner"
+    - "pre-commit"
+    - "hooks"
+    - "E2E"
+    - "통합 테스트"
+
+    # CI/CD
+    - "CI/CD"
+    - "파이프라인"
+    - "pipeline"
+    - "GitHub Actions"
+    - "GitLab CI"
+    - "자동화"
+    - "automation"
+
+    # Docker
+    - "Docker"
+    - "docker"
+    - "compose"
+    - "compose.yaml"
+    - "docker-compose"
+    - "컨테이너"
+    - "container"
+    - "이미지"
+    - "image"
+    - "멀티스테이지"
+    - "multi-stage"
+
+    # Deployment
+    - "배포"
+    - "deploy"
+    - "deployment"
+    - "PM2"
+    - "프로세스"
+    - "process"
+    - "롤백"
+    - "rollback"
+
+    # Language-specific
+    - "Biome"
+    - "biome"
+    - "Vitest"
+    - "vitest"
+
+  trigger_message: |
+    🚀 DEVOPS PATTERNS SKILL
+
+    Detected DevOps-related keywords. Consider using the 'patterns-devops' skill for:
+    - Local CI: Justfile, lint/test automation, E2E testing
+    - CI/CD: GitHub Actions, GitLab CI pipelines
+    - Docker: compose.yaml, multi-stage builds, containerization
+    - Deployment: PM2, deployment scripts, rollback strategies
+    - TypeScript: Biome (ESLint alternative), Vitest
+
+    💡 Tip: The skill loads only the resources you need (token-efficient).
+    Mention specific keywords (e.g., "Justfile", "Docker", "PM2") for targeted help.
 
 # 향후 추가 예시 (주석)
 # skill-pdf-tools:

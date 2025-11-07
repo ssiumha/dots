@@ -42,11 +42,34 @@ description: 프로젝트 지식베이스와 TODO를 관리합니다. 요구사�
    - "{project} 프로젝트에서 작업하시는 것 맞나요?"
    - 잘못 인식된 경우 사용자가 수정 가능
 
-### 문서 위치
+### 문서 위치 및 파일명 규칙
+
+**디렉토리 구조:**
+
 모든 문서는 `~/docs/{project}/` 아래에 저장됩니다:
-- `knowledge/`: 지식 문서 (아키텍처, 보안, 요구사항 등)
+- `knowledge/{category}/`: 지식 문서 (아키텍처, 보안, 요구사항 등)
 - `decisions/`: 의사결정 기록
 - `todos/`: 할 일 목록
+
+**파일명 규칙:**
+
+1. **Self-descriptive** - 경로와 파일명만 봐도 내용 파악 가능해야 함
+   - ✅ 좋은 예: `knowledge/devops/idc-deployment-commands.md`
+   - ❌ 나쁜 예: `knowledge/IDC-001.md`, `doc-2024-11-06.md`, `temp-notes.md`
+
+2. **명명 규칙**
+   - **kebab-case** 사용 (소문자 + 하이픈)
+   - **2-4 단어** 권장
+   - **영문 권장** (한글도 가능하지만 링크 호환성 고려)
+   - **구체적이고 명확한 이름** 사용
+
+3. **경로 패턴**
+   - knowledge: `{project}/knowledge/{category}/{topic}.md`
+     - 예: `proj/knowledge/policy/album-cover-upload.md`
+   - decisions: `{project}/decisions/{topic}.md`
+     - 예: `proj/decisions/ansible-diff-display-improvement.md`
+   - todos: `{project}/todos/{topic}.md`
+     - 예: `proj/todos/fix-album-upload-validation.md`
 
 ### 워크플로우 1: 지식 문서 업데이트
 
@@ -103,6 +126,11 @@ description: 프로젝트 지식베이스와 TODO를 관리합니다. 요구사�
    cd ~/docs/{project} && git add knowledge/{category}/{topic}.md && git commit -m "docs(knowledge): update {category}/{topic} - {변경 요약}"
    ```
 
+5. **자동 건강도 체크** (워크플로우 10)
+   - 문서 크기 확인 (300+ 줄 시 분할 제안)
+   - 중복 가능성 확인 (태그 80%+ 중복 시 병합 제안)
+   - 이슈 발견 시 즉시 알림 및 리팩토링 제안
+
 ### 워크플로우 2: 의사결정 기록
 
 사용자가 "X 결정 기록해줘" 요청 시:
@@ -135,6 +163,10 @@ description: 프로젝트 지식베이스와 TODO를 관리합니다. 요구사�
    cd ~/docs/{project} && git add decisions/{slug}.md && git commit -m "docs(decision): add {slug}"
    ```
 
+6. **자동 건강도 체크** (워크플로우 10)
+   - 유사 결정 문서 중복 확인
+   - 이슈 발견 시 알림
+
 ### 워크플로우 3: TODO 생성 및 관리
 
 사용자가 "X 작업 TODO 만들어줘" 요청 시:
@@ -160,6 +192,10 @@ description: 프로젝트 지식베이스와 TODO를 관리합니다. 요구사�
    ```bash
    cd ~/docs/{project} && git add todos/{slug}.md && git commit -m "docs(todo): add {slug}"
    ```
+
+6. **자동 건강도 체크** (워크플로우 10)
+   - 중복 TODO 확인
+   - 이슈 발견 시 알림
 
 ### 워크플로우 4: 현황 파악
 
@@ -304,6 +340,15 @@ Grep "priority: high" ~/docs/{project}/todos/*.md
 
 3. **템플릿 기반 생성**
    적절한 위치에 파일 생성
+
+4. **Git 커밋**
+   ```bash
+   cd ~/docs/{project} && git add {문서경로} && git commit -m "docs({유형}): add {slug}"
+   ```
+
+5. **자동 건강도 체크** (워크플로우 10)
+   - 문서 크기 및 중복 확인
+   - 이슈 발견 시 즉시 알림
 
 ### 워크플로우 7: 문서 병합 (중복 방지)
 
@@ -522,21 +567,190 @@ Bash: cd ~/docs/{project} && git log --since="1 week ago" --oneline
 TODO가 `status: done`이 되면 사용자에게 선택지 제안:
 
 **옵션 1: Knowledge로 통합 (권장)**
-- TODO의 내용이 지식으로 남을 가치가 있는 경우
-- 관련 knowledge 문서를 찾거나 생성
-- TODO의 주요 내용/결과를 knowledge 문서에 추가
-- knowledge 문서 히스토리에 기록:
-  ```markdown
-  ### YYYY-MM-DD: [[todo-id]] 작업 완료 반영
-  **변경 내용:**
-  - [TODO에서 수행한 작업 내용]
 
-  **관련 작업:**
-  - 완료된 TODO: [[todo-id]]
+TODO의 내용이 지식으로 남을 가치가 있는 경우, 다음 5단계를 따릅니다:
 
-  ---
-  ```
-- TODO 파일 삭제
+**Step 1: Category 결정**
+
+TODO의 내용을 분석하여 적절한 category 선택:
+
+| TODO 내용 | Category | 파일 위치 예시 |
+|-----------|----------|----------------|
+| 아키텍처 패턴, 설계 결정 | architecture | `knowledge/architecture/api-design.md` |
+| 보안 정책, 주의사항 | security | `knowledge/security/auth-policy.md` |
+| 운영 절차, 배포 방법 | operations | `knowledge/operations/deployment.md` |
+| 성능 최적화, 튜닝 | performance | `knowledge/performance/caching.md` |
+| 기술 스택, 라이브러리 선택 | tech-stack | `knowledge/tech-stack/frontend.md` |
+| 팀 프로세스, 개발 규칙 | process | `knowledge/process/code-review.md` |
+| 특정 도메인 지식 | domain | `knowledge/domain/payment-flow.md` |
+| 문제 해결, 트러블슈팅 | troubleshooting | `knowledge/troubleshooting/db-connection.md` |
+
+**Step 2: 관련 문서 찾기**
+
+선택한 category에서 관련 문서 검색:
+
+```bash
+# 방법 1: 키워드 검색 (빠름)
+Grep "키워드" --type=md ~/docs/{project}/knowledge/{category}/ -i
+
+# 방법 2: 파일명 패턴 검색
+Glob ~/docs/{project}/knowledge/{category}/*{keyword}*.md
+
+# 방법 3: 태그 검색 (가장 정확)
+Grep "tags:.*키워드" ~/docs/{project}/knowledge/{category}/ -i
+```
+
+**검색 우선순위**:
+1. 태그가 80%+ 일치하는 문서 → 병합 강력 권장
+2. 제목/slug에 키워드 포함 → 통합 후보
+3. 검색 결과 없음 → 새 문서 생성
+
+**Step 3: 통합 가치 판단**
+
+다음 체크리스트로 통합 여부 결정:
+
+- [ ] 이 지식이 미래의 작업/결정에 참고될 가능성이 있는가?
+- [ ] 다른 팀원도 알아야 할 내용인가?
+- [ ] 비슷한 상황에서 다시 찾아볼 내용인가?
+
+**모두 No** → 옵션 2 (파일 삭제)로 전환
+**하나라도 Yes** → Step 4로 진행
+
+**Step 4A: 기존 문서에 통합 (관련 문서 발견 시)**
+
+1. **통합 위치 결정**:
+   - **새로운 섹션 추가**: TODO의 내용이 독립적인 주제인 경우
+   - **기존 섹션 확장**: 이미 다루고 있는 주제와 관련된 경우
+   - **예시/사례 추가**: 구체적인 구현 사례인 경우
+
+2. **내용 추출 및 정리**:
+   - TODO의 "## 설명", "## 작업 내용" 섹션에서 핵심 내용 추출
+   - 일시적인 정보(날짜, 담당자 등) 제거
+   - 재사용 가능한 형태로 재작성
+
+3. **문서 업데이트**:
+   ```markdown
+   # [기존 문서 제목]
+
+   [기존 내용...]
+
+   ## [새로운 섹션 또는 기존 섹션 확장]
+
+   [TODO에서 추출한 지식]
+
+   ### 관련 사례
+
+   **[[todo-xxx]] 작업 완료 (YYYY-MM-DD)**:
+   - [작업에서 배운 점]
+   - [구체적인 구현 방법]
+   - [주의사항]
+   ```
+
+4. **Frontmatter 갱신**:
+   ```yaml
+   updated: YYYY-MM-DD
+   references:
+     - "[[todo-xxx]]"  # 추가
+   ```
+
+5. **히스토리 추가**:
+   ```markdown
+   ## 히스토리
+
+   ### YYYY-MM-DD: [[todo-xxx]] 작업 완료 반영
+
+   **변경 내용:**
+   - [TODO에서 수행한 작업 내용]
+
+   **추가된 지식:**
+   - [새로 추가된 섹션/내용 요약]
+
+   **관련 작업:**
+   - 완료된 TODO: [[todo-xxx]]
+
+   ---
+   ```
+
+**Step 4B: 새 문서 생성 (관련 문서 없음 시)**
+
+1. **파일명 규칙**:
+   ```
+   ~/docs/{project}/knowledge/{category}/{topic}.md
+   ```
+   - `{topic}`: 2-4 단어, kebab-case
+   - 예: `api-versioning-strategy.md`, `redis-session-store.md`
+
+2. **Frontmatter 작성**:
+   ```yaml
+   ---
+   id: know-{category}-{topic}
+   created: YYYY-MM-DD
+   updated: YYYY-MM-DD
+   tags:
+     - {category}
+     - [관련 키워드 1]
+     - [관련 키워드 2]
+   references:
+     - "[[todo-xxx]]"
+   ---
+   ```
+
+3. **초기 구조**:
+   ```markdown
+   # {주제명}
+
+   ## 개요
+
+   [이 지식이 필요한 이유, 배경 설명]
+
+   ## 내용
+
+   [TODO에서 추출한 핵심 지식]
+
+   ### [하위 섹션 1]
+
+   [상세 내용]
+
+   ### [하위 섹션 2]
+
+   [상세 내용]
+
+   ## 예시
+
+   [구체적인 코드나 구현 사례]
+
+   ## 주의사항
+
+   [알아야 할 함정, 제약사항]
+
+   ## 관련 문서
+
+   - [[dec-xxx]]: [관련 의사결정]
+   - [[know-xxx]]: [관련 지식]
+
+   ## 히스토리
+
+   ### YYYY-MM-DD: [[todo-xxx]] 작업 완료 후 문서화
+
+   **내용:**
+   - [초기 작성 이유]
+
+   ---
+   ```
+
+**Step 5: TODO 파일 삭제**
+
+```bash
+rm ~/docs/{project}/todos/{slug}.md
+```
+
+**완료 메시지**:
+```
+✅ TODO [[todo-xxx]] 완료 처리
+📋 Knowledge 통합: ~/docs/{project}/knowledge/{category}/{topic}.md
+   - [통합된 섹션명]
+   - [추가된 내용 요약]
+```
 
 **옵션 2: 파일 삭제**
 - 단순 작업으로 별도 기록이 필요 없는 경우
@@ -550,6 +764,74 @@ rm ~/docs/{project}/todos/{slug}.md
    - [1] Knowledge 문서에 통합 후 삭제 (권장)
    - [2] 파일만 삭제
 
+### 워크플로우 10: 문서 건강도 자동 체크
+
+문서 생성/수정 완료 후 자동으로 실행되는 건강도 체크입니다.
+
+**실행 시점**:
+- 워크플로우 1, 2, 3, 6 완료 후 자동 실행
+- 사용자가 "찾기 힘들어", "중복", "문서 정리" 언급 시
+
+**상세 로직**: `resources/health-check.md` 참조
+
+#### 간단 체크 (자동)
+
+문서 생성/수정 후 즉시 체크:
+
+1. **현재 문서 크기 확인**
+   ```bash
+   wc -l ~/docs/{project}/knowledge/{category}/{topic}.md
+   ```
+   - 300+ 줄 → 즉시 분할 제안
+   - 200-299 줄 → 경고 표시
+
+2. **중복 가능성 확인**
+   ```bash
+   # 같은 카테고리에서 유사 태그 검색
+   Grep "tags:.*{주요태그}" ~/docs/{project}/knowledge/{category}/*.md
+   ```
+   - 태그 80%+ 중복 → 병합 제안
+
+3. **이슈 발견 시 즉시 알림**
+   ```markdown
+   ⚠️ 문서 정리가 필요할 수 있습니다:
+
+   🔴 즉시 조치:
+   - knowledge/api.md (523줄) → 분할 권장
+     제안: api/rest.md + api/graphql.md + api/auth.md
+
+   🔶 검토 필요:
+   - security-ip-policy.md ↔ networking-firewall.md
+     중복: 85% (태그: security, networking, firewall)
+     → 병합 제안: security/network-policies.md
+
+   정리하시겠습니까?
+   [1] 즉시 리팩토링 (권장)
+   [2] 나중에
+   [3] 무시
+   ```
+
+#### 전체 건강도 리포트 (요청 시)
+
+사용자가 "문서 정리", "docs health" 언급 시:
+
+1. **전체 문서 분석**
+   - 파일 크기
+   - 중복 검사
+   - 참조 건강도 (끊어진 링크, 고아 문서)
+   - 카테고리 분석
+
+2. **리포트 생성** (resources/health-check.md 형식)
+   - Critical 이슈
+   - Warnings
+   - Recommendations
+
+3. **리팩토링 실행** (사용자 승인 시)
+   - 문서 분할
+   - 중복 병합
+   - 크로스 레퍼런스 추가
+   - 카테고리 재구성
+
 ## 중요 원칙
 
 1. **사용자 중심**: 항상 사용자에게 확인하고 대화하며 진행
@@ -557,6 +839,7 @@ rm ~/docs/{project}/todos/{slug}.md
 3. **일관성**: 모든 문서는 템플릿 구조 유지
 4. **추적 가능성**: 히스토리와 참조를 통한 변경 추적
 5. **단순함**: 복잡한 스크립트 대신 Claude의 판단 활용
+6. **자동 건강도 관리**: 문서 작성 중 자동으로 정리 필요성 판단
 
 ## Examples
 
