@@ -272,6 +272,38 @@ skill-patterns-devops:
     💡 Tip: The skill loads only the resources you need (token-efficient).
     Mention specific keywords (e.g., "Justfile", "Docker", "PM2") for targeted help.
 
+# TDD Practices Skill Activation
+skill-tdd-practices:
+  keywords:
+    # TDD 명시적 키워드
+    - "TDD"
+    - "테스트 주도"
+    - "테스트 먼저"
+    - "test first"
+    - "test-driven"
+
+    # RED/GREEN 단계
+    - "실패하는 테스트"
+    - "failing test"
+    - "red phase"
+    - "green phase"
+    - "최소 구현"
+    - "fake it"
+    - "minimal implementation"
+
+  trigger_message: |
+    🔄 TDD PRACTICES SKILL
+
+    Detected TDD workflow keywords.
+    Consider using the 'tdd-practices' skill for:
+    - Following RED-GREEN-REFACTOR cycle
+    - Writing failing tests first (Phase 1-2)
+    - Implementing minimal code to pass (Phase 3)
+    - Refactoring without breaking tests (Phase 4)
+    - Detecting AI anti-patterns (test deletion, over-implementation)
+
+    💡 Tip: TDD is most effective when starting new features, fixing bugs with tests first, or refactoring with full coverage. Always write the test BEFORE implementation.
+
 # 향후 추가 예시 (주석)
 # skill-pdf-tools:
 #   keywords:
