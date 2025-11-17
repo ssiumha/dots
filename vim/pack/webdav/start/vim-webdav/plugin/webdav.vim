@@ -227,6 +227,115 @@ function! s:SetCurrentServer(name, url, user, pass)
   let s:current_server = s:CleanString(a:name)
 endfunction
 
+" Get server info by server name
+" Returns: Dictionary with 'url', 'user', 'pass' keys
+" Falls back to global variables if server_name is empty or not found
+function! s:GetServerInfo(server_name)
+  " Fallback to global variables if no server name
+  if empty(a:server_name)
+    return {'url': s:url, 'user': s:user, 'pass': s:pass}
+  endif
+
+  " Scan for configured servers
+  let servers = s:ScanWebDAVServers()
+
+  " Return server info if found
+  if has_key(servers, a:server_name)
+    return servers[a:server_name]
+  endif
+
+  " Fallback to global variables if server not found
+  return {'url': s:url, 'user': s:user, 'pass': s:pass}
+endfunction
+
+" Calculate date with offset based on unit (day, month, week)
+" Parameters: unit ('day', 'month', 'week'), offset (integer)
+" Returns: timestamp (seconds since epoch)
+function! s:CalculateDate(unit, offset)
+  " No offset - return current time
+  if a:offset == 0
+    return localtime()
+  endif
+
+  " Build date command based on unit
+  if a:unit == 'day'
+    let unit_str = 'day'
+    let unit_abbr = 'd'
+  elseif a:unit == 'month'
+    let unit_str = 'month'
+    let unit_abbr = 'm'
+  elseif a:unit == 'week'
+    let unit_str = 'week'
+    let unit_abbr = 'w'
+  else
+    echoerr "Unknown unit: " . a:unit
+    return localtime()
+  endif
+
+  " Try BSD/macOS date first (date -v)
+  let sign = a:offset > 0 ? '+' : ''
+  let bsd_cmd = 'date -v ' . sign . a:offset . unit_abbr . ' +%s 2>/dev/null'
+  let result = system(bsd_cmd)
+
+  if v:shell_error == 0 && !empty(trim(result))
+    return str2nr(trim(result))
+  endif
+
+  " Fallback to GNU date (date -d)
+  let gnu_cmd = 'date -d "' . sign . a:offset . ' ' . unit_str . '" +%s 2>/dev/null'
+  let result = system(gnu_cmd)
+
+  if v:shell_error == 0 && !empty(trim(result))
+    return str2nr(trim(result))
+  endif
+
+  " If both fail, fallback to simple day calculation
+  if a:unit == 'day'
+    return localtime() + (a:offset * 86400)
+  endif
+
+  " For month/week, just return current time if date command unavailable
+  echoerr "Warning: date command not available, using current time"
+  return localtime()
+endfunction
+
+" Check if file exists on WebDAV server
+" Parameters: path, url, user, pass
+" Returns: 1 if exists, 0 if not, -1 on error
+function! s:FileExists(path, server_info)
+  " Use PROPFIND with Depth: 0 to check if resource exists
+  " Pass 1 for raw_response to get curl command with headers
+  let cmd = s:WebDAVRequest('PROPFIND', a:path, a:server_info, 1)
+  if empty(cmd)
+    return -1
+  endif
+
+  " Modify to use Depth: 0
+  let cmd = substitute(cmd, '-H "Depth: 1"', '-H "Depth: 0"', '')
+
+  let response = system(cmd)
+  if v:shell_error != 0
+    return -1
+  endif
+
+  " Parse HTTP status
+  let status_line = matchstr(response, '^HTTP/[^ ]* \zs\d\+')
+  let http_code = str2nr(status_line)
+
+  " 207 Multi-Status or 200 OK means file exists
+  if http_code == 207 || (http_code >= 200 && http_code < 300)
+    return 1
+  endif
+
+  " 404 Not Found means file doesn't exist
+  if http_code == 404
+    return 0
+  endif
+
+  " Other errors
+  return -1
+endfunction
+
 " Interactive server selection UI
 " Usage: WebDAVUI [server_name]
 "   - No argument: Show interactive selection menu
@@ -335,16 +444,20 @@ function! s:ValidateWebDAVBuffer()
     return 0
   endif
 
-  if empty(s:url)
+  " Get server info from buffer's server name
+  let server_name = exists('b:webdav_server') ? b:webdav_server : ''
+  let server_info = s:GetServerInfo(server_name)
+
+  if empty(server_info.url)
     echoerr "Error: WEBDAV_DEFAULT_URL not set"
     return 0
   endif
 
   " Verify URL hasn't changed (prevent saving to wrong server)
-  if exists('b:webdav_url') && b:webdav_url != s:url
+  if exists('b:webdav_url') && b:webdav_url != server_info.url
     echoerr "Error: WebDAV URL mismatch. Cannot save to different server."
     echoerr "Original: " . b:webdav_url
-    echoerr "Current:  " . s:url
+    echoerr "Current:  " . server_info.url
     return 0
   endif
 
@@ -378,6 +491,7 @@ function! s:SetupWebDAVBuffer(path, etag, last_modified, body)
   let b:webdav_managed = 1
   let b:webdav_original_path = a:path
   let b:webdav_url = s:url
+  let b:webdav_server = s:current_server  " Store server name (empty if direct access)
   let b:webdav_etag = a:etag
   let b:webdav_last_modified = a:last_modified
 
@@ -466,16 +580,17 @@ function! s:ParseHTTPResponse(response)
 endfunction
 
 " Helper function to make curl WebDAV requests
-" For PUT: pass temp_file, etag, last_modified as optional args
-function! s:WebDAVRequest(method, path, ...)
-  let auth = empty(s:user) ? '' : '--user ' . shellescape(s:user . ':' . s:pass)
+" Parameters: method, path, server_url, server_user, server_pass, ...
+" For PUT: also pass temp_file, etag, last_modified as additional optional args
+function! s:WebDAVRequest(method, path, server_info, ...)
+  let auth = empty(a:server_info.user) ? '' : '--user ' . shellescape(a:server_info.user . ':' . a:server_info.pass)
   " URL encode the path for all requests (handles Korean filenames, etc.)
   let encoded_path = s:URLEncode(a:path)
-  let url = s:url . encoded_path
+  let url = a:server_info.url . encoded_path
 
   " DEBUG: Log URL construction
   call s:DebugLog("DEBUG REQUEST: method=" . a:method)
-  call s:DebugLog("DEBUG REQUEST: s:url=" . string(s:url))
+  call s:DebugLog("DEBUG REQUEST: server_url=" . string(a:server_info.url))
   call s:DebugLog("DEBUG REQUEST: a:path=" . string(a:path))
   call s:DebugLog("DEBUG REQUEST: encoded_path=" . string(encoded_path))
   call s:DebugLog("DEBUG REQUEST: final url=" . string(url))
@@ -531,7 +646,7 @@ function! s:WebDAVRequest(method, path, ...)
 
     " Build destination URL with proper encoding
     let encoded_dest = s:URLEncode(destination)
-    let dest_url = s:url . encoded_dest
+    let dest_url = a:server_info.url . encoded_dest
 
     let cmd = 'curl -i -s -X MOVE ' . auth . ' '
     let cmd .= '-H ' . shellescape('Destination: ' . dest_url) . ' '
@@ -557,7 +672,8 @@ function! s:WebDAVList(path = '/')
 
   " Use curl for WebDAV PROPFIND
   let current_path = a:path
-  let cmd = s:WebDAVRequest('PROPFIND', a:path)
+  let server_info = s:GetServerInfo('')
+  let cmd = s:WebDAVRequest('PROPFIND', a:path, server_info)
 
   setlocal buftype=nofile bufhidden=wipe
   setlocal modifiable
@@ -661,7 +777,8 @@ function! s:WebDAVCreateNewFile(current_path)
     call writefile([initial_content], temp_file, 'b')
 
     " Create file on server via PUT (no ETag for new file)
-    let cmd = s:WebDAVRequest('PUT', file_path, temp_file, '', '')
+    let server_info = s:GetServerInfo('')
+    let cmd = s:WebDAVRequest('PUT', file_path, server_info, temp_file, '', '')
     if empty(cmd)
       call delete(temp_file)
       return
@@ -684,7 +801,7 @@ function! s:WebDAVCreateNewFile(current_path)
       echo "\nCreated: " . filename
 
       " Fetch version info from server (nginx may not return ETag/Last-Modified in PUT response)
-      let version_info = s:CheckServerVersion(file_path)
+      let version_info = s:CheckServerVersion(file_path, server_info)
       let etag = empty(version_info.error) ? version_info.etag : ''
       let last_modified = empty(version_info.error) ? version_info.last_modified : ''
 
@@ -730,7 +847,8 @@ function! s:WebDAVCreateNewFolder(current_path)
   let folder_path = a:current_path . foldername
 
   " Create folder via MKCOL
-  let cmd = s:WebDAVRequest('MKCOL', folder_path)
+  let server_info = s:GetServerInfo('')
+  let cmd = s:WebDAVRequest('MKCOL', folder_path, server_info)
   if empty(cmd)
     return
   endif
@@ -809,7 +927,8 @@ function! s:WebDAVRename()
   endif
 
   " Check if destination already exists
-  let check_cmd = s:WebDAVRequest('PROPFIND', dest_path)
+  let server_info = s:GetServerInfo('')
+  let check_cmd = s:WebDAVRequest('PROPFIND', dest_path, server_info)
   if !empty(check_cmd)
     " Modify PROPFIND to only check if resource exists (Depth: 0)
     let check_cmd = substitute(check_cmd, '-H "Depth: 1"', '-H "Depth: 0"', '')
@@ -835,7 +954,7 @@ function! s:WebDAVRename()
   endif
 
   " Execute MOVE request
-  let cmd = s:WebDAVRequest('MOVE', source_path, dest_path)
+  let cmd = s:WebDAVRequest('MOVE', source_path, server_info, dest_path)
   if empty(cmd)
     return
   endif
@@ -874,7 +993,8 @@ function! s:WebDAVGet(path)
   endif
 
   " Use curl for WebDAV GET (with headers)
-  let cmd = s:WebDAVRequest('GET', a:path)
+  let server_info = s:GetServerInfo('')
+  let cmd = s:WebDAVRequest('GET', a:path, server_info)
 
   " DEBUG: Show the actual curl command
   call s:DebugLog("DEBUG: curl command = " . cmd)
@@ -934,7 +1054,8 @@ endfunction
 " Returns: 1 if empty, 0 if has contents, -1 on error
 function! s:CheckFolderEmpty(path)
   " Use PROPFIND with Depth: 1 to list folder contents (raw response with headers)
-  let cmd = s:WebDAVRequest('PROPFIND', a:path, 1)
+  let server_info = s:GetServerInfo('')
+  let cmd = s:WebDAVRequest('PROPFIND', a:path, server_info, 1)
   if empty(cmd)
     return -1
   endif
@@ -1018,7 +1139,8 @@ function! s:WebDAVDelete()
   endif
 
   " Execute DELETE request
-  let cmd = s:WebDAVRequest('DELETE', path)
+  let server_info = s:GetServerInfo('')
+  let cmd = s:WebDAVRequest('DELETE', path, server_info)
   if empty(cmd)
     return
   endif
@@ -1081,12 +1203,13 @@ function! s:WebDAVReload()
 endfunction
 
 " Check server version by fetching current Last-Modified and ETag
+" Parameters: path, url, user, pass
 " Returns: Dictionary with 'last_modified', 'etag', and 'error' keys
-function! s:CheckServerVersion(path)
+function! s:CheckServerVersion(path, server_info)
   let result = {'last_modified': '', 'etag': '', 'error': ''}
 
   " Execute GET request to fetch current version info
-  let cmd = s:WebDAVRequest('GET', a:path)
+  let cmd = s:WebDAVRequest('GET', a:path, a:server_info)
   if empty(cmd)
     let result.error = 'Failed to build GET request'
     return result
@@ -1123,6 +1246,10 @@ function! s:WebDAVPut()
   endif
 
   try
+    " Get server info from buffer (using server name if available)
+    let server_name = exists('b:webdav_server') ? b:webdav_server : ''
+    let server_info = s:GetServerInfo(server_name)
+
     " Get our stored version info
     let our_etag = exists('b:webdav_etag') ? b:webdav_etag : ''
     let our_last_modified = exists('b:webdav_last_modified') ? b:webdav_last_modified : ''
@@ -1143,7 +1270,7 @@ function! s:WebDAVPut()
     " Check server version before PUT (manual conflict detection for nginx)
     if !empty(our_etag) || !empty(our_last_modified)
       echo "Checking server version..."
-      let server_version = s:CheckServerVersion(b:webdav_original_path)
+      let server_version = s:CheckServerVersion(b:webdav_original_path, server_info)
 
       if !empty(server_version.error)
         echoerr "Warning: Could not check server version: " . server_version.error
@@ -1202,7 +1329,7 @@ function! s:WebDAVPut()
 
     " Make PUT request (without conditional headers since nginx ignores them)
     " We've already done manual conflict detection above
-    let cmd = s:WebDAVRequest('PUT', b:webdav_original_path, temp_file, '', '')
+    let cmd = s:WebDAVRequest('PUT', b:webdav_original_path, server_info, temp_file, '', '')
     if empty(cmd)
       return
     endif
@@ -1223,7 +1350,7 @@ function! s:WebDAVPut()
     if http_code >= 200 && http_code < 300
       " Success: Fetch fresh version info after save
       " This is necessary because nginx may not return updated ETag/Last-Modified in PUT responses
-      let fresh_version = s:CheckServerVersion(b:webdav_original_path)
+      let fresh_version = s:CheckServerVersion(b:webdav_original_path, server_info)
       if empty(fresh_version.error)
         let b:webdav_etag = fresh_version.etag
         let b:webdav_last_modified = fresh_version.last_modified
@@ -1363,7 +1490,8 @@ function! s:WebDAVRecursiveScan(base_path)
     let visited[current_path] = 1
 
     " PROPFIND Depth: 1 for current directory
-    let cmd = s:WebDAVRequest('PROPFIND', current_path)
+    let server_info = s:GetServerInfo('')
+    let cmd = s:WebDAVRequest('PROPFIND', current_path, server_info)
     if empty(cmd)
       continue
     endif
@@ -1769,6 +1897,141 @@ function! s:WebDAVRecentFzf()
   \ }))
 endfunction
 
+" Open or create a note based on pattern
+" Usage: :WebDAVNote <pattern_name> [offset]
+" Example: :WebDAVNote daily -1
+function! s:WebDAVNote(pattern_name, ...)
+  " Get pattern configuration
+  if !exists('g:webdav_note_patterns')
+    echoerr "Error: g:webdav_note_patterns not configured"
+    return
+  endif
+
+  if !has_key(g:webdav_note_patterns, a:pattern_name)
+    echoerr "Error: Pattern '" . a:pattern_name . "' not found"
+    echo "Available patterns: " . join(sort(keys(g:webdav_note_patterns)), ', ')
+    return
+  endif
+
+  let pattern = g:webdav_note_patterns[a:pattern_name]
+
+  " Validate pattern has required fields
+  if !has_key(pattern, 'server') || !has_key(pattern, 'path') || !has_key(pattern, 'template') || !has_key(pattern, 'unit')
+    echoerr "Error: Pattern '" . a:pattern_name . "' is missing required fields (server, path, template, unit)"
+    return
+  endif
+
+  " Get server info
+  let server_info = s:GetServerInfo(pattern.server)
+  if empty(server_info.url)
+    echoerr "Error: Server '" . pattern.server . "' not found or not configured"
+    return
+  endif
+
+  " Parse offset (default: 0)
+  let offset = a:0 > 0 ? str2nr(a:1) : 0
+
+  " Calculate date
+  let timestamp = s:CalculateDate(pattern.unit, offset)
+
+  " Generate file path and template content using strftime
+  let file_path = strftime(pattern.path, timestamp)
+  let template_content = strftime(pattern.template, timestamp)
+
+  " Check if file exists
+  let exists_status = s:FileExists(file_path, server_info)
+
+  if exists_status == 1
+    " File exists - open it
+    echo "Opening existing note: " . file_path
+    " Temporarily set current server for WebDAVGet
+    let saved_url = s:url
+    let saved_user = s:user
+    let saved_pass = s:pass
+    let saved_server = s:current_server
+
+    let s:url = server_info.url
+    let s:user = server_info.user
+    let s:pass = server_info.pass
+    let s:current_server = pattern.server
+
+    try
+      tabnew
+      call s:WebDAVGet(file_path)
+    finally
+      let s:url = saved_url
+      let s:user = saved_user
+      let s:pass = saved_pass
+      let s:current_server = saved_server
+    endtry
+  elseif exists_status == 0
+    " File doesn't exist - create it
+    echo "Creating new note: " . file_path
+    try
+      " Write template content to temp file
+      let temp_file = tempname()
+      call writefile([template_content], temp_file, 'b')
+
+      " Create file via PUT
+      let cmd = s:WebDAVRequest('PUT', file_path, server_info, temp_file, '', '')
+      if empty(cmd)
+        call delete(temp_file)
+        return
+      endif
+
+      let response = system(cmd)
+      call delete(temp_file)
+
+      if v:shell_error != 0
+        echoerr "Error creating note: HTTP request failed"
+        echoerr response
+        return
+      endif
+
+      " Parse response to check success
+      let status_line = matchstr(response, '^HTTP/[^ ]* \zs\d\+')
+      let http_code = str2nr(status_line)
+
+      if http_code >= 200 && http_code < 300
+        echo "Created: " . file_path
+
+        " Fetch version info
+        let version_info = s:CheckServerVersion(file_path, server_info)
+        let etag = empty(version_info.error) ? version_info.etag : ''
+        let last_modified = empty(version_info.error) ? version_info.last_modified : ''
+
+        " Open new file in editor (temporarily set server)
+        let saved_url = s:url
+        let saved_user = s:user
+        let saved_pass = s:pass
+        let saved_server = s:current_server
+
+        let s:url = server_info.url
+        let s:user = server_info.user
+        let s:pass = server_info.pass
+        let s:current_server = pattern.server
+
+        try
+          tabnew
+          call s:SetupWebDAVBuffer(file_path, etag, last_modified, template_content)
+        finally
+          let s:url = saved_url
+          let s:user = saved_user
+          let s:pass = saved_pass
+          let s:current_server = saved_server
+        endtry
+      else
+        echoerr "Error creating note: HTTP " . http_code
+        echoerr response
+      endif
+    catch
+      echoerr "Exception creating note: " . v:exception
+    endtry
+  else
+    echoerr "Error: Could not check if file exists"
+  endif
+endfunction
+
 command! -nargs=? WebDAVList call s:WebDAVList(<q-args>)
 command! -nargs=1 WebDAVGet call s:WebDAVGet(<q-args>)
 command! WebDAVPut call s:WebDAVPut()
@@ -1776,6 +2039,7 @@ command! -nargs=? WebDAVUI call s:WebDAVUI(<q-args>)
 command! -bang -nargs=* WebDAVFzf call s:WebDAVFzf([<f-args>], <bang>0)
 command! WebDAVRecent call s:WebDAVRecent()
 command! WebDAVRecentFzf call s:WebDAVRecentFzf()
+command! -nargs=+ WebDAVNote call s:WebDAVNote(<f-args>)
 
 " Setup autocmd for WebDAV buffers (ONLY for webdav:// protocol buffers)
 augroup webdav_buffers

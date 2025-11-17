@@ -82,6 +82,36 @@ Add to .bashrc or .zshrc for persistent configuration.
 ==============================================================================
 5. COMMANDS                                                 *webdav-commands*
 
+                                                            *:WebDAVFzf*
+:WebDAVFzf [server_name] [path]
+    FZF-based file browser for WebDAV server. Provides interactive fuzzy
+    search for files and directories.
+
+    Requirements: fzf must be installed
+
+    Arguments:
+      [server_name]   Optional server name (from WEBDAV_UI_* vars)
+      [path]          Optional starting path (default: /)
+
+    Example: >
+        :WebDAVFzf
+        :WebDAVFzf myserver /documents
+<
+    Features:
+      • Fuzzy search for files and directories
+      • Preview support (with bat if available)
+      • Real-time file content preview
+
+                                                            *:WebDAVGet*
+:WebDAVGet {path}
+    Retrieve a file from WebDAV server and open it as an editable buffer.
+    The file stores ETag/Last-Modified information for conflict detection.
+
+    Example: >
+        :WebDAVGet /documents/readme.txt
+        :WebDAVGet /notes/한글문서.md
+<
+
                                                             *:WebDAVList*
 :WebDAVList [path]
     Display directory listing from WebDAV server.
@@ -95,16 +125,36 @@ Add to .bashrc or .zshrc for persistent configuration.
       <CR>        Open file or navigate to directory (new tab)
       ../         Navigate to parent directory
 
+                                                            *:WebDAVNote*
+:WebDAVNote {pattern} [offset]
+    Open or create date-based notes using predefined patterns.
 
-                                                            *:WebDAVGet*
-:WebDAVGet {path}
-    Retrieve a file from WebDAV server and open it as an editable buffer.
-    The file stores ETag/Last-Modified information for conflict detection.
+    Arguments:
+      {pattern}     Pattern name from g:webdav_note_patterns
+      [offset]      Optional time offset (e.g., -1 for yesterday)
 
     Example: >
-        :WebDAVGet /documents/readme.txt
-        :WebDAVGet /notes/한글문서.md
+        :WebDAVNote daily           " Today's daily note
+        :WebDAVNote daily -1        " Yesterday's daily note
+        :WebDAVNote weekly 1        " Next week's note
+        :WebDAVNote monthly         " This month's note
 <
+    Configuration: >
+        let g:webdav_note_patterns = {}
+        let g:webdav_note_patterns.daily = {
+          \ 'server': '',
+          \ 'path': '/notes/daily/%Y-%m-%d.md',
+          \ 'template': '# Daily %Y-%m-%d',
+          \ 'unit': 'day'
+          \ }
+<
+    Pattern fields:
+      server        Server name (empty for default)
+      path          File path with strftime format (%Y, %m, %d, etc.)
+      template      Initial content with strftime format
+      unit          Time unit: 'day', 'week', 'month'
+
+    See also: |strftime()|
 
                                                             *:WebDAVPut*
 :WebDAVPut
@@ -112,6 +162,65 @@ Add to .bashrc or .zshrc for persistent configuration.
     Typically invoked automatically when using `:w` command.
 
     Note: Fails if buffer is not a WebDAV-managed buffer.
+
+                                                            *:WebDAVRecent*
+:WebDAVRecent
+    Display list of recently accessed WebDAV files. Shows files in reverse
+    chronological order (most recent first).
+
+    Example: >
+        :WebDAVRecent
+<
+    Navigation:
+      <CR>        Open the selected file in a new tab
+
+    Configuration: >
+        let g:webdav_recent_limit = 50    " Max recent files (default: 50)
+<
+    See also: |:WebDAVRecentFzf|
+
+                                                            *:WebDAVRecentFzf*
+:WebDAVRecentFzf
+    FZF-based interface for recently accessed WebDAV files. Provides fuzzy
+    search and preview support.
+
+    Requirements: fzf must be installed
+
+    Example: >
+        :WebDAVRecentFzf
+<
+    Features:
+      • Fuzzy search for recent files
+      • Time-based sorting (most recent first)
+      • File content preview
+
+    See also: |:WebDAVRecent|
+
+                                                            *:WebDAVUI*
+:WebDAVUI [server_name]
+    Interactive server selection and file browser interface.
+
+    Arguments:
+      [server_name]   Optional server name to connect directly
+
+    Example: >
+        :WebDAVUI                  " Show server selection menu
+        :WebDAVUI myserver         " Connect to 'myserver' directly
+<
+    Server Configuration:
+    Servers are auto-detected from WEBDAV_UI_* environment variables: >
+        export WEBDAV_UI_MYSERVER_URL="http://server1:9999"
+        export WEBDAV_UI_MYSERVER_USER="admin"
+        export WEBDAV_UI_MYSERVER_PASS="password"
+<
+    Multiple servers: >
+        export WEBDAV_UI_SERVER1_URL="http://server1:9999"
+        export WEBDAV_UI_SERVER2_URL="http://server2:9999"
+<
+    Then use: >
+        :WebDAVUI SERVER1
+        :WebDAVUI SERVER2
+<
 
 ==============================================================================
 6. USAGE                                                       *webdav-usage*
