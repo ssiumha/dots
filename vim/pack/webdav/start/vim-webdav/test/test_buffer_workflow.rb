@@ -22,8 +22,8 @@ class TestWebDAVBufferWorkflow < TestWebDAVBase
     output = capture
     # Should have at least 2 buffers
 
-    # Switch back to previous buffer (list)
-    vim_cmd("bprevious")
+    # Switch back to previous tab (list)
+    vim_cmd("tabprevious")
     wait_for_text("file1.txt")
 
     # Should see list again
@@ -31,8 +31,8 @@ class TestWebDAVBufferWorkflow < TestWebDAVBase
     assert_includes output, "WebDAV:", "Should switch back to list"
     assert_includes output, "file1.txt", "Should show file list"
 
-    # Switch forward to file
-    vim_cmd("bnext")
+    # Switch forward to file tab
+    vim_cmd("tabnext")
     wait_for_text("This is test file content")
 
     # Should see file content
@@ -63,8 +63,8 @@ class TestWebDAVBufferWorkflow < TestWebDAVBase
     vim_cmd("write")
     send_enter  # Dismiss "Press ENTER" prompt if present
 
-    # Go back to list
-    vim_cmd("bprevious")
+    # Go back to list tab
+    vim_cmd("tabprevious")
     wait_for_text("file1.txt")
 
     # Open different file (한글.md)
