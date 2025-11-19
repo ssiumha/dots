@@ -13,12 +13,15 @@ setlocal noswapfile
 
 " Show WebDAV info in status line
 if has('statusline')
-  let server_name = get(s:, 'current_server', '')
+  let server_name = get(b:, 'webdav_server', '')
   if !empty(server_name)
-    setlocal statusline=%f\ [WebDAV:\ %{get(s:,'current_server','')}]%=%y\ %l,%c\ %P
+    setlocal statusline=%f\ [WebDAV:\ %{get(b:,'webdav_server','')}]%=%y\ %l,%c\ %P
   else
     setlocal statusline=%f\ [WebDAV]%=%y\ %l,%c\ %P
   endif
 endif
 
-let b:undo_ftplugin = "setlocal noswapfile< statusline<"
+" Key mapping: - to open parent directory listing
+nnoremap <buffer> <silent> - :WebDAVList<CR>
+
+let b:undo_ftplugin = "setlocal noswapfile< statusline< | nunmap <buffer> -"

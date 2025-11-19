@@ -116,4 +116,91 @@ class TestWebDAVListWorkflow < TestWebDAVBase
     assert_includes output, "WebDAV:", "Should stay in list when Enter on header"
     assert_includes output, "file1.txt", "Should still show list"
   end
+
+  # Test: List folder navigation passes server info correctly
+  def test_list_folder_navigation_without_default_url
+    start_vim("WEBDAV_DEFAULT_URL" => "http://localhost:9999")
+
+    # Open list and navigate to folder1
+    vim_cmd("WebDAVList /test/")
+    wait_for_text("file1.txt", 2)
+
+    send_keys("/folder1")  # Search for folder1
+    send_enter  # Execute search
+    send_enter  # Open folder1
+    wait_for_text("/test/folder1/", 2)
+
+    # Verify we're in folder1 (server info propagated correctly)
+    output = capture
+    assert_includes output, "/test/folder1/", "Should open folder1 with server info from parent list"
+    refute_match(/Error.*DEFAULT_URL/, output, "Should NOT need DEFAULT_URL when navigating from existing list")
+  end
+
+  # Test: Parent directory navigation with ../
+  def test_parent_directory_navigation
+    start_vim("WEBDAV_DEFAULT_URL" => "http://localhost:9999")
+
+    # Navigate to deep nested folder /test/deep/subfolder/
+    vim_cmd("WebDAVList /test/deep/subfolder/")
+    wait_for_text("../", 2)
+
+    output = capture
+    assert_includes output, '" WebDAV: http://localhost:9999/test/deep/subfolder/', "Should show correct path"
+
+    # Press Enter on ../ to go up one level
+    send_keys("/\\.\\./")  # Search for ../
+    send_enter  # Execute search
+    send_enter  # Open parent
+
+    wait_for_text("/test/deep/", 2)
+
+    # Verify we're at /test/deep/
+    output = capture
+    assert_includes output, '" WebDAV: http://localhost:9999/test/deep/', "Should navigate to parent directory"
+    assert_includes output, "subfolder/", "Should show subfolder in list"
+
+    # Go up one more level
+    send_keys("/\\.\\./")  # Search for ../
+    send_enter  # Execute search
+    send_enter  # Open parent
+
+    wait_for_text("/test/", 2)
+
+    # Verify we're at /test/
+    output = capture
+    assert_includes output, '" WebDAV: http://localhost:9999/test/', "Should navigate to parent directory again"
+    assert_includes output, "deep/", "Should show deep folder in list"
+  end
+
+  # Test: Path joining with folders (edge case for missing slashes)
+  def test_path_joining_with_folders
+    start_vim("WEBDAV_DEFAULT_URL" => "http://localhost:9999")
+
+    # Open /test/deep/
+    vim_cmd("WebDAVList /test/deep/")
+    wait_for_text("subfolder/", 2)
+
+    output = capture
+    assert_includes output, '" WebDAV: http://localhost:9999/test/deep/', "Path should be correct"
+
+    # Navigate to parent
+    send_keys("/\\.\\./")  # Search for ../
+    send_enter  # Execute search
+    send_enter  # Open parent
+
+    wait_for_text("/test/", 2)
+
+    # Open deep folder again to verify path joining works
+    send_keys("/deep")  # Search for deep
+    send_enter  # Execute search
+    send_enter  # Open folder
+
+    wait_for_text("/test/deep/", 2)
+
+    # Verify path is correct (no missing slashes like /testdeep/)
+    output = capture
+    assert_includes output, '" WebDAV: http://localhost:9999/test/deep/', "Path should have proper slashes"
+    refute_match(/testdeep[^\/]/, output, "Path should not have missing slashes")
+    assert_includes output, "subfolder/", "Should show subfolder in list"
+  end
 end
