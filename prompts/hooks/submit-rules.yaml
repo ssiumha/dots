@@ -304,6 +304,22 @@ skill-tdd-practices:
 
     💡 Tip: TDD is most effective when starting new features, fixing bugs with tests first, or refactoring with full coverage. Always write the test BEFORE implementation.
 
+# Ansible Deployment Skill Activation
+skill-ansible-deployment:
+  keywords:
+    - "ansible"
+    - "playbook"
+
+  trigger_message: |
+    🚀 ANSIBLE DEPLOYMENT SKILL
+
+    Detected Ansible keywords. Consider using the 'ansible-deployment' skill for:
+    - Diff checking before deployment (copy module check_mode + diff)
+    - SSH authentication (vars_prompt, ProxyJump)
+    - Safe deployment playbook patterns (block, role, handlers)
+
+    💡 Tip: Use copy module's native diff instead of shell scripts for colored output.
+
 # 향후 추가 예시 (주석)
 # skill-pdf-tools:
 #   keywords:
