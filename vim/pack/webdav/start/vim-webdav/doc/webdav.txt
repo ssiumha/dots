@@ -163,6 +163,39 @@ Add to .bashrc or .zshrc for persistent configuration.
 
     Note: Fails if buffer is not a WebDAV-managed buffer.
 
+                                                            *:WebDAVDiff*
+:WebDAVDiff
+    Compare current WebDAV buffer with server's latest version using vimdiff.
+    Fetches the latest version from server and opens a side-by-side diff view.
+
+    Window Layout:
+      Left window:  Server's latest version (editable, modifiable)
+      Right window: Your local changes (readonly, for reference)
+
+    Workflow:
+      1. Fetches latest version from server
+      2. Replaces current buffer with server version
+      3. Saves your local changes to temp file
+      4. Opens vimdiff with server (left) and local (right)
+      5. Merge changes in left window and save with `:w`
+      6. Temp file is automatically deleted after successful save
+
+    Example: >
+        :WebDAVDiff
+<
+    Temp File Format:
+      /tmp/webdav-diff-{YYYYMMDD-HHMMSS}-{filename}
+
+    Integration with Conflict Resolution:
+      When a conflict occurs during save, press 'd' to trigger WebDAVDiff
+      for interactive merge. See |webdav-conflicts| for details.
+
+    Note:
+      • Only works on WebDAV-managed buffers
+      • Requires server to return ETag or Last-Modified headers
+      • Server version becomes the source of truth
+      • Local changes are preserved in readonly temp buffer for reference
+
                                                             *:WebDAVRecent*
 :WebDAVRecent
     Display list of recently accessed WebDAV files. Shows files in reverse
@@ -273,11 +306,19 @@ When saving if the server file has been modified:
   2. Displays error: "Conflict: 서버 파일이 변경되었습니다"
   3. Automatically opens server's latest version in a new tab
 
-Conflict Resolution Procedure:
-  1. Left tab (previous): Your local changes
-  2. Right tab (current): Server's latest version
-  3. Manually merge the changes
-  4. Edit and save in the server version tab with `:w`
+Conflict Resolution Options:
+  When a conflict is detected, you will be prompted with:
+    d - Show diff and merge (recommended, see |:WebDAVDiff|)
+    o - Overwrite server version with your changes
+    c - Cancel save and open server version for manual merge
+    any other key - Cancel save
+
+  Recommended Workflow (using 'd' option):
+    1. Press 'd' when prompted
+    2. WebDAVDiff opens with server (left) and local (right) versions
+    3. Merge changes in the left window
+    4. Save with `:w` to upload merged version
+    5. Temp file is automatically deleted
 
 ==============================================================================
 8. SAFETY FEATURES                                           *webdav-safety*
