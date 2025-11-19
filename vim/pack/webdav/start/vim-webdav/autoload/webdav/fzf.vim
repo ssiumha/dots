@@ -197,6 +197,13 @@ function! webdav#fzf#handle_sink(base_path, fzf_args, server_name, result)
     let file_path = webdav#core#join_path(a:base_path, clean_query)
     tabnew
     call WebDAVGet(file_path, a:server_name)
+  elseif key == 'ctrl-l'
+    " ctrl-l pressed: insert markdown link
+    if empty(selection)
+      echo "No file selected"
+      return
+    endif
+    call webdav#fzf#insert_link(a:base_path, a:server_name, selection)
   else
     " Normal selection (Enter pressed)
     if empty(selection)
@@ -297,9 +304,9 @@ function! webdav#fzf#main(args, force_refresh)
   let preview_window = &columns <= 120 ? 'down:40%' : 'right:50%'
   let fzf_options = [
     \ '--prompt', 'WebDAV> ',
-    \ '--header', 'ctrl-o: create/open | Enter: select | ctrl-r: refresh',
+    \ '--header', 'ctrl-o: create/open | ctrl-l: insert link | Enter: select | ctrl-r: refresh',
     \ '--print-query',
-    \ '--expect', 'ctrl-o,ctrl-r',
+    \ '--expect', 'ctrl-o,ctrl-r,ctrl-l',
     \ '--preview-window', preview_window
     \ ]
 
@@ -333,4 +340,38 @@ function! webdav#fzf#main(args, force_refresh)
     \ 'options': fzf_options,
     \ 'down': '80%'
   \ }))
+endfunction
+
+" Insert markdown link at cursor position
+" Parameters: base_path, server_name, selection
+function! webdav#fzf#insert_link(base_path, server_name, selection)
+  if empty(a:selection)
+    return
+  endif
+
+  " Clean selection and build full path
+  let clean_selection = webdav#core#clean_string(a:selection)
+  let full_path = webdav#core#join_path(a:base_path, clean_selection)
+
+  " Build link path (server:path format)
+  if !empty(a:server_name)
+    let link_path = a:server_name . ':' . full_path
+  else
+    let link_path = full_path
+  endif
+
+  " Extract filename without extension for link text
+  let filename = fnamemodify(clean_selection, ':t:r')
+
+  " Build markdown link
+  let link = '[' . filename . '](' . link_path . ')'
+
+  " Insert at cursor position (append to current line)
+  let current_line = line('.')
+  let current_text = getline(current_line)
+
+  " Append link to current line
+  call setline(current_line, current_text . link)
+
+  echo "Inserted: " . link
 endfunction
