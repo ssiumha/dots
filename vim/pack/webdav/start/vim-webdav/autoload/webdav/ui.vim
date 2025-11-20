@@ -12,6 +12,7 @@ function! webdav#ui#main(...)
     " Fallback to default environment variables if available
     if !empty($WEBDAV_DEFAULT_URL)
       echo "No WEBDAV_UI_* servers found. Using WEBDAV_DEFAULT_* variables."
+      tabnew
       call webdav#ui#list('/', '')
       return
     else
@@ -29,6 +30,7 @@ function! webdav#ui#main(...)
     if has_key(servers, server_name)
       let server = servers[server_name]
       echo "Connected to '" . server_name . "' - " . server.url
+      tabnew
       call webdav#ui#list('/', server_name)
       return
     else
@@ -69,6 +71,7 @@ function! webdav#ui#main(...)
 
   " Automatically open root directory listing
   echo "\nConnected to '" . selected.name . "' - " . selected.info.url
+  tabnew
   call webdav#ui#list('/', selected.name)
 endfunction
 
@@ -117,7 +120,10 @@ function! webdav#ui#list(path = '/', server_name = '')
   call append(1, '../')
   call append(2, '+New')
   call append(3, '+Folder')
-  execute '$read !' . cmd
+
+  " Use systemlist() instead of $read to avoid E499 with URL-encoded paths
+  let lines = systemlist(cmd)
+  call append(line('$'), lines)
 
   " Remove empty lines and self-reference (.)
   execute 'silent! g/^\.\?$/d'

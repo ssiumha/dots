@@ -95,4 +95,17 @@ class TestWebDAVI18nWorkflow < TestWebDAVBase
     output = capture
     assert_includes output, "/test/한글폴더/test.txt", "Original path should be in Korean, not URL-encoded"
   end
+
+  # Test listing files inside Korean folder
+  def test_korean_folder_listing
+    start_vim("WEBDAV_DEFAULT_URL" => "http://localhost:9999")
+
+    # Open list for Korean folder
+    vim_cmd("WebDAVList /test/한글폴더/")
+    wait_for_text("test.txt", 2)
+
+    # Should show files inside Korean folder
+    output = capture
+    assert_includes output, "test.txt", "Should show files inside Korean folder"
+  end
 end

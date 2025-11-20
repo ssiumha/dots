@@ -28,6 +28,7 @@ endif
 nnoremap <buffer> <CR> :call webdav#ui#open()<CR>
 nnoremap <buffer> t :call webdav#ui#open_in_tab()<CR>
 nnoremap <buffer> - :call webdav#ui#go_up()<CR>
+nnoremap <buffer> r :call webdav#ui#list(b:webdav_current_path, b:webdav_server)<CR>
 nnoremap <buffer> R :call webdav#operations#rename()<CR>
 nnoremap <buffer> D :call webdav#operations#delete()<CR>
 
