@@ -26,6 +26,7 @@ RUN mkdir -p /root/.vim/pack/fzf/start && \
 
 # Copy plugin files
 COPY plugin /root/.vim/pack/webdav/start/vim-webdav/plugin
+COPY autoload /root/.vim/pack/webdav/start/vim-webdav/autoload
 COPY syntax /root/.vim/pack/webdav/start/vim-webdav/syntax
 COPY ftplugin /root/.vim/pack/webdav/start/vim-webdav/ftplugin
 COPY test /root/.vim/pack/webdav/start/vim-webdav/test

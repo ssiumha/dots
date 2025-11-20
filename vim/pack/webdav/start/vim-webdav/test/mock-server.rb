@@ -98,6 +98,12 @@ loop do
             <D:href>/test/%ED%95%9C%EA%B8%80.md</D:href>
           </D:response>
           <D:response>
+            <D:href>/test/%ED%95%9C%EA%B8%80%ED%8F%B4%EB%8D%94/</D:href>
+          </D:response>
+          <D:response>
+            <D:href>/test/%EA%B3%B5%EB%B0%B1%20%ED%8F%B4%EB%8D%94/</D:href>
+          </D:response>
+          <D:response>
             <D:href>/test/zzz_folder/</D:href>
           </D:response>
           <D:response>
@@ -105,6 +111,32 @@ loop do
           </D:response>
           <D:response>
             <D:href>/test/001_file.txt</D:href>
+          </D:response>
+        </D:multistatus>
+      XML
+    elsif URI.decode_www_form_component(path) == '/test/한글폴더/' || path.include?('%ED%95%9C%EA%B8%80%ED%8F%B4%EB%8D%94')
+      # Korean folder
+      response_body = <<~XML
+        <?xml version="1.0"?>
+        <D:multistatus xmlns:D="DAV:">
+          <D:response>
+            <D:href>/test/%ED%95%9C%EA%B8%80%ED%8F%B4%EB%8D%94/</D:href>
+          </D:response>
+          <D:response>
+            <D:href>/test/%ED%95%9C%EA%B8%80%ED%8F%B4%EB%8D%94/test.txt</D:href>
+          </D:response>
+        </D:multistatus>
+      XML
+    elsif URI.decode_www_form_component(path).include?('공백 폴더') || path.include?('%EA%B3%B5%EB%B0%B1%20%ED%8F%B4%EB%8D%94')
+      # Folder with spaces
+      response_body = <<~XML
+        <?xml version="1.0"?>
+        <D:multistatus xmlns:D="DAV:">
+          <D:response>
+            <D:href>/test/%EA%B3%B5%EB%B0%B1%20%ED%8F%B4%EB%8D%94/</D:href>
+          </D:response>
+          <D:response>
+            <D:href>/test/%EA%B3%B5%EB%B0%B1%20%ED%8F%B4%EB%8D%94/file.txt</D:href>
           </D:response>
         </D:multistatus>
       XML
@@ -168,6 +200,10 @@ loop do
       file_version[:content] || "This is test file content.\nLine 2\nLine 3"
     when '/test/한글.md'
       file_version[:content] || "# 한글 문서\n\n테스트 내용입니다."
+    when '/test/한글폴더/test.txt'
+      file_version[:content] || "한글 폴더 내 테스트 파일"
+    when '/test/공백 폴더/file.txt'
+      file_version[:content] || "공백이 있는 폴더의 파일"
     when '/test/deep/file.txt'
       file_version[:content] || "Deep path file content\nLine 2"
     when '/test/deep/subfolder/nested.txt'

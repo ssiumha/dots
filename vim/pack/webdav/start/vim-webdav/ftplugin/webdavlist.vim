@@ -24,4 +24,11 @@ if has('statusline')
   setlocal statusline=%{get(b:,'webdav_current_path','')}%=WebDAV\ List
 endif
 
+" Key mappings for navigation
+nnoremap <buffer> <CR> :call webdav#ui#open()<CR>
+nnoremap <buffer> t :call webdav#ui#open_in_tab()<CR>
+nnoremap <buffer> - :call webdav#ui#go_up()<CR>
+nnoremap <buffer> R :call webdav#operations#rename()<CR>
+nnoremap <buffer> D :call webdav#operations#delete()<CR>
+
 let b:undo_ftplugin = "setlocal buftype< bufhidden< noswapfile< nomodifiable< nowrap< cursorline< conceallevel< statusline<"

@@ -79,34 +79,43 @@ function! webdav#server#scan()
 endfunction
 
 " Get server info by server name
-" Returns: Dictionary with 'url', 'user', 'pass' keys
+" Returns: Dictionary with 'url', 'user', 'pass', 'sort' keys
 " Priority: WEBDAV_UI_{NAME} -> WEBDAV_UI_DEFAULT -> WEBDAV_DEFAULT_* -> error
 function! webdav#server#get_info(server_name)
+  let server_info = {}
+
   " If server name specified, scan for it
   if !empty(a:server_name)
     let servers = webdav#server#scan()
     if has_key(servers, a:server_name)
-      return servers[a:server_name]
+      let server_info = servers[a:server_name]
     endif
+    " Note: Don't return here - allow g:webdav_server_config to provide info
+  else
+    " No server name - try WEBDAV_UI_DEFAULT first
+    let servers = webdav#server#scan()
+    if has_key(servers, 'default')
+      let server_info = servers['default']
+    else
+      " Fallback to WEBDAV_DEFAULT_* for backward compatibility (tests)
+      let url = webdav#core#clean_string($WEBDAV_DEFAULT_URL)
+      let user = webdav#core#clean_string($WEBDAV_DEFAULT_USER)
+      let pass = webdav#core#clean_string($WEBDAV_DEFAULT_PASS)
+
+      if !empty(url)
+        let server_info = {'url': url, 'user': user, 'pass': pass}
+      else
+        echoerr "Error: Set WEBDAV_DEFAULT_URL"
+        return {}
+      endif
+    endif
+  endif
+
+  " Validate that we have at least a URL
+  if empty(server_info) || !has_key(server_info, 'url') || empty(server_info.url)
     echoerr "Server '" . a:server_name . "' not found in WEBDAV_UI_* environment variables"
     return {}
   endif
 
-  " No server name - try WEBDAV_UI_DEFAULT first
-  let servers = webdav#server#scan()
-  if has_key(servers, 'default')
-    return servers['default']
-  endif
-
-  " Fallback to WEBDAV_DEFAULT_* for backward compatibility (tests)
-  let url = webdav#core#clean_string($WEBDAV_DEFAULT_URL)
-  let user = webdav#core#clean_string($WEBDAV_DEFAULT_USER)
-  let pass = webdav#core#clean_string($WEBDAV_DEFAULT_PASS)
-
-  if !empty(url)
-    return {'url': url, 'user': user, 'pass': pass}
-  endif
-
-  echoerr "No default server configured. Set WEBDAV_UI_DEFAULT or WEBDAV_DEFAULT_URL"
-  return {}
+  return server_info
 endfunction

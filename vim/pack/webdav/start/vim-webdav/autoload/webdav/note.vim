@@ -89,9 +89,37 @@ function! webdav#note#open(pattern_name, ...)
   " Calculate date
   let timestamp = webdav#note#calculate_date(pattern.unit, offset)
 
+  " Handle title prompt if pattern requires it
+  let title = ''
+  if has_key(pattern, 'prompt_title')
+    " Empty string uses default date format (%y%m%d)
+    " Non-empty string uses custom date format
+    if empty(pattern.prompt_title)
+      let date_prefix = strftime('%y%m%d ', timestamp)
+    else
+      let date_prefix = strftime(pattern.prompt_title, timestamp)
+    endif
+
+    let user_input = input('Title: ', date_prefix)
+
+    " Cancel if empty
+    if empty(trim(user_input))
+      echo "\nCancelled"
+      return
+    endif
+
+    let title = trim(user_input)
+  endif
+
   " Generate file path and template content using strftime
   let file_path = strftime(pattern.path, timestamp)
   let template_content = strftime(pattern.template, timestamp)
+
+  " Replace {title} placeholder if title was provided
+  if !empty(title)
+    let file_path = substitute(file_path, '{title}', title, 'g')
+    let template_content = substitute(template_content, '{title}', title, 'g')
+  endif
 
   " Check if file exists
   let exists_status = webdav#http#file_exists(file_path, server_info)

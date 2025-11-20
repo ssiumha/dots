@@ -63,7 +63,9 @@ function! webdav#buffer#setup(path, server_name, server_info, etag, last_modifie
   " Set buffer name with webdav:// protocol to identify WebDAV buffers
   " This is required for BufWriteCmd to work properly
   let buffer_name = 'webdav://' . a:server_info.url . a:path
-  silent! execute 'file ' . fnameescape(buffer_name)
+  " Escape % and # first (Vim special chars), then apply fnameescape
+  let escaped_name = fnameescape(escape(buffer_name, '%#'))
+  silent! execute 'file ' . escaped_name
 
   " Set filetype to webdav, but use syntax based on file extension
   setlocal filetype=webdav
