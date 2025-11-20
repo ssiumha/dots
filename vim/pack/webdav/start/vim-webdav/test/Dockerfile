@@ -24,12 +24,8 @@ RUN mkdir -p /root/.vim/pack/fzf/start && \
     git clone --depth 1 https://github.com/junegunn/fzf.vim.git && \
     git clone --depth 1 https://github.com/junegunn/fzf.git
 
-# Copy plugin files
-COPY plugin /root/.vim/pack/webdav/start/vim-webdav/plugin
-COPY autoload /root/.vim/pack/webdav/start/vim-webdav/autoload
-COPY syntax /root/.vim/pack/webdav/start/vim-webdav/syntax
-COPY ftplugin /root/.vim/pack/webdav/start/vim-webdav/ftplugin
-COPY test /root/.vim/pack/webdav/start/vim-webdav/test
+# Plugin files will be mounted via volume at runtime
+# (no COPY needed - see test_base.rb)
 
 # Configure tmux
 RUN echo "set -g default-terminal 'screen-256color'" > /root/.tmux.conf && \

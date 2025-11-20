@@ -13,8 +13,11 @@ class TestWebDAVBase < Minitest::Test
   def setup
     @container = "vim-webdav-test-#{SecureRandom.hex(4)}"
 
+    # Mount plugin directory as volume to use latest code without rebuilding
+    plugin_dir = File.expand_path('..', __dir__)
+
     # Start container (nginx starts automatically)
-    system("docker run --rm -d --name #{@container} vim-webdav-test", out: '/dev/null')
+    system("docker run --rm -d --name #{@container} -v #{plugin_dir}:/root/.vim/pack/webdav/start/vim-webdav vim-webdav-test", out: '/dev/null')
     wait_for_container
     wait_for_server
 

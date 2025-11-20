@@ -8,6 +8,8 @@ mkdir -p /var/webdav/test/aaa_folder
 mkdir -p /var/webdav/test/nested
 mkdir -p /var/webdav/test/deep/subfolder
 mkdir -p /var/webdav/test/deep/anotherfolder
+mkdir -p "/var/webdav/test/한글폴더"
+mkdir -p "/var/webdav/test/공백 폴더"
 
 # Create test files
 cat > /var/webdav/test/file1.txt << 'EOF'
@@ -41,6 +43,15 @@ EOF
 
 cat > /var/webdav/test/deep/subfolder/nested.txt << 'EOF'
 Nested file content
+EOF
+
+# Korean folder test files
+cat > "/var/webdav/test/한글폴더/test.txt" << 'EOF'
+Korean folder test content
+EOF
+
+cat > "/var/webdav/test/공백 폴더/file.txt" << 'EOF'
+Space folder test content
 EOF
 
 # Set permissions
