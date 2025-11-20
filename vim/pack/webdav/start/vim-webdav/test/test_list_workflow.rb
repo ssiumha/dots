@@ -203,4 +203,30 @@ class TestWebDAVListWorkflow < TestWebDAVBase
     refute_match(/testdeep[^\/]/, output, "Path should not have missing slashes")
     assert_includes output, "subfolder/", "Should show subfolder in list"
   end
+
+  # Test: Verify Enter key opens in same buffer (not new tab)
+  def test_list_enter_in_place_navigation
+    start_vim("WEBDAV_DEFAULT_URL" => "http://localhost:9999")
+
+    vim_cmd("WebDAVList /test/")
+    wait_for_text("deep/", 2)
+
+    # Verify we start with 1 tab
+    vim_cmd("echo tabpagenr('$')")
+    wait_for_text("1", 1)
+
+    # Navigate to deep folder with Enter
+    send_keys("/deep/")
+    send_enter  # Execute search
+    send_enter  # Open folder
+    sleep 1
+
+    # Should still have only 1 tab (navigated in place)
+    vim_cmd("echo tabpagenr('$')")
+    wait_for_text("1", 1)
+
+    output = capture
+    assert_includes output, "1", "Should stay in same tab after Enter navigation"
+    assert_includes output, "/test/deep/", "Should navigate to deep folder"
+  end
 end

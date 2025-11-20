@@ -11,16 +11,16 @@ class TestWebDAVBufferWorkflow < TestWebDAVBase
     vim_cmd("WebDAVList /test/")
     wait_for_text("WebDAV:")
 
-    # Open a file
+    # Open a file in new tab using 't' key
     send_keys("/file1.txt")  # Search for file1.txt
     send_enter  # Execute search
-    send_enter  # Open file
+    send_keys("t")  # Open file in new tab
     wait_for_text("This is test file content")
 
-    # We should now have 2 buffers: list and file
-    vim_cmd("echo bufnr('$')")
+    # We should now have 2 tabs
+    vim_cmd("echo tabpagenr('$')")
     output = capture
-    # Should have at least 2 buffers
+    # Should have at least 2 tabs
 
     # Switch back to previous tab (list)
     vim_cmd("tabprevious")
@@ -47,10 +47,10 @@ class TestWebDAVBufferWorkflow < TestWebDAVBase
     vim_cmd("WebDAVList /test/")
     wait_for_text("WebDAV:")
 
-    # Open first file
+    # Open first file in new tab using 't' key
     send_keys("/file1.txt")  # Search for file1.txt
     send_enter  # Execute search
-    send_enter  # Open file
+    send_keys("t")  # Open file in new tab
     wait_for_text("This is test file content")
 
     # Edit and save (use send_keys for proper editing)
@@ -67,10 +67,10 @@ class TestWebDAVBufferWorkflow < TestWebDAVBase
     vim_cmd("tabprevious")
     wait_for_text("file1.txt")
 
-    # Open different file (한글.md)
+    # Open different file in new tab (한글.md)
     send_keys("/한글.md")  # Search for 한글.md
     send_enter  # Execute search
-    send_enter  # Open file
+    send_keys("t")  # Open file in new tab
 
     # Edit and save second file (use send_keys for proper editing)
     send_keys("gg")

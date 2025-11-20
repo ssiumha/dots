@@ -5,6 +5,7 @@
 let s:HTTP_SEPARATOR_LEN = 4  " Length of \r\n\r\n
 let s:UNIX_SEPARATOR_LEN = 2  " Length of \n\n
 
+
 " Execute WebDAV request via system()
 " Returns dictionary: {'response': string, 'success': boolean}
 function! webdav#http#execute(cmd)

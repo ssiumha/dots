@@ -184,4 +184,37 @@ class TestNote < TestWebDAVBase
     result = docker_exec("curl -s http://localhost:9999#{file_path}")
     assert_includes result, "Modified content", "Modified content should be saved"
   end
+
+  def test_note_fleeting_pattern_configuration
+    # Test that fleeting pattern with prompt_title can be configured
+    # This tests the pattern structure, not the input() prompt itself
+    start_vim("WEBDAV_DEFAULT_URL" => "http://localhost:9999")
+
+    # Configure fleeting pattern with empty string (uses default %y%m%d format)
+    vim_cmd("let g:webdav_note_patterns = {}")
+    vim_cmd("let g:webdav_note_patterns.fleeting = {}")
+    vim_cmd("let g:webdav_note_patterns.fleeting.server = \\\"\\\"")
+    vim_cmd("let g:webdav_note_patterns.fleeting.path = \\\"/test/fleeting/{title}.md\\\"")
+    vim_cmd("let g:webdav_note_patterns.fleeting.template = \\\"# {title}\\\\n\\\\n## Notes\\\\n\\\"")
+    vim_cmd("let g:webdav_note_patterns.fleeting.unit = \\\"day\\\"")
+    vim_cmd("let g:webdav_note_patterns.fleeting.prompt_title = \\\"\\\"")
+
+    # Verify pattern is configured correctly
+    vim_cmd("echo has_key(g:webdav_note_patterns, 'fleeting')")
+    output = capture
+    assert_includes output, "1", "Fleeting pattern should be configured"
+
+    vim_cmd("echo empty(g:webdav_note_patterns.fleeting.prompt_title)")
+    output = capture
+    assert_includes output, "1", "prompt_title should be empty string"
+
+    # Verify placeholder exists in path and template
+    vim_cmd("echo g:webdav_note_patterns.fleeting.path")
+    output = capture
+    assert_includes output, "{title}", "Path should contain {title} placeholder"
+
+    vim_cmd("echo g:webdav_note_patterns.fleeting.template")
+    output = capture
+    assert_includes output, "{title}", "Template should contain {title} placeholder"
+  end
 end

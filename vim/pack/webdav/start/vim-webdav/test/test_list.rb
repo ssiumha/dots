@@ -43,10 +43,14 @@ class TestWebDAVList < TestWebDAVBase
   def test_buffer_not_modifiable
     start_vim("WEBDAV_DEFAULT_URL" => "http://localhost:9999")
     vim_cmd("WebDAVList /test/")
+    wait_for_text("WebDAV:")
 
-    send_keys("i")  # Try insert mode
-    send_keys("test")
+    # Try to enter insert mode (should fail due to nomodifiable)
+    send_keys("i")
+    sleep 0.2  # Wait for error message
 
+    # Check v:errmsg for the error
+    vim_cmd("echo v:errmsg")
     output = capture
     assert_match(/modifiable.is.off|Cannot make changes/i, output)
   end
