@@ -248,3 +248,68 @@ function! webdav#ui#go_up()
   " Open parent in current buffer
   call webdav#ui#list(parent, current_server)
 endfunction
+
+" FZF-based server selection menu (alternative to webdav#ui#main)
+function! webdav#ui#main_fzf()
+  " Scan for servers
+  let servers = webdav#server#scan()
+
+  " Check if any servers are configured
+  if empty(servers)
+    " Fallback to default environment variables if available
+    if !empty($WEBDAV_DEFAULT_URL)
+      echo "No WEBDAV_UI_* servers found. Using WEBDAV_DEFAULT_* variables."
+      tabnew
+      call webdav#ui#list('/', '')
+      return
+    else
+      echoerr "Error: No WebDAV servers configured."
+      echoerr "Set WEBDAV_UI_<NAME>=https://user:pass@host/path environment variables"
+      return
+    endif
+  endif
+
+  " Check if fzf is available
+  if !executable('fzf')
+    echoerr "Error: fzf is not installed"
+    return
+  endif
+
+  " Build server list for fzf
+  let server_list = []
+  for name in sort(keys(servers))
+    let server = servers[name]
+    let display_url = server.url
+    " Mask password in display
+    let display_user = empty(server.user) ? '' : ' (' . server.user . '@...)'
+    call add(server_list, name . ': ' . display_url . display_user)
+  endfor
+
+  " Launch fzf for server selection
+  call fzf#run(fzf#wrap({
+    \ 'source': server_list,
+    \ 'sink': function('s:webdavuifzf_sink', [servers]),
+    \ 'options': ['--prompt', 'WebDAV Server> ', '--header', 'Select server to browse'],
+    \ 'down': '40%'
+  \ }))
+endfunction
+
+" Handle fzf server selection (script-local helper for main_fzf)
+function! s:webdavuifzf_sink(servers, selection)
+  if empty(a:selection)
+    return
+  endif
+
+  " Parse server name from selection (format: "name: url (user@...)")
+  let server_name = matchstr(a:selection, '^\zs[^:]\+\ze:')
+
+  if empty(server_name) || !has_key(a:servers, server_name)
+    echoerr "Error: Failed to parse server name from selection"
+    return
+  endif
+
+  let server_info = a:servers[server_name]
+  echo "Connected to '" . server_name . "' - " . server_info.url
+  tabnew
+  call webdav#ui#list('/', server_name)
+endfunction
