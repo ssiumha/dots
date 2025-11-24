@@ -1,0 +1,623 @@
+#!/usr/bin/env ruby
+
+require 'base64'
+require 'cgi'
+require 'openssl'
+require 'json'
+require 'securerandom'
+require 'time'
+
+class UT
+  # UUID Standard Namespaces (RFC 4122)
+  UUID_NAMESPACE_DNS  = '6ba7b810-9dad-11d1-80b4-00c04fd430c8'.freeze
+  UUID_NAMESPACE_URL  = '6ba7b811-9dad-11d1-80b4-00c04fd430c8'.freeze
+  UUID_NAMESPACE_OID  = '6ba7b812-9dad-11d1-80b4-00c04fd430c8'.freeze
+  UUID_NAMESPACE_X500 = '6ba7b814-9dad-11d1-80b4-00c04fd430c8'.freeze
+
+  # Command metadata: method_name => [usage, description]
+  COMMANDS = {
+    'base64_encode' => ['[text|-]', 'Encode to base64'],
+    'base64_decode' => ['[text|-]', 'Decode from base64'],
+    'bcrypt_hash' => ['[password|-] [--cost N]', 'Hash password with PBKDF2'],
+    'bcrypt_verify' => ['<hash> [password|-]', 'Verify password against hash'],
+    'hash_md5' => ['[text|-]', 'Generate MD5 hash'],
+    'hash_sha1' => ['[text|-]', 'Generate SHA1 hash'],
+    'hash_sha256' => ['[text|-]', 'Generate SHA256 hash'],
+    'hash_sha512' => ['[text|-]', 'Generate SHA512 hash'],
+    'hex_encode' => ['[text|-]', 'Encode to hexadecimal'],
+    'hex_decode' => ['<hex>','Decode from hexadecimal'],
+    'ts_now' => ['[--utc|--local]', 'Get current timestamp'],
+    'ts_unix' => ['<timestamp> [--utc|--local]', 'Convert Unix timestamp to ISO 8601'],
+    'ts_iso' => ['<datetime>','Convert ISO 8601 to Unix timestamp'],
+    'url_encode' => ['[text|-]', 'Encode to URL format'],
+    'url_decode' => ['[text|-]', 'Decode from URL format'],
+    'jwt_encode' => ['[json|-] --secret KEY', 'Create JWT token'],
+    'jwt_decode' => ['[token|-]', 'Decode JWT (no verification)'],
+    'jwt_verify' => ['[token|-] --secret KEY', 'Verify and decode JWT'],
+    'uuid_v1' => ['', 'Generate UUID v1 (timestamp+MAC)'],
+    'uuid_v3' => ['[name|-] [--ns NAMESPACE]', 'Generate UUID v3 (MD5+namespace)'],
+    'uuid_v4' => ['', 'Generate UUID v4 (random)'],
+    'uuid_v5' => ['[name|-] [--ns NAMESPACE]', 'Generate UUID v5 (SHA1+namespace)'],
+    'uuid_v6' => ['', 'Generate UUID v6 (timestamp reordered)'],
+    'uuid_v7' => ['', 'Generate UUID v7 (Unix timestamp)'],
+    'case_lower' => ['[text|-]', 'Convert to lowercase'],
+    'case_upper' => ['[text|-]', 'Convert to UPPERCASE'],
+    'case_camel' => ['[text|-]', 'Convert to camelCase'],
+    'case_title' => ['[text|-]', 'Convert to Title Case'],
+    'case_constant' => ['[text|-]', 'Convert to CONSTANT_CASE'],
+    'case_header' => ['[text|-]', 'Convert to Header-Case'],
+    'case_sentence' => ['[text|-]', 'Convert to Sentence case'],
+    'case_snake' => ['[text|-]', 'Convert to snake_case'],
+    'case_kebab' => ['[text|-]', 'Convert to kebab-case']
+  }.freeze
+
+  def self.read_input(args)
+    if args.empty? || args.first == '-'
+      STDIN.read.chomp
+    else
+      args.join(' ')
+    end
+  end
+
+  def self.base64url_encode(str)
+    Base64.urlsafe_encode64(str, padding: false)
+  end
+
+  def self.base64url_decode(str)
+    Base64.urlsafe_decode64(str)
+  end
+
+  def self.extract_secret(args)
+    secret_index = args.index('--secret')
+    if secret_index && secret_index < args.length - 1
+      secret = args[secret_index + 1]
+      args.delete_at(secret_index + 1)
+      args.delete_at(secret_index)
+      secret
+    else
+      nil
+    end
+  end
+
+  def self.extract_namespace(args)
+    ns_index = args.index('--ns')
+    if ns_index && ns_index < args.length - 1
+      namespace = args[ns_index + 1]
+      args.delete_at(ns_index + 1)
+      args.delete_at(ns_index)
+      namespace
+    else
+      'dns'  # Default to dns namespace
+    end
+  end
+
+  def self.extract_cost(args)
+    cost_index = args.index('--cost')
+    if cost_index && cost_index < args.length - 1
+      cost = args[cost_index + 1].to_i
+      args.delete_at(cost_index + 1)
+      args.delete_at(cost_index)
+      cost
+    else
+      100_000  # Default iterations for PBKDF2 (roughly equivalent to bcrypt cost 12)
+    end
+  end
+
+  def self.extract_timezone(args)
+    if args.index('--utc')
+      args.delete('--utc')
+      :utc
+    elsif args.index('--local')
+      args.delete('--local')
+      :local
+    else
+      :utc  # Default to UTC
+    end
+  end
+
+  # Timestamp utilities
+  def self.ts_now(args)
+    tz = extract_timezone(args)
+    time = Time.now
+
+    if tz == :utc
+      puts time.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
+    else
+      puts time.strftime('%Y-%m-%dT%H:%M:%S%z')
+    end
+  end
+
+  def self.ts_unix(args)
+    tz = extract_timezone(args)
+    timestamp = read_input(args).to_i
+    time = Time.at(timestamp)
+
+    if tz == :utc
+      puts time.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
+    else
+      puts time.strftime('%Y-%m-%dT%H:%M:%S%z')
+    end
+  end
+
+  def self.ts_iso(args)
+    input = read_input(args)
+
+    begin
+      time = Time.parse(input)
+      puts time.to_i
+    rescue ArgumentError => e
+      STDERR.puts "Error: Invalid date format - #{e.message}"
+      exit 1
+    end
+  end
+
+  # Hash functions
+  def self.hash_md5(args)
+    input = read_input(args)
+    puts OpenSSL::Digest::MD5.hexdigest(input)
+  end
+
+  def self.hash_sha1(args)
+    input = read_input(args)
+    puts OpenSSL::Digest::SHA1.hexdigest(input)
+  end
+
+  def self.hash_sha256(args)
+    input = read_input(args)
+    puts OpenSSL::Digest::SHA256.hexdigest(input)
+  end
+
+  def self.hash_sha512(args)
+    input = read_input(args)
+    puts OpenSSL::Digest::SHA512.hexdigest(input)
+  end
+
+  # Hex encoding/decoding
+  def self.hex_encode(args)
+    input = read_input(args)
+    puts input.unpack1('H*')
+  end
+
+  def self.hex_decode(args)
+    input = read_input(args).strip
+    begin
+      puts [input].pack('H*')
+    rescue ArgumentError => e
+      STDERR.puts "Error: Invalid hex string - #{e.message}"
+      exit 1
+    end
+  end
+
+  # Bcrypt-style password hashing using PBKDF2
+  def self.bcrypt_hash(args)
+    iterations = extract_cost(args)
+    password = read_input(args)
+
+    # Generate random salt
+    salt = SecureRandom.random_bytes(16)
+
+    # Hash using PBKDF2-HMAC-SHA256
+    hash = OpenSSL::PKCS5.pbkdf2_hmac(
+      password,
+      salt,
+      iterations,
+      32,  # 32 bytes = 256 bits
+      OpenSSL::Digest::SHA256.new
+    )
+
+    # Format: pbkdf2:iterations:salt_base64:hash_base64
+    salt_b64 = Base64.strict_encode64(salt)
+    hash_b64 = Base64.strict_encode64(hash)
+
+    puts "pbkdf2:#{iterations}:#{salt_b64}:#{hash_b64}"
+  end
+
+  def self.bcrypt_verify(args)
+    # First arg should be the hash, second is the password
+    stored_hash = args.shift
+    password = read_input(args)
+
+    unless stored_hash
+      STDERR.puts "Error: Hash is required"
+      STDERR.puts "Usage: ut bcrypt verify <hash> <password>"
+      exit 1
+    end
+
+    # Parse stored hash
+    parts = stored_hash.split(':')
+    unless parts.length == 4 && parts[0] == 'pbkdf2'
+      STDERR.puts "Error: Invalid hash format"
+      exit 1
+    end
+
+    iterations = parts[1].to_i
+    salt = Base64.strict_decode64(parts[2])
+    expected_hash = Base64.strict_decode64(parts[3])
+
+    # Hash the input password with the same salt and iterations
+    computed_hash = OpenSSL::PKCS5.pbkdf2_hmac(
+      password,
+      salt,
+      iterations,
+      32,
+      OpenSSL::Digest::SHA256.new
+    )
+
+    # Constant-time comparison
+    if computed_hash == expected_hash
+      puts "Password verified successfully"
+    else
+      STDERR.puts "Error: Password verification failed"
+      exit 1
+    end
+  end
+
+  # Case Conversion Helper Methods
+  def self.split_words(str)
+    # Normalize string to words
+    str = str.strip
+
+    # Split on various boundaries:
+    # - camelCase/PascalCase boundaries
+    # - underscores, hyphens, spaces
+    # - multiple uppercase letters followed by lowercase (e.g., HTTPServer -> HTTP Server)
+    words = str
+      .gsub(/([a-z\d])([A-Z])/, '\1 \2')           # camelCase boundaries
+      .gsub(/([A-Z]+)([A-Z][a-z])/, '\1 \2')       # HTTPServer -> HTTP Server
+      .gsub(/[-_\s]+/, ' ')                         # replace separators with space
+      .split(/\s+/)                                 # split on spaces
+      .reject(&:empty?)                             # remove empty strings
+      .map(&:downcase)                              # normalize to lowercase
+
+    words
+  end
+
+  def self.case_lower(args)
+    input = read_input(args)
+    puts input.downcase
+  end
+
+  def self.case_upper(args)
+    input = read_input(args)
+    puts input.upcase
+  end
+
+  def self.case_camel(args)
+    input = read_input(args)
+    words = split_words(input)
+    return if words.empty?
+
+    result = words.first + words[1..-1].map(&:capitalize).join
+    puts result
+  end
+
+  def self.case_title(args)
+    input = read_input(args)
+    words = split_words(input)
+    puts words.map(&:capitalize).join(' ')
+  end
+
+  def self.case_constant(args)
+    input = read_input(args)
+    words = split_words(input)
+    puts words.map(&:upcase).join('_')
+  end
+
+  def self.case_header(args)
+    input = read_input(args)
+    words = split_words(input)
+    puts words.map(&:capitalize).join('-')
+  end
+
+  def self.case_sentence(args)
+    input = read_input(args)
+    words = split_words(input)
+    return if words.empty?
+
+    result = words.first.capitalize + (words.length > 1 ? ' ' + words[1..-1].join(' ') : '')
+    puts result
+  end
+
+  def self.case_snake(args)
+    input = read_input(args)
+    words = split_words(input)
+    puts words.join('_')
+  end
+
+  def self.case_kebab(args)
+    input = read_input(args)
+    words = split_words(input)
+    puts words.join('-')
+  end
+
+  # UUID Helper Methods
+  def self.format_uuid(bytes)
+    bytes.unpack('H8H4H4H4H12').join('-')
+  end
+
+  def self.parse_uuid(uuid)
+    uuid.gsub('-', '').scan(/../).map { |x| x.hex }.pack('C*')
+  end
+
+  def self.set_uuid_version_variant(bytes, version)
+    bytes = bytes.dup
+    # Set version (bits 12-15 of time_hi_and_version)
+    bytes[6] = ((bytes[6].ord & 0x0f) | (version << 4)).chr
+    # Set variant (bits 6-7 of clock_seq_hi_and_reserved)
+    bytes[8] = ((bytes[8].ord & 0x3f) | 0x80).chr
+    bytes
+  end
+
+  # UUID v1: Timestamp + MAC address
+  def self.uuid_v1(args)
+    # Get current time in 100-nanosecond intervals since 1582-10-15
+    epoch_offset = 0x01b21dd213814000
+    time = Time.now
+    timestamp = (time.to_i * 10_000_000) + (time.nsec / 100) + epoch_offset
+
+    time_low = timestamp & 0xffffffff
+    time_mid = (timestamp >> 32) & 0xffff
+    time_hi = (timestamp >> 48) & 0x0fff
+
+    # Clock sequence (random)
+    clock_seq = SecureRandom.random_number(0x4000)
+
+    # Node (random MAC address, multicast bit set)
+    node = SecureRandom.random_bytes(6)
+    node[0] = (node[0].ord | 0x01).chr
+
+    bytes = [
+      time_low,
+      time_mid,
+      time_hi,
+      clock_seq,
+      node.unpack('H*')[0].to_i(16)
+    ].pack('NnnQ>')
+
+    bytes = set_uuid_version_variant(bytes, 1)
+    puts format_uuid(bytes)
+  end
+
+  # UUID v3: MD5 + namespace
+  def self.uuid_v3(args)
+    namespace = extract_namespace(args)
+    name = read_input(args)
+
+    namespace_uuid = case namespace.downcase
+                     when 'dns'  then UUID_NAMESPACE_DNS
+                     when 'url'  then UUID_NAMESPACE_URL
+                     when 'oid'  then UUID_NAMESPACE_OID
+                     when 'x500' then UUID_NAMESPACE_X500
+                     else
+                       STDERR.puts "Error: Unknown namespace '#{namespace}'. Use: dns, url, oid, x500"
+                       exit 1
+                     end
+
+    hash_input = parse_uuid(namespace_uuid) + name
+    hash = OpenSSL::Digest::MD5.digest(hash_input)
+    bytes = set_uuid_version_variant(hash[0..15], 3)
+    puts format_uuid(bytes)
+  end
+
+  # UUID v4: Random
+  def self.uuid_v4(args)
+    bytes = SecureRandom.random_bytes(16)
+    bytes = set_uuid_version_variant(bytes, 4)
+    puts format_uuid(bytes)
+  end
+
+  # UUID v5: SHA1 + namespace
+  def self.uuid_v5(args)
+    namespace = extract_namespace(args)
+    name = read_input(args)
+
+    namespace_uuid = case namespace.downcase
+                     when 'dns'  then UUID_NAMESPACE_DNS
+                     when 'url'  then UUID_NAMESPACE_URL
+                     when 'oid'  then UUID_NAMESPACE_OID
+                     when 'x500' then UUID_NAMESPACE_X500
+                     else
+                       STDERR.puts "Error: Unknown namespace '#{namespace}'. Use: dns, url, oid, x500"
+                       exit 1
+                     end
+
+    hash_input = parse_uuid(namespace_uuid) + name
+    hash = OpenSSL::Digest::SHA1.digest(hash_input)
+    bytes = set_uuid_version_variant(hash[0..15], 5)
+    puts format_uuid(bytes)
+  end
+
+  # UUID v6: Reordered timestamp (RFC draft)
+  def self.uuid_v6(args)
+    epoch_offset = 0x01b21dd213814000
+    time = Time.now
+    timestamp = (time.to_i * 10_000_000) + (time.nsec / 100) + epoch_offset
+
+    # Reorder timestamp for better sorting
+    time_hi = (timestamp >> 28) & 0xffffffff
+    time_mid = (timestamp >> 12) & 0xffff
+    time_low = timestamp & 0x0fff
+
+    clock_seq = SecureRandom.random_number(0x4000)
+    node = SecureRandom.random_bytes(6)
+    node[0] = (node[0].ord | 0x01).chr
+
+    bytes = [
+      time_hi,
+      time_mid,
+      time_low,
+      clock_seq,
+      node.unpack('H*')[0].to_i(16)
+    ].pack('NnnQ>')
+
+    bytes = set_uuid_version_variant(bytes, 6)
+    puts format_uuid(bytes)
+  end
+
+  # UUID v7: Unix timestamp + random
+  def self.uuid_v7(args)
+    time = Time.now
+    unix_ts_ms = (time.to_i * 1000) + (time.nsec / 1_000_000)
+
+    # 48 bits timestamp
+    bytes = [unix_ts_ms >> 16].pack('N')
+    bytes += [(unix_ts_ms & 0xffff) << 16 | SecureRandom.random_number(0x10000)].pack('N')
+
+    # 64 bits random
+    bytes += SecureRandom.random_bytes(8)
+
+    bytes = set_uuid_version_variant(bytes, 7)
+    puts format_uuid(bytes)
+  end
+
+  def self.base64_encode(args)
+    input = read_input(args)
+    puts Base64.strict_encode64(input).strip
+  end
+
+  def self.base64_decode(args)
+    input = read_input(args)
+    puts Base64.strict_decode64(input.strip)
+  end
+
+  def self.url_encode(args)
+    input = read_input(args)
+    puts CGI.escape(input)
+  end
+
+  def self.url_decode(args)
+    input = read_input(args)
+    puts CGI.unescape(input.strip)
+  end
+
+  def self.jwt_encode(args)
+    secret = extract_secret(args)
+    unless secret
+      STDERR.puts "Error: --secret is required for JWT encode"
+      exit 1
+    end
+
+    payload_str = read_input(args)
+    begin
+      payload = JSON.parse(payload_str)
+    rescue JSON::ParserError => e
+      STDERR.puts "Error: Invalid JSON payload - #{e.message}"
+      exit 1
+    end
+
+    header = { alg: 'HS256', typ: 'JWT' }
+    encoded_header = base64url_encode(header.to_json)
+    encoded_payload = base64url_encode(payload.to_json)
+
+    signing_input = "#{encoded_header}.#{encoded_payload}"
+    signature = OpenSSL::HMAC.digest('SHA256', secret, signing_input)
+    encoded_signature = base64url_encode(signature)
+
+    puts "#{signing_input}.#{encoded_signature}"
+  end
+
+  def self.jwt_decode(args)
+    token = read_input(args)
+    parts = token.strip.split('.')
+
+    unless parts.length == 3
+      STDERR.puts "Error: Invalid JWT format"
+      exit 1
+    end
+
+    begin
+      header = JSON.parse(base64url_decode(parts[0]))
+      payload = JSON.parse(base64url_decode(parts[1]))
+
+      puts "Header:"
+      puts JSON.pretty_generate(header)
+      puts "\nPayload:"
+      puts JSON.pretty_generate(payload)
+    rescue => e
+      STDERR.puts "Error: Failed to decode JWT - #{e.message}"
+      exit 1
+    end
+  end
+
+  def self.jwt_verify(args)
+    secret = extract_secret(args)
+    unless secret
+      STDERR.puts "Error: --secret is required for JWT verify"
+      exit 1
+    end
+
+    token = read_input(args)
+    parts = token.strip.split('.')
+
+    unless parts.length == 3
+      STDERR.puts "Error: Invalid JWT format"
+      exit 1
+    end
+
+    begin
+      signing_input = "#{parts[0]}.#{parts[1]}"
+      expected_signature = OpenSSL::HMAC.digest('SHA256', secret, signing_input)
+      expected_encoded = base64url_encode(expected_signature)
+
+      if parts[2] == expected_encoded
+        payload = JSON.parse(base64url_decode(parts[1]))
+        puts "Signature verified successfully"
+        puts "\nPayload:"
+        puts JSON.pretty_generate(payload)
+      else
+        STDERR.puts "Error: Invalid signature"
+        exit 1
+      end
+    rescue => e
+      STDERR.puts "Error: Failed to verify JWT - #{e.message}"
+      exit 1
+    end
+  end
+
+  def self.usage
+    puts "Usage: ut <command> <subcommand> [options]\n\n"
+    puts "Commands:"
+
+    # Group commands by main command
+    grouped = {}
+    COMMANDS.each do |method_name, (usage_args, desc)|
+      parts = method_name.split('_', 2)
+      cmd = parts[0]
+      subcmd = parts[1]
+
+      grouped[cmd] ||= []
+      grouped[cmd] << [subcmd, usage_args, desc]
+    end
+
+    # Print commands in order
+    grouped.sort.each do |cmd, subcommands|
+      subcommands.sort_by { |s| s[0] }.each do |subcmd, usage_args, desc|
+        # Format: "  command subcommand usage_args" padded to align descriptions
+        cmd_str = "#{cmd} #{subcmd}"
+        cmd_str += " #{usage_args}" unless usage_args.empty?
+        puts "  %-42s %s" % [cmd_str, desc]
+      end
+    end
+
+    puts "\nUUID Namespaces (for v3/v5):"
+    puts "  dns, url, oid, x500"
+
+    exit 1
+  end
+
+  def self.run(argv)
+    command = argv.shift
+    subcommand = argv.shift
+
+    # Auto-routing: convert command+subcommand to method name
+    method_name = "#{command}_#{subcommand}"
+
+    if COMMANDS.key?(method_name)
+      send(method_name, argv)
+    else
+      usage
+    end
+  end
+end
+
+UT.run(ARGV) if __FILE__ == $0
