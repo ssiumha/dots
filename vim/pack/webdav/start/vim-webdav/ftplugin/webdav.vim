@@ -24,4 +24,10 @@ endif
 " Key mapping: - to open parent directory listing
 nnoremap <buffer> <silent> - :WebDAVList<CR>
 
-let b:undo_ftplugin = "setlocal noswapfile< statusline< | nunmap <buffer> -"
+" Key mappings for wikilink navigation
+" gf: follow wikilink under cursor (like vim's gf for goto file)
+nnoremap <buffer> <silent> gf :call webdav#wikilink#open()<CR>
+" Enter: also follow wikilink (convenient for quick navigation)
+nnoremap <buffer> <silent> <CR> :call webdav#wikilink#open()<CR>
+
+let b:undo_ftplugin = "setlocal noswapfile< statusline< | silent! nunmap <buffer> - | silent! nunmap <buffer> gf | silent! nunmap <buffer> <CR>"

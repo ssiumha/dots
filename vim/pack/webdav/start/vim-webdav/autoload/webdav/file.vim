@@ -99,6 +99,12 @@ function! webdav#file#put()
     let server_name = exists('b:webdav_server') ? b:webdav_server : ''
     let server_info = webdav#server#get_info(server_name)
 
+    " Use base_url if set (for external path files opened via wikilink)
+    if exists('b:webdav_base_url')
+      let server_info = copy(server_info)
+      let server_info.url = b:webdav_base_url
+    endif
+
     " Get our stored version info
     let our_etag = exists('b:webdav_etag') ? b:webdav_etag : ''
     let our_last_modified = exists('b:webdav_last_modified') ? b:webdav_last_modified : ''
@@ -259,4 +265,67 @@ function! webdav#file#put()
       call delete(temp_file)
     endif
   endtry
+endfunction
+
+" Retrieve file using absolute base URL (for wikilink external paths)
+" Parameters: base_url (string), path (string), server_name (string)
+function! webdav#file#get_absolute(base_url, path, server_name)
+  " Get server info for auth credentials
+  let server_info = webdav#server#get_info(a:server_name)
+  if empty(server_info)
+    return
+  endif
+
+  " Build curl command with base_url
+  let auth = empty(server_info.user) ? '' : '--user ' . shellescape(server_info.user . ':' . server_info.pass)
+  let encoded_path = webdav#core#url_encode(a:path)
+  let url = a:base_url . encoded_path
+
+  call webdav#core#debug_log("DEBUG REQUEST (absolute): base_url=" . string(a:base_url))
+  call webdav#core#debug_log("DEBUG REQUEST (absolute): path=" . string(a:path))
+  call webdav#core#debug_log("DEBUG REQUEST (absolute): final url=" . string(url))
+
+  let cmd = 'curl -i -s ' . auth . ' ' . shellescape(url)
+  call webdav#core#debug_log("DEBUG: curl command = " . cmd)
+
+  " Execute request
+  let result = webdav#http#execute(cmd)
+  if !result.success
+    echoerr "Error: HTTP request failed"
+    echoerr result.response
+    return
+  endif
+  let response = result.response
+
+  " Parse HTTP response
+  let parsed = webdav#http#parse_response(response)
+  let headers = parsed.headers
+  let body = parsed.body
+
+  " Extract HTTP status code
+  let http_code = webdav#core#extract_http_code(response)
+
+  " Handle 404 - file doesn't exist yet
+  if http_code == 404
+    call webdav#buffer#setup(a:path, a:server_name, server_info, '', '', '')
+    let b:webdav_base_url = a:base_url
+    call webdav#recent#track(a:path, a:base_url, a:server_name)
+    return
+  endif
+
+  " Extract version information
+  let etag = webdav#http#extract_header(headers, 'ETag')
+  let last_modified = webdav#http#extract_header(headers, 'Last-Modified')
+
+  " Safety check
+  if empty(etag) && empty(last_modified) && !empty(body)
+    echoerr "Error: Server does not provide ETag or Last-Modified headers"
+    return
+  endif
+
+  " Setup buffer with original server_info (for URL validation)
+  " Store base_url separately for PUT requests
+  call webdav#buffer#setup(a:path, a:server_name, server_info, etag, last_modified, body)
+  let b:webdav_base_url = a:base_url
+  call webdav#recent#track(a:path, a:base_url, a:server_name)
 endfunction

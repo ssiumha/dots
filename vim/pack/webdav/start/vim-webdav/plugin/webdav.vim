@@ -8,6 +8,12 @@ let g:webdav_preview_enabled = get(g:, 'webdav_preview_enabled', 1)
 let g:webdav_preview_lines = get(g:, 'webdav_preview_lines', 200)
 let g:webdav_preview_use_bat = get(g:, 'webdav_preview_use_bat', 1)
 
+" Wikilink settings
+" Vault roots per server: {'server_name': '/vault/', 'default': '/'}
+let g:webdav_vault_roots = get(g:, 'webdav_vault_roots', {})
+" Policy for non-existent files: 'prompt', 'create', 'error'
+let g:webdav_wikilink_create_policy = get(g:, 'webdav_wikilink_create_policy', 'prompt')
+
 " Constants for HTTP response parsing
 
 " Helper function to get server name from buffer or default URL
@@ -45,6 +51,7 @@ command! -bang -nargs=* WebDAVFzf call webdav#fzf#main([<f-args>], <bang>0)
 command! WebDAVRecent call webdav#recent#list()
 command! WebDAVRecentFzf call webdav#recent#fzf()
 command! -nargs=+ WebDAVNote call webdav#note#open(<f-args>)
+command! -nargs=0 WebDAVFollowLink call webdav#wikilink#open()
 
 " Setup autocmd for WebDAV buffers (ONLY for webdav:// protocol buffers)
 augroup webdav_buffers
@@ -91,6 +98,49 @@ if exists('$WEBDAV_TEST_MODE') && $WEBDAV_TEST_MODE == '1'
 
   function! TestWebDAVRecentFzfSink(selection)
     call webdav#recent#fzf_sink(a:selection)
+  endfunction
+
+  function! TestWikilinkExtract()
+    return webdav#wikilink#extract_at_cursor()
+  endfunction
+
+  function! TestWikilinkResolve(target, current_path, vault_root)
+    return webdav#wikilink#resolve(a:target, a:current_path, a:vault_root)
+  endfunction
+
+  function! TestWikilinkGetVaultRoot(server_name)
+    return webdav#wikilink#get_vault_root(a:server_name)
+  endfunction
+
+  function! TestSetVaultRoot(key, value)
+    if !exists('g:webdav_vault_roots')
+      let g:webdav_vault_roots = {}
+    endif
+    let g:webdav_vault_roots[a:key] = a:value
+  endfunction
+
+  " No-arg version for shell escaping issues in tests
+  function! TestSetDefaultVaultRoot()
+    if !exists('g:webdav_vault_roots')
+      let g:webdav_vault_roots = {}
+    endif
+    let g:webdav_vault_roots['default'] = '/vault'
+  endfunction
+
+  " Deep path vault root for testing
+  function! TestSetDeepVaultRoot()
+    if !exists('g:webdav_vault_roots')
+      let g:webdav_vault_roots = {}
+    endif
+    let g:webdav_vault_roots['default'] = '/vault/nested/path'
+  endfunction
+
+  " Vault root at /vault (for external path testing)
+  function! TestSetVaultOnlyRoot()
+    if !exists('g:webdav_vault_roots')
+      let g:webdav_vault_roots = {}
+    endif
+    let g:webdav_vault_roots['default'] = '/vault'
   endfunction
 endif
 
