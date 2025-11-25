@@ -54,5 +54,93 @@ cat > "/var/webdav/test/공백 폴더/file.txt" << 'EOF'
 Space folder test content
 EOF
 
+# Wikilink test data - vault structure
+mkdir -p /var/webdav/vault/notes/daily
+mkdir -p /var/webdav/vault/projects
+
+cat > /var/webdav/vault/index.md << 'EOF'
+# Vault Index
+
+Links:
+- [[/notes/index.md]]
+- [[projects/todo.md]]
+- [[korean-note]]
+EOF
+
+cat > /var/webdav/vault/notes/index.md << 'EOF'
+# Notes Index
+
+- [[../index.md]]
+- [[daily/2024-01-01.md]]
+- [[/projects/todo.md]]
+EOF
+
+cat > /var/webdav/vault/notes/daily/2024-01-01.md << 'EOF'
+# Daily Note 2024-01-01
+
+## Links
+- Absolute: [[/notes/index.md]]
+- Relative parent: [[../index.md]]
+- Filename only: [[todo]]
+- Korean note: [[korean-note]]
+EOF
+
+cat > /var/webdav/vault/projects/todo.md << 'EOF'
+# TODO List
+
+- [ ] Task 1
+- [ ] Task 2
+EOF
+
+cat > /var/webdav/vault/korean-note.md << 'EOF'
+# Korean Note
+
+Test content for Korean note.
+EOF
+
+# Deep path vault structure (for testing /vault/nested/path scenario)
+mkdir -p /var/webdav/vault/nested/path/notes
+mkdir -p /var/webdav/vault/nested/path/subdir
+
+cat > /var/webdav/vault/nested/path/index.md << 'EOF'
+# Deep Vault Index
+
+Links:
+- [[/subdir/note.md]]
+- [[notes/daily.md]]
+EOF
+
+cat > /var/webdav/vault/nested/path/notes/daily.md << 'EOF'
+# Daily Notes
+
+- [[/subdir/note.md]]
+- [[../index.md]]
+EOF
+
+cat > /var/webdav/vault/nested/path/subdir/note.md << 'EOF'
+# Subdir Note
+
+Quick capture content.
+EOF
+
+# External path test: file outside server base path but within vault_root
+# Server base: /vault/nested/path
+# Vault root: /vault
+# External file: /vault/external/shared.md
+mkdir -p /var/webdav/vault/external
+
+cat > /var/webdav/vault/external/shared.md << 'EOF'
+# Shared External File
+
+This file is outside the server base path but within vault root.
+EOF
+
+# Add link to external file in deep vault
+cat > /var/webdav/vault/nested/path/link-to-external.md << 'EOF'
+# Link to External
+
+- [[/external/shared.md]]
+EOF
+
 # Set permissions
 chmod -R 777 /var/webdav
