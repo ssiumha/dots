@@ -4,12 +4,29 @@ let g:neovide_scale_factor = 1.4
 " set guifont=Menlo:h14
 set linespace=4
 set nocursorcolumn
+set conceallevel=2
+set concealcursor=nci
+set splitright
 color spacemacs-theme
+
+" lightweight
+set indentexpr=
+set formatoptions-=at
+set synmaxcol=200
+silent! NoMatchParen
+let g:ale_lint_on_text_changed = 'never'
+let g:ale_lint_on_insert_leave = 1
+let g:ale_lint_on_enter = 0
+" lightweight end
 
 nnoremap <D-v> "+p
 inoremap <D-v> <c-r>+
 tnoremap <D-v> <c-r>+
 cnoremap <D-v> <c-r>+
+
+let g:slime_target = "vimterminal"
+let g:slime_vimterminal_cmd = "/bin/zsh"
+let g:slime_vimterminal_config = {"term_finish": "close"}
 
 let s:session_path = '~/.local/vim/neovide_session.vim'
 let s:default_dir = '~/org'
@@ -17,17 +34,32 @@ let s:default_file = 'index.md'
 
 function! RestoreOrDefault()
   execute 'cd ' . s:default_dir
-  if filereadable(expand(s:session_path))
-    execute 'source ' . s:session_path
-  else
-    " execute 'edit ' . s:default_file
-  endif
+  " if filereadable(expand(s:session_path))
+    " execute 'source ' . s:session_path
+  " else
+    execute 'edit ' . s:default_file
+  " endif
 
   bufdo filetype detect
 endfunction
 
 autocmd VimLeave * mksession! ~/.local/vim/neovide_session.vim
 autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | call RestoreOrDefault() | endif
+
+let g:timeline_perl =<< trim EOF
+if (/^@{1,2}(\d{3}-\d{2}-\d{2})\b/) {
+  use Time::Piece; use Time::Seconds;
+  my $d = int( (Time::Piece->strptime($1,"%Y-%m-%d") - localtime) / ONE_DAY );
+  if (s/\s*\(D-?\d+\)\s*:/ " (D-$d):"/e) { }
+  else { s/:/ " (D-$d):"/e; }
+}
+EOF
+function! TimelineUpdateVisual() range abort
+  let l:first = a:firstline
+  let l:last  = a:lastline
+  execute l:first . ',' . l:last . '!perl -pe ' . shellescape(g:timeline_perl)
+endfunction
+xnoremap <silent> <space>td :<C-u>call TimelineUpdateVisual()<CR>
 
 " call FloatermCmd(g:sh_insert_link, { out -> nvim_put(out, 'c', v:true, v:true) })
 let g:sh_insert_link =<< trim EOF
@@ -38,12 +70,18 @@ echo "[$title]($link)"
 EOF
 
 " call FloatermCmd(g:open_or_create_resources, { out -> append(line('.'), out) })
-let g:open_or_create_resources =<< trim EOF
-doc=$(fd . --base-directory ~/org/resources -t f \
-  | fzf --bind 'enter:become:[ -z {} ] && echo {q} || echo {}')
-[ -z $doc ] && exit 1
-echo "~/org/resources/$doc"
-EOF
+"nnoremap <space>or :call FloatermCmd(g:open_or_create_resources, { out -> empty(out) ? '' : execute('tabe ' . join(out, '')) })<cr>
+"let g:open_or_create_resources =<< trim EOF
+"doc=$(fd . --base-directory ~/org/resources -t f \
+"  | fzf --bind 'enter:become:[ -z {} ] && echo {q} || echo {}' \
+"        --bind 'ctrl-o:become:touch ~/org/resources/{q} && echo {q}' \
+"        --header 'ctrl-o: new file' \
+")
+"[ $? -ne 0 ] && exit 1
+"[ -z $doc ] && exit 1
+"echo "~/org/resources/$doc"
+"EOF
+
 
 " :echo system(join(g:open_link, "\n"), getline('.'))
 " my ($path, $name) = split /\s+/, <>;
@@ -62,43 +100,193 @@ let g:markdown_fenced_languages = [
 
 function! InMarkdownCodeSyntax(lnum) abort
   let ids = synstack(a:lnum, 1)
-  if empty(ids)
-    return 0
-  endif
+  if empty(ids) | return 0 | endif
   for id in ids
-    let name = synIDattr(id, 'name')
-    if name == 'markdownCodeBlock'
+  if synIDattr(id, 'name') ==# 'markdownCodeBlock'
       return 1
     endif
   endfor
   return 0
 endfunction
 
-function! MarkdownFoldExpr()
-  if InMarkdownCodeSyntax(v:lnum)
+function! MarkdownFoldExpr() abort
+  let l = getline(v:lnum)
+  if l =~# '^#\+\s'
+    return '>' . strlen(matchstr(l, '^#\+'))
+  endif
+  if l =~# '^\s*\(```\|~~~\)'
     return '='
   endif
-  let l = getline(v:lnum)
-  if l =~ '^#\+\s'
-    return '>' . strlen(matchstr(l, '^#\+'))
+  if InMarkdownCodeSyntax(v:lnum)
+    return '='
   endif
   return '='
 endfunction
 
-function! GetMarkdownPagePath()
-  if synIDattr(synID(line('.'), col('.'), 1), 'name') ==# 'markdownWikiLink'
-    let page = substitute(expand('<cWORD>'), '^\[\[\([^]|]\+\).*$', '\1', '')
-    let page .= page =~ '\.md$' ? '' : '.md'
-    let page = page =~# '^\v(/|\~|\w+:)' ? page : expand('%:p:h') . '/' . page
-    return page
+" WebDAV 링크 파싱: server:path 형식 감지
+function! ParseWikiLink(link)
+  let parts = split(a:link, ':', 1)
+
+  " server:path 형식인지 체크 (path는 /로 시작)
+  if len(parts) >= 2 && parts[1] =~ '^/'
+    return {
+      \ 'type': 'webdav',
+      \ 'server': parts[0],
+      \ 'path': join(parts[1:], ':')
+    \ }
   else
-    return ''
+    return {'type': 'local', 'path': a:link}
   endif
 endfunction
 
+" Extract URL from markdown link [text](url) format
+function! ExtractMarkdownLinkUrl()
+  let line = getline('.')
+  let col = col('.') - 1
+
+  " Find [text](url) pattern around cursor
+  let start = match(line, '\[.\{-}\](', 0)
+  while start >= 0 && start <= col
+    let end = match(line, ')', start)
+    if end > col
+      " Cursor is inside this link
+      let url_start = match(line, '(', start) + 1
+      return line[url_start : end-1]
+    endif
+    let start = match(line, '\[.\{-}\](', end)
+  endwhile
+
+  return ''
+endfunction
+
+function! s:ExtractWikilinkFull()
+  let [line, col, start] = [getline('.'), col('.') - 1, 0]
+  while 1
+    let [ms, me] = [match(line, '\[\[', start), match(line, '\]\]', start)]
+    if ms == -1 || me == -1 | break | endif
+    if col >= ms && col <= me + 1
+      let content = line[ms + 2 : me - 1]
+      let p = stridx(content, '|')
+      return p != -1
+        \ ? {'found': 1, 'target': content[:p-1], 'alias': content[p+1:], 'start': ms, 'end': me + 2}
+        \ : {'found': 1, 'target': content, 'alias': '', 'start': ms, 'end': me + 2}
+    endif
+    let start = me + 2
+  endwhile
+  return {'found': 0}
+endfunction
+
+function! s:ExtractMarkdownLinkFull()
+  let [line, col, start] = [getline('.'), col('.') - 1, 0]
+  while 1
+    let ms = match(line, '\[', start)
+    if ms == -1 | break | endif
+    let be = match(line, '\]', ms)
+    if be == -1 | break | endif
+    if be + 1 < len(line) && line[be + 1] == '('
+      let pe = match(line, ')', be + 2)
+      if pe != -1 && col >= ms && col <= pe
+        return {'found': 1, 'title': line[ms+1:be-1], 'url': line[be+2:pe-1], 'start': ms, 'end': pe + 1}
+      endif
+    endif
+    let start = be + 1
+  endwhile
+  return {'found': 0}
+endfunction
+
+function! InsertWikilink() abort
+  let target = input('Target: ')
+  if empty(target) | return | endif
+  let alias = input('Alias: ')
+  exe 'normal! a' . (empty(alias) ? '[['.target.']]' : '[['.target.'|'.alias.']]')
+endfunction
+
+function! InsertMarkdownLink() abort
+  let url = input('URL: ')
+  if empty(url) | return | endif
+  let title = input('Title: ', url)
+  exe 'normal! a[' . title . '](' . url . ')'
+endfunction
+
+function! EditLinkAtCursor() abort
+  let w = s:ExtractWikilinkFull()
+  if w.found
+    let t = input('Target: ', w.target)
+    if empty(t) | return | endif
+    let a = input('Alias: ', w.alias)
+    if empty(a) && !empty(w.alias) | return | endif
+    let link = empty(a) ? '[['.t.']]' : '[['.t.'|'.a.']]'
+    call setline('.', getline('.')[0:w.start-1] . link . getline('.')[w.end:])
+    return
+  endif
+
+  let m = s:ExtractMarkdownLinkFull()
+  if m.found
+    let u = input('URL: ', m.url)
+    if empty(u) | return | endif
+    let t = input('Title: ', m.title)
+    if empty(t) | return | endif
+    let link = '[' . t . '](' . u . ')'
+    call setline('.', getline('.')[0:m.start-1] . link . getline('.')[m.end:])
+    return
+  endif
+
+  echo "No link under cursor"
+endfunction
+
+function! InsertLink() abort
+  echo "Link: [w]iki [m]arkdown"
+  let c = nr2char(getchar()) | redraw
+  if c ==# 'w' | call InsertWikilink()
+  elseif c ==# 'm' | call InsertMarkdownLink()
+  endif
+endfunction
+
+function! SmartLink() abort
+  if s:ExtractWikilinkFull().found || s:ExtractMarkdownLinkFull().found
+    call EditLinkAtCursor()
+  else
+    call InsertLink()
+  endif
+endfunction
+
+runtime note/dataview.vim
+runtime note/outline.vim
+
+function! GetMarkdownPagePath()
+  let syn_name = synIDattr(synID(line('.'), col('.'), 1), 'name')
+
+  " WikiLink: [[link]]
+  if syn_name ==# 'markdownWikiLink'
+    let link = substitute(expand('<cWORD>'), '^\[\[\([^]|]\+\).*$', '\1', '')
+    return ParseWikiLink(link)
+  endif
+
+  " Markdown Link: [text](url)
+  if syn_name =~# 'markdown.*Link\|markdownUrl'
+    let url = ExtractMarkdownLinkUrl()
+    if !empty(url)
+      return ParseWikiLink(url)
+    endif
+  endif
+
+  return {'type': 'none'}
+endfunction
+
 function! OpenWiki() abort
-  let page = GetMarkdownPagePath()
-  if page != ''
+  let link_info = GetMarkdownPagePath()
+
+  if link_info.type == 'webdav'
+    " WebDAV 파일 열기
+    tabnew
+    call webdav#file#get(link_info.path, link_info.server)
+  elseif link_info.type == 'local'
+    " 기존 로컬 파일 열기
+    let page = link_info.path
+    if page !~ '/$'
+      let page .= page =~ '\.md$' ? '' : '.md'
+    endif
+    let page = page =~# '^\v(/|\~|\w+:)' ? page : expand('%:p:h') . '/' . page
     execute 'tabe' fnameescape(page)
   else
     normal! <CR>
@@ -107,10 +295,23 @@ endfunction
 
 augroup MyMarkdown
   autocmd!
+  autocmd FileType markdown silent! TableModeEnable
   autocmd FileType markdown setlocal foldmethod=expr foldexpr=MarkdownFoldExpr() foldenable
-  autocmd FileType markdown setlocal foldtext=getline(v:foldstart).'...' foldlevel=0
+  autocmd FileType markdown setlocal foldtext=getline(v:foldstart).'...'
   autocmd FileType markdown nnoremap <buffer> <tab> za
   autocmd FileType markdown nnoremap <buffer> <cr> :call OpenWiki()<cr>
+  autocmd FileType markdown nnoremap <buffer> <c-c><c-l> :call SmartLink()<cr>
+  autocmd FileType markdown inoremap <buffer> <C-c><C-l> <C-o>:call SmartLink()<CR>
+  autocmd FileType markdown nnoremap <buffer> <c-c><c-l> :call SmartLink()<cr>
+  autocmd FileType markdown nnoremap <buffer> <c-c><c-p> :call DataviewProperty()<cr>
+  autocmd FileType markdown nnoremap <buffer> <c-c><c-o> :call MarkdownOutline()<cr>
+
+  autocmd InsertEnter *.md setlocal foldmethod=manual
+  autocmd InsertLeave *.md setlocal foldmethod=expr
+
+  autocmd VimLeavePre *.md mkview
+  autocmd FileType markdown silent! loadview
+
   " autocmd FileType markdown nnoremap <buffer> <leader>fc zM
   " autocmd FileType markdown nnoremap <buffer> <leader>fa zR
 
@@ -125,10 +326,13 @@ augroup MyMarkdown
     hi markdownCodeBlock guibg=#1e1e2e
     hi markdownFencedCodeBlock guibg=#1e1e2e
     hi markdownDone guifg=#777777
-    hi def MyTodo guifg=#000000 guibg=#FFD700 gui=bold
-    hi def MyDone guifg=#000000 guibg=#98FB98 gui=bold
-    hi def link markdownWikiLink markdownLinkText
-
+    hi markdownDelegated guifg=#777777
+    hi markdownStrike gui=strikethrough
+    hi MyTodo guifg=#000000 guibg=#FFD700 gui=bold
+    hi MyDone guifg=#000000 guibg=#98FB98 gui=bold
+    hi link markdownWikiLink markdownLinkText
+    hi Conceal guifg=#bc6ec5 guibg=#292b2e
+    hi markdownDataviewField guifg=#888888 gui=italic
   }
 
   autocmd Syntax markdown {
@@ -136,18 +340,16 @@ augroup MyMarkdown
     syntax match MyDone /\<DONE\>/
     syntax match markdownWikiLink /\[\[.*\]\]/
     syntax match markdownDone /\v^\s*-\s\[x\]\s.*$/
+    syntax match markdownDelegated /\v^\s*-\s\[\>\]\s.*$/ contains=markdownStrike
 
-    syntax match iso8601Full /\v<\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?([+-]\d{2}:\d{2}|Z)?>/
-          \ contains=iso8601Date,iso8601T,iso8601Time,iso8601Zone
-    syntax match iso8601Date /\v\d{4}-\d{2}-\d{2}/ contained
-    syntax match iso8601T /T/ contained
-    syntax match iso8601Time /\v\d{2}:\d{2}(:\d{2})?/ contained
-    syntax match iso8601Zone /\v([+-]\d{2}:\d{2}|Z)/ contained
-    hi iso8601Full cterm=NONE gui=NONE ctermbg=236 guibg=#303030
-    hi link iso8601Date Number
-    hi iso8601T     cterm=bold gui=bold ctermfg=Red    guifg=#ff5555 ctermbg=NONE guibg=NONE
-    hi link iso8601Time Identifier
-    hi link iso8601Zone Statement
-
+    syntax match markdownDataviewField /\[[^\[\]]*::[^\[\]]*\]/ contains=markdownDataviewDelim
+    syntax match markdownDataviewDelim /\[\|\]/ contained conceal
   }
+
+  autocmd Syntax markdown syntax clear markdownLink
+  autocmd Syntax markdown syntax region markdownLink
+        \ matchgroup=markdownLinkDelimiter
+        \ start="(" end=")"
+        \ contains=markdownUrl
+        \ conceal keepend contained cchar=🔗
 augroup END
