@@ -134,11 +134,24 @@ related:
 │   │   ├── aws-region.md
 │   │   └── tech-stack.md
 │   └── todos/
-│       ├── ip-update.md
-│       └── api-docs.md
+│       ├── ip-update.md          # status: pending/in-progress
+│       ├── api-docs.md            # status: pending/in-progress
+│       └── completed/             # 완료된 TODO 보관
+│           ├── 2025-01/
+│           │   ├── auth-setup.md
+│           │   └── db-migration.md
+│           └── 2025-02/
+│               └── feature-x.md
 └── another-project/
     └── ...
 ```
+
+### TODO 상태별 위치
+
+| 상태 | 위치 | 설명 |
+|------|------|------|
+| `pending`, `in-progress` | `todos/{slug}.md` | 진행 중인 작업 |
+| `done` | `todos/completed/YYYY-MM/{slug}.md` | 완료된 작업 (월별 보관) |
 
 ## 상태 전이 (TODO)
 
@@ -156,4 +169,140 @@ pending → in-progress → done
 ```bash
 date +%Y-%m-%d
 # Output: 2025-02-10
+```
+
+## 문서 위치 및 파일명 규칙
+
+### 디렉토리 구조
+
+모든 문서는 `~/docs/{project}/` 아래에 저장됩니다:
+- `knowledge/{category}/`: 지식 문서 (아키텍처, 보안, 요구사항 등)
+- `decisions/`: 의사결정 기록
+- `todos/`: 할 일 목록
+  - `completed/YYYY-MM/`: 완료된 TODO (월별)
+
+### 파일명 규칙
+
+**Self-descriptive** - 경로와 파일명만 봐도 내용 파악 가능해야 함
+- ✅ 좋은 예: `knowledge/{category}/{descriptive-topic}.md`
+- ❌ 나쁜 예: `knowledge/ABC-001.md`, `doc-YYYY-MM-DD.md`, `temp-notes.md`
+
+**명명 규칙**:
+- **kebab-case** 사용 (소문자 + 하이픈)
+- **2-4 단어** 권장
+- **영문 권장** (한글도 가능하지만 링크 호환성 고려)
+- **구체적이고 명확한 이름** 사용
+
+**경로 패턴**:
+- knowledge: `{project}/knowledge/{category}/{topic}.md`
+- decisions: `{project}/decisions/{topic}.md`
+- todos: `{project}/todos/{topic}.md`
+- completed: `{project}/todos/completed/YYYY-MM/{topic}.md`
+
+## TODO 분할 정책
+
+### 분할 기준
+
+다음 경우 복수 TODO로 분할 권장:
+- 3개 이상의 명확한 하위 작업
+- 각 작업이 독립적으로 완료 가능
+- 병렬로 진행 가능한 작업
+- 서로 다른 담당자가 맡을 수 있는 작업
+
+### Slug 명명 규칙
+
+**원칙**:
+- ✅ 의미 있는 이름 (내용 파악 가능)
+- ❌ 번호 매기기 (`-1`, `-2`, `-3`)
+
+**패턴**:
+```
+공통 접두사 + 구체적 작업명
+```
+
+**예시**:
+
+| 요청 | 생성되는 TODO |
+|------|--------------|
+| "User, Post, Comment 리소스 구현" | `resource-user.md`<br>`resource-post.md`<br>`resource-comment.md` |
+| "로그인, 회원가입, 비밀번호 찾기 구현" | `auth-login.md`<br>`auth-signup.md`<br>`auth-password-reset.md` |
+| "검색, 필터, 정렬 기능 추가" | `feature-search.md`<br>`feature-filter.md`<br>`feature-sort.md` |
+
+### 작업 간 관계 설정
+
+#### 순차 작업
+작업 순서가 있는 경우 `depends-on` 사용:
+
+```yaml
+# auth-login.md
+depends-on: []
+
+# auth-signup.md
+depends-on: [todo-auth-login]
+
+# auth-password-reset.md
+depends-on: [todo-auth-signup]
+```
+
+#### 병렬 작업
+동시 진행 가능한 경우 공통 태그만 사용:
+
+```yaml
+# resource-user.md
+tags: [resource, api]
+depends-on: []
+
+# resource-post.md
+tags: [resource, api]
+depends-on: []
+
+# resource-comment.md
+tags: [resource, api]
+depends-on: []
+```
+
+### 그룹 식별
+
+관련 TODO 찾기:
+```bash
+# 파일명 패턴으로 검색
+Glob ~/docs/{project}/todos/resource-*.md
+
+# 태그로 검색
+Grep "tags:.*resource" ~/docs/{project}/todos/*.md
+```
+
+## Living Docs 커밋 메시지 포맷
+
+### Knowledge 문서
+```bash
+docs(knowledge): add {category}/{topic}
+docs(knowledge): update {category}/{topic} - {간단한 설명}
+docs(knowledge): integrate todo-{slug} into {category}/{topic}
+docs(knowledge): add {category}/{topic} from todo-{slug}
+```
+
+### Decision 문서
+```bash
+docs(decision): add {slug}
+```
+
+### TODO 문서
+```bash
+# 단일 TODO
+docs(todo): add {slug}
+
+# 복수 TODO 분할
+docs(todo): add {작업명} tasks (3개)
+docs(todo): add resource tasks (user, post, comment)
+
+# 완료 및 아카이브
+docs(todo): complete {slug} - moved to completed/YYYY-MM
+docs(todo): archive completed todos from YYYY-MM
+```
+
+### Refactoring
+```bash
+docs(refactor): merge {old-doc} into {new-doc}
+docs(delete): remove {slug}
 ```

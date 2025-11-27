@@ -1,6 +1,6 @@
 ---
 name: living-docs
-description: 프로젝트 지식베이스와 TODO를 관리합니다. 요구사항, 의사결정, 정책 문서를 업데이트하거나 작업 현황을 파악할 때 사용하세요.
+description: 프로젝트 지식과 할 일(TODO/todo)을 관리합니다. 문서 작성/업데이트, TODO 생성/완료, 의사결정 기록, 작업 현황 파악 시 사용하세요. (user)
 ---
 
 # Living Docs
@@ -26,32 +26,11 @@ description: 프로젝트 지식베이스와 TODO를 관리합니다. 요구사�
 
 ### 문서 위치 및 파일명 규칙
 
-**디렉토리 구조:**
+모든 문서는 `~/docs/{project}/` 아래 저장 (knowledge/, decisions/, todos/)
 
-모든 문서는 `~/docs/{project}/` 아래에 저장됩니다:
-- `knowledge/{category}/`: 지식 문서 (아키텍처, 보안, 요구사항 등)
-- `decisions/`: 의사결정 기록
-- `todos/`: 할 일 목록
+**파일명**: kebab-case, 2-4단어, Self-descriptive
 
-**파일명 규칙:**
-
-1. **Self-descriptive** - 경로와 파일명만 봐도 내용 파악 가능해야 함
-   - ✅ 좋은 예: `knowledge/{category}/{descriptive-topic}.md`
-   - ❌ 나쁜 예: `knowledge/ABC-001.md`, `doc-YYYY-MM-DD.md`, `temp-notes.md`
-
-2. **명명 규칙**
-   - **kebab-case** 사용 (소문자 + 하이픈)
-   - **2-4 단어** 권장
-   - **영문 권장** (한글도 가능하지만 링크 호환성 고려)
-   - **구체적이고 명확한 이름** 사용
-
-3. **경로 패턴**
-   - knowledge: `{project}/knowledge/{category}/{topic}.md`
-     - 예: `{proj}/knowledge/{category}/{topic}.md`
-   - decisions: `{project}/decisions/{topic}.md`
-     - 예: `{proj}/decisions/{topic}.md`
-   - todos: `{project}/todos/{topic}.md`
-     - 예: `{proj}/todos/{topic}.md`
+상세 규칙: `REFERENCE.md` 참조
 
 ### 워크플로우 1: 지식 문서 업데이트
 
@@ -153,47 +132,112 @@ description: 프로젝트 지식베이스와 TODO를 관리합니다. 요구사�
 
 사용자가 "X 작업 TODO 만들어줘" 요청 시:
 
-1. **템플릿 사용**
-   `templates/todo.md` 기반으로 생성
+#### 1. 작업 분석 (복수 작업 감지)
 
-2. **정보 수집**
-   - "작업 내용을 설명해주세요"
-   - "완료 조건은 무엇인가요?"
-   - "관련 문서나 결정이 있나요?"
-   - "마감일이 있나요?"
+사용자 요청에서 복수 작업 패턴 확인:
+- 쉼표 분리: "A, B, C 구현"
+- 접속사: "A와 B 작업", "A, B, 그리고 C"
+- 나열: "1. A 2. B 3. C"
+- 명시적 복수: "5개 리소스", "여러 컴포넌트"
 
-3. **문서 생성**
-   ```bash
-   Write ~/docs/{project}/todos/{slug}.md
-   ```
+#### 2. 분할 제안 (복수 감지 시)
 
-4. **관련 문서 링크**
-   관련 지식/결정 문서에 역참조 추가
+사용자에게 확인:
+```
+다음 작업들을 각각 별도 TODO로 만들까요?
+- {작업1-slug}.md
+- {작업2-slug}.md
+- {작업3-slug}.md
 
-5. **Git 커밋**
-   ```bash
-   cd ~/docs/{project} && git add todos/{slug}.md && git commit -m "docs(todo): add {slug}"
-   ```
+[1] 네, 각각 분할 (권장)
+[2] 아니요, 하나로 통합
+```
 
-6. **자동 건강도 체크** (워크플로우 10)
-   - 중복 TODO 확인
-   - 이슈 발견 시 알림
+**Slug 생성 원칙 (Self-Descriptive)**:
+
+1. **동사 구체화**: fix → correct/add/refactor/resolve
+2. **명사 구체화**: types → nullable-field-types, auth → jwt-auth
+3. **길이 허용**: 4-6 단어 OK (명확성 > 간결성)
+
+**예시**:
+- ❌ admin-api-fix-openapi-types
+- ✅ admin-api-correct-openapi-nullable-field-types
+
+- ❌ update-user-service
+- ✅ add-email-verification-to-user-registration
+
+**체크**: 파일명만 봐도 작업 내용 파악 가능한가?
+
+#### 3. 작업 간 관계 확인 ([1] 선택 시)
+
+"작업 간 순서가 있나요?"
+- [1] 순차 (A → B → C): `depends-on` 체인 설정
+- [2] 병렬 (동시 진행): 공통 태그만 추가
+
+#### 4. 각 TODO 정보 수집
+
+각 작업마다:
+- "작업 내용을 설명해주세요"
+- "완료 조건은 무엇인가요?"
+- "관련 문서나 결정이 있나요?"
+- "마감일이 있나요?"
+
+#### 5. 문서 생성
+
+**단일 작업** 또는 **[2] 선택 시**:
+```bash
+Write ~/docs/{project}/todos/{slug}.md
+```
+
+**복수 작업 분할** ([1] 선택 시):
+```bash
+# 병렬 작업
+Write ~/docs/{project}/todos/{작업1-slug}.md  # depends-on: []
+Write ~/docs/{project}/todos/{작업2-slug}.md  # depends-on: []
+Write ~/docs/{project}/todos/{작업3-slug}.md  # depends-on: []
+
+# 순차 작업
+Write ~/docs/{project}/todos/{작업1-slug}.md  # depends-on: []
+Write ~/docs/{project}/todos/{작업2-slug}.md  # depends-on: [todo-{작업1-slug}]
+Write ~/docs/{project}/todos/{작업3-slug}.md  # depends-on: [todo-{작업2-slug}]
+```
+
+모든 TODO에 공통 태그 추가 (그룹 식별용)
+
+#### 6. 관련 문서 링크
+
+관련 지식/결정 문서에 역참조 추가
+
+#### 7. Git 커밋
+
+```bash
+# 단일 TODO
+cd ~/docs/{project} && git add todos/{slug}.md && git commit -m "docs(todo): add {slug}"
+
+# 복수 TODO
+cd ~/docs/{project} && git add todos/{작업*}.md && git commit -m "docs(todo): add {작업명} tasks ({count}개)"
+```
+
+#### 8. 자동 건강도 체크 (워크플로우 10)
+
+- 중복 TODO 확인
+- 이슈 발견 시 알림
 
 ### 워크플로우 4: 현황 파악
 
 사용자가 "뭐 해야해?", "TODO 목록", "이번 주 할 일" 요청 시:
 
-1. **TODO 파일 검색**
+1. **Active TODO 파일 검색 (completed 제외)**
    ```bash
    Glob ~/docs/{project}/todos/*.md
    ```
+   **주의**: `todos/*.md` 패턴은 `todos/completed/` 하위 파일은 제외
 
 2. **각 파일 분석**
    - Read로 frontmatter만 빠르게 확인
-   - `status:` 필드 확인 (pending, in-progress, done)
+   - `status:` 필드 확인 (pending, in-progress)
 
 3. **필터링 및 정렬**
-   - status != done인 것만 (완료된 작업 제외)
    - "이번 주" 요청 시: 이번 주 월요일~일요일 범위 deadline만
    - deadline이 가까운 순
    - priority 높은 것 우선
@@ -206,7 +250,8 @@ description: 프로젝트 지식베이스와 TODO를 관리합니다. 요구사�
    대기 중: 5개
    - [todo-007] {작업명} (마감: MM/DD)
 
-   완료: 12개
+   완료 (이번 달): 12개
+   → todos/completed/YYYY-MM/ 참조
    ```
 
 ### 워크플로우 5: 지식 탐색 (Wiki 스타일)
@@ -267,23 +312,10 @@ description: 프로젝트 지식베이스와 TODO를 관리합니다. 요구사�
 
 ### 워크플로우 8: Git 관리
 
-모든 문서 변경 사항은 Git으로 추적합니다 (글로벌 `~/dots/prompts/rules/commit.md` 규칙 준수).
-
-#### Living Docs 커밋 메시지 포맷
-
-```bash
-docs(knowledge): add {category}/{topic}
-docs(knowledge): update {category}/{topic} - {간단한 설명}
-docs(decision): add {slug}
-docs(todo): add {slug}
-docs(knowledge): merge {todo-slug} into {category}/{topic}
-docs(refactor): merge {old-doc} into {new-doc}
-docs(delete): remove {slug}
-```
-
-#### Git 저장소 초기화
-
-프로젝트 문서 디렉토리 생성 시 자동으로 Git 초기화 (저장소가 없는 경우)
+모든 문서 변경 사항은 Git으로 추적합니다:
+- 글로벌 규칙: `~/dots/prompts/rules/commit.md` 준수
+- Living Docs 커밋 포맷: `REFERENCE.md` 참조
+- 프로젝트 문서 디렉토리 생성 시 자동으로 Git 초기화 (저장소 없는 경우)
 
 ### 워크플로우 9: TODO 상태 관리 및 완료 처리
 
@@ -299,22 +331,43 @@ docs(delete): remove {slug}
 
 #### B. 완료 후 처리
 
-TODO가 `status: done`이 되면 사용자에게 선택지 제안:
+TODO가 `status: done`이 되면 **completed/ 디렉토리로 이동** (기본 동작):
 
-**옵션 1: Knowledge로 통합 (권장)**
+**1단계: Completed로 이동 (필수)**
 
+```bash
+# 완료 월별 디렉토리 생성 (없는 경우)
+mkdir -p ~/docs/{project}/todos/completed/YYYY-MM
+
+# TODO 파일 이동
+mv ~/docs/{project}/todos/{slug}.md \
+   ~/docs/{project}/todos/completed/YYYY-MM/{slug}.md
+```
+
+완료 메시지: "✅ TODO [[todo-{slug}]] 완료 → `todos/completed/YYYY-MM/`로 이동"
+
+**2단계: 추가 처리 (선택)**
+
+사용자에게 선택지 제안:
+
+**옵션 1: 이대로 보관 (기본, 빠름)**
+- completed/에 보관하여 작업 히스토리 유지
+- 나중에 회고, 참고 자료로 활용
+
+**옵션 2: Knowledge로도 통합 (재사용 가치 있는 경우)**
 1. Category 결정 (architecture, security, operations 등)
 2. 관련 문서 찾기 (Grep, Glob로 검색)
 3. 통합 가치 판단 (체크리스트)
 4. 문서 업데이트 또는 신규 생성
-5. TODO 파일 삭제
+5. completed/에는 그대로 유지 (삭제 안 함)
 
 **상세 절차**: `resources/todo-completion-guide.md` 참조
 
-**옵션 2: 파일만 삭제**
-- 단순 작업으로 별도 기록 불필요 시
+**옵션 3: 삭제 (정말 불필요한 경우)**
+- completed/에서도 제거
+- Git 히스토리에만 남음
 
-사용자 확인: "[1] Knowledge 통합 후 삭제 (권장) / [2] 파일만 삭제"
+사용자 확인: "[1] 이대로 보관 (기본) / [2] Knowledge로도 통합 / [3] 삭제"
 
 ### 워크플로우 10: 문서 건강도 자동 체크
 
@@ -329,6 +382,19 @@ TODO가 `status: done`이 되면 사용자에게 선택지 제안:
 
 **상세 로직**: `resources/health-check.md` 참조
 
+### 워크플로우 11: Completed TODO 아카이브 (선택)
+
+**실행 시점**: "오래된 TODO 정리", "completed 정리" 요청 시
+
+**대상**: 6개월 이상 경과한 completed TODO
+
+**옵션**:
+1. 유지 (활발한 프로젝트)
+2. Git 압축 후 삭제 (완료된 프로젝트)
+3. 아카이브 디렉토리로 이동 (장기 프로젝트)
+
+**상세 절차**: `resources/completed-archive-policy.md` 참조
+
 ## 중요 원칙
 
 1. **사용자 중심**: 항상 사용자에게 확인하고 대화하며 진행
@@ -337,89 +403,7 @@ TODO가 `status: done`이 되면 사용자에게 선택지 제안:
 4. **추적 가능성**: 히스토리와 참조를 통한 변경 추적
 5. **단순함**: 복잡한 스크립트 대신 Claude의 판단 활용
 6. **자동 건강도 관리**: 문서 작성 중 자동으로 정리 필요성 판단
-7. **간결성**: 각 섹션은 핵심만 간결하게 작성
-
-### 문서 작성 분량 가이드
-
-문서를 작성할 때 다음 분량 기준을 준수하세요:
-
-**지식 문서 (knowledge/)**:
-- **현재 상태**: 1-3문장 (설정값, 현황만)
-- **개요**: 2-4문장 (배경, 필요성)
-- **히스토리 항목**: 총 3-5줄
-  - 변경 내용: 1-2줄
-  - 이유: 1-2줄
-  - 영향: 1줄
-
-**의사결정 문서 (decisions/)**:
-- **결정 내용**: 2-3문장
-- **이유**: 3-4문장 (핵심 근거만)
-- **대안당**: 2-3줄 (장단점 각 1줄)
-- **영향**: 항목당 1줄
-
-**TODO 문서 (todos/)**:
-- **설명**: 2-3문장
-- **완료 조건**: 체크리스트 (3-5개 항목)
-- **상세 내용**: 필요 최소한만
-
-## 문서 작성 안티패턴
-
-문서가 장황해지는 것을 방지하기 위해 다음 패턴을 피하세요:
-
-### ❌ 피해야 할 패턴
-
-1. **히스토리 항목이 10줄 이상**
-   - 변경 배경부터 장황하게 서술
-   - "왜 이렇게 결정했는지"를 여러 문단으로 설명
-   - 당연한 내용까지 반복 설명
-
-2. **"이유" 섹션에 불필요한 배경 설명**
-   - 프로젝트 전체 배경부터 설명
-   - 모든 고려 사항을 나열
-   - 결정과 무관한 컨텍스트 추가
-
-3. **대안 분석에 과도한 상세**
-   - 각 대안의 모든 세부사항 나열
-   - 명확한 장단점을 반복 설명
-   - 고려하지 않은 대안까지 문서화
-
-4. **TODO 설명이 문서 수준**
-   - 작업 배경을 길게 서술
-   - 구현 방법을 미리 상세히 작성
-   - 완료 조건을 여러 문단으로 설명
-
-### ✅ 권장 패턴
-
-1. **히스토리 항목: 3-5줄**
-   ```markdown
-   ### YYYY-MM-DD: {변경 제목}
-   **변경 내용:** {old-value} → {new-value}
-   **이유:** {변경 이유}
-   **영향:** {영향받는 부분}
-   ```
-
-2. **이유: 핵심 근거만 3-4문장**
-   ```markdown
-   ## 이유
-   {결정 근거 1}.
-   {결정 근거 2}.
-   {대안} 대비 {개선 효과}.
-   ```
-
-3. **대안: 장단점 각 1-2줄**
-   ```markdown
-   ## 고려한 대안
-   1. **{대안명}**
-      - 장점: {장점}
-      - 단점: {단점}
-   ```
-
-4. **TODO: 핵심만**
-   ```markdown
-   ## 설명
-   {작업 대상} {작업 내용}.
-   {관련 작업}의 일부.
-   ```
+7. **간결성**: 각 섹션은 핵심만 간결하게 작성 (상세: `resources/writing-guidelines.md`)
 
 ## Examples
 
@@ -432,8 +416,65 @@ User: "이번 주 할 일" → 워크플로우 4 → Glob + Read → 우선순�
 ### 의사결정 기록
 User: "{주제} 결정 기록" → 워크플로우 2 → 템플릿 기반 생성 → 사용자 대화 (이유, 대안, 영향) → 관련 문서 링크 → Git 커밋
 
-### TODO 완료 및 통합
-User: "{task} 완료" → 워크플로우 9 → 통합 제안 → Category 결정 → Knowledge 통합 → TODO 삭제
+### TODO 생성 (복수 분할)
+User: "User, Post, Comment 리소스 구현해줘" → 워크플로우 3 → 복수 감지 → 분할 제안 → resource-user.md, resource-post.md, resource-comment.md 생성 → 공통 태그 추가
+
+### TODO 완료 및 처리
+User: "{task} 완료" → 워크플로우 9 → completed/로 이동 (필수) → 추가 처리 선택 ([1] 보관 / [2] Knowledge 통합 / [3] 삭제)
+
+## CLI Scripts
+
+Living Docs는 자동화 스크립트를 제공합니다.
+
+### 스크립트 위치
+
+```
+scripts/
+├── living-docs           # 메인 CLI 진입점
+├── todo-list.sh          # TODO 목록 조회
+├── todo-archive.sh       # 완료된 TODO 아카이브
+├── health-check.sh       # 문서 건강도 체크
+└── lib/
+    ├── frontmatter.sh    # YAML 파싱 라이브러리
+    └── utils.sh          # 공통 유틸리티
+```
+
+### 사용법
+
+```bash
+# 현황 요약
+living-docs
+
+# TODO 목록 조회
+living-docs list
+living-docs list -s pending
+living-docs list --priority urgent
+
+# 완료된 TODO 아카이브
+living-docs archive              # dry-run (미리보기)
+living-docs archive --execute    # 실제 실행
+
+# 문서 건강도 체크
+living-docs health
+living-docs health --quick       # 빠른 체크
+living-docs health --full        # 전체 체크
+```
+
+### Proactive Triggers
+
+다음 키워드 감지 시 스크립트 실행을 제안합니다:
+
+| 키워드 | 스크립트 | 설명 |
+|--------|----------|------|
+| "TODO 목록", "할 일", "뭐 해야" | `living-docs list` | TODO 목록 조회 |
+| "정리", "아카이브", "completed 정리" | `living-docs archive` | 완료된 TODO 정리 |
+| "건강도", "문서 상태", "중복 확인" | `living-docs health` | 문서 건강도 체크 |
+
+### 의존성
+
+- `yq`: YAML frontmatter 파싱
+- `rg` (ripgrep): 빠른 파일 검색
+- `jq`: JSON 처리 (선택)
 
 ## Technical Details
 
