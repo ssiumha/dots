@@ -90,11 +90,17 @@ Grep "tags:.*security" ~/docs/{project}/**/*.md
 **사용 시나리오**: "진행 중인 TODO 보여줘"
 
 ```bash
-# 상태별 필터링
+# Active TODO만 (pending, in-progress)
 Grep "status: in-progress" ~/docs/{project}/todos/*.md
 
 # 우선순위별 필터링
 Grep "priority: high" ~/docs/{project}/todos/*.md
+
+# 완료된 TODO 검색 (completed 디렉토리)
+Grep "status: done" ~/docs/{project}/todos/completed/**/*.md
+
+# 특정 월 완료 작업
+Glob ~/docs/{project}/todos/completed/2025-01/*.md
 ```
 
 ## 3. 상세 분석 (필요한 것만)

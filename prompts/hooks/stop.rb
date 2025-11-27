@@ -56,6 +56,36 @@ COMPLETION_KEYWORDS = [
   'complete'
 ].freeze
 
+# Living Docs 스크립트 경로
+LIVING_DOCS_SCRIPT = File.expand_path('~/dots/prompts/skills/living-docs/scripts/living-docs')
+
+# 프로젝트 감지 (현재 디렉토리에서)
+def detect_project(cwd)
+  return nil unless cwd
+
+  # ~/repos/{project}/... 패턴에서 추출
+  if cwd =~ %r{#{ENV['HOME']}/repos/([^/]+)}
+    project = $1
+    # _slot숫자 제거, 끝 숫자 제거
+    project = project.gsub(/_slot\d*$/, '').gsub(/\d+$/, '')
+    return project unless project.empty?
+  end
+  nil
+end
+
+# 완료된 TODO 수 확인
+def count_completed_todos(project)
+  todos_dir = File.expand_path("~/docs/#{project}/todos")
+  return 0 unless Dir.exist?(todos_dir)
+
+  count = 0
+  Dir.glob(File.join(todos_dir, '*.md')).each do |file|
+    content = File.read(file, encoding: 'utf-8') rescue next
+    count += 1 if content =~ /^status:\s*done\s*$/
+  end
+  count
+end
+
 begin
   # 입력 JSON 파싱
   input_data = JSON.parse($stdin.read)
@@ -108,6 +138,27 @@ begin
     $stderr.puts ""
     $stderr.puts "## 📝 Task Completion Detected"
     $stderr.puts ""
+
+    # 프로젝트 감지 및 완료된 TODO 확인
+    cwd = input_data['cwd']
+    project = detect_project(cwd)
+
+    if project && File.exist?(LIVING_DOCS_SCRIPT)
+      completed_count = count_completed_todos(project)
+
+      if completed_count > 0
+        $stderr.puts "### Living Docs: Completed TODOs Found"
+        $stderr.puts ""
+        $stderr.puts "#{completed_count} completed TODO(s) ready to archive in **#{project}**."
+        $stderr.puts ""
+        $stderr.puts "Archive command:"
+        $stderr.puts "```bash"
+        $stderr.puts "#{LIVING_DOCS_SCRIPT} archive -p #{project}"
+        $stderr.puts "```"
+        $stderr.puts ""
+      end
+    end
+
     $stderr.puts "Consider documenting this work using the **living-docs** skill:"
     $stderr.puts "- Record architectural decisions (ADR)"
     $stderr.puts "- Update knowledge base"
