@@ -125,9 +125,16 @@ endfunction
 
 " WebDAV 링크 파싱: server:path 형식 감지
 function! ParseWikiLink(link)
-  let parts = split(a:link, ':', 1)
+  " @로 시작하면 self-nested 링크
+  if a:link =~ '^@'
+    return {
+      \ 'type': 'self',
+      \ 'path': a:link[1:]
+    \ }
+  endif
 
   " server:path 형식인지 체크 (path는 /로 시작)
+  let parts = split(a:link, ':', 1)
   if len(parts) >= 2 && parts[1] =~ '^/'
     return {
       \ 'type': 'webdav',
@@ -250,8 +257,10 @@ function! SmartLink() abort
   endif
 endfunction
 
+runtime note/util.vim
 runtime note/dataview.vim
 runtime note/outline.vim
+runtime note/move.vim
 
 function! GetMarkdownPagePath()
   let syn_name = synIDattr(synID(line('.'), col('.'), 1), 'name')
@@ -280,17 +289,69 @@ function! OpenWiki() abort
     " WebDAV 파일 열기
     tabnew
     call webdav#file#get(link_info.path, link_info.server)
+  elseif link_info.type == 'self'
+    " Self-nested: 현재 파일명 폴더 안 문서
+    let base = expand('%:p:r')
+    let page = base . '/' . link_info.path
+    " 확장자 없으면 .md 추가
+    if page !~ '\.[^./]\+$'
+      let page .= '.md'
+    endif
+    execute 'tabe' fnameescape(page)
   elseif link_info.type == 'local'
     " 기존 로컬 파일 열기
     let page = link_info.path
     if page !~ '/$'
-      let page .= page =~ '\.md$' ? '' : '.md'
+      " 확장자 없으면 .md 추가
+      if page !~ '\.[^./]\+$'
+        let page .= '.md'
+      endif
     endif
     let page = page =~# '^\v(/|\~|\w+:)' ? page : expand('%:p:h') . '/' . page
     execute 'tabe' fnameescape(page)
   else
     normal! <CR>
   endif
+endfunction
+
+" FZF로 로컬 파일 탐색 → wikilink 삽입
+function! LocalLinkFzf() abort
+  " 우선순위: git root → index.md marker → 현재 디렉토리
+  let git_root = trim(system('git rev-parse --show-toplevel 2>/dev/null'))
+  let marker_root = NoteRootByMarker(expand('%:p:h'), 'index.md')
+  let base_dir = !empty(git_root) ? git_root : (!empty(marker_root) ? marker_root : expand('%:p:h'))
+  let current_file = expand('%:p')
+
+  let cmd = 'fd -t f -e md --base-directory ' . shellescape(base_dir)
+
+  call fzf#run(fzf#wrap({
+    \ 'source': cmd,
+    \ 'sink*': function('s:HandleLinkSelection', [base_dir, current_file]),
+    \ 'options': ['--prompt', '[[', '--print-query', '--preview', 'head -20 {}'],
+    \ 'down': '40%'
+  \ }))
+endfunction
+
+function! s:HandleLinkSelection(base_dir, current_file, result) abort
+  if len(a:result) < 1 | return | endif
+
+  let query = a:result[0]
+  let selection = len(a:result) > 1 ? a:result[1] : ''
+
+  if !empty(selection)
+    let current_dir = fnamemodify(a:current_file, ':h')
+    let target = a:base_dir . '/' . selection
+    let relative = NoteRelativePath(target, current_dir)
+    let relative = substitute(relative, '\.md$', '', '')
+    let link = relative
+  else
+    let link = query
+  endif
+
+  if empty(link) | return | endif
+
+  execute "normal! a[[" . link . "]]"
+  startinsert!
 endfunction
 
 augroup MyMarkdown
@@ -305,6 +366,17 @@ augroup MyMarkdown
   autocmd FileType markdown nnoremap <buffer> <c-c><c-l> :call SmartLink()<cr>
   autocmd FileType markdown nnoremap <buffer> <c-c><c-p> :call DataviewProperty()<cr>
   autocmd FileType markdown nnoremap <buffer> <c-c><c-o> :call MarkdownOutline()<cr>
+  autocmd FileType markdown nnoremap <buffer> <c-c><c-w> :MoveFileFzf<cr>
+
+  autocmd FileType markdown nnoremap <buffer> <C-c>. :PickDateAtCursor<CR>
+  autocmd FileType markdown inoremap <buffer> <C-c>. <c-o>:PickDateAtCursor<CR>
+
+  autocmd FileType markdown inoremap <buffer> [[ <C-o>:call LocalLinkFzf()<CR>
+
+  autocmd FileType markdown noremap <S-Up>    :call ShiftDateAtCursor(1)<CR>
+  autocmd FileType markdown noremap <S-Down>  :call ShiftDateAtCursor(-1)<CR>
+  autocmd FileType markdown noremap <S-Left>  :call ShiftDateAtCursor(-1, 'day')<CR>
+  autocmd FileType markdown noremap <S-Right> :call ShiftDateAtCursor(1, 'day')<CR>
 
   autocmd InsertEnter *.md setlocal foldmethod=manual
   autocmd InsertLeave *.md setlocal foldmethod=expr
