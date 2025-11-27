@@ -1,0 +1,552 @@
+#!/usr/bin/env ruby
+# fzf-based interactive date picker
+# Usage: cal [date] [--shift offset] [--preview]
+
+require 'date'
+require 'net/http'
+require 'json'
+require 'fileutils'
+
+# Korean holidays cache from https://holidays.hyunbin.page
+module HolidayCache
+  CACHE_DIR = File.expand_path('~/.cache/day')
+  BASE_URL = 'https://holidays.hyunbin.page'
+
+  def self.load(year, refresh: false)
+    cache_file = File.join(CACHE_DIR, "#{year}.json")
+
+    if refresh || !File.exist?(cache_file)
+      download(year, cache_file)
+    end
+
+    return {} unless File.exist?(cache_file)
+    JSON.parse(File.read(cache_file))
+  rescue => e
+    $stderr.puts "Warning: Failed to load holidays: #{e.message}" if $DEBUG
+    {}
+  end
+
+  def self.download(year, cache_file)
+    FileUtils.mkdir_p(CACHE_DIR)
+    uri = URI("#{BASE_URL}/#{year}.json")
+    response = Net::HTTP.get_response(uri)
+
+    if response.is_a?(Net::HTTPSuccess)
+      File.write(cache_file, response.body)
+    end
+  rescue => e
+    $stderr.puts "Warning: Failed to download holidays: #{e.message}" if $DEBUG
+  end
+
+  def self.holiday?(holidays, date)
+    holidays.key?(date.to_s)
+  end
+
+  def self.holiday_name(holidays, date)
+    holidays[date.to_s]&.join(', ')
+  end
+end
+
+class DatePicker
+  COLORS = {
+    today: "\e[47;30m",          # white bg, black fg
+    selected: "\e[44;97m",       # blue bg, white fg
+    both: "\e[42;30m",           # green bg, black fg (today + selected)
+    range: "\e[46;30m",          # cyan bg, black fg
+    saturday: "\e[2m",           # dim
+    sunday: "\e[2;31m",          # dim red
+    header: "\e[1;36m",          # bold cyan
+    reset: "\e[0m"
+  }
+
+  # Seasonal month colors (256-color palette)
+  MONTH_COLORS = {
+    1  => "\e[1;38;5;27m",   # Jan: deep blue (winter)
+    2  => "\e[1;38;5;39m",   # Feb: sky blue (winter)
+    3  => "\e[1;38;5;49m",   # Mar: teal (spring)
+    4  => "\e[1;38;5;83m",   # Apr: light green (spring)
+    5  => "\e[1;38;5;118m",  # May: lime (spring)
+    6  => "\e[1;38;5;226m",  # Jun: yellow (summer)
+    7  => "\e[1;38;5;214m",  # Jul: orange (summer)
+    8  => "\e[1;38;5;203m",  # Aug: coral (summer)
+    9  => "\e[1;38;5;196m",  # Sep: red (autumn)
+    10 => "\e[1;38;5;208m",  # Oct: dark orange (autumn)
+    11 => "\e[1;38;5;135m",  # Nov: purple (autumn)
+    12 => "\e[1;38;5;63m",   # Dec: blue-violet (winter)
+  }
+
+  DAYS_SUN = %w[Su Mo Tu We Th Fr Sa]
+  DAYS_MON = %w[Mo Tu We Th Fr Sa Su]
+
+  def initialize(date = nil, monday_start: true, show_week: false, refresh_holidays: false)
+    @monday_start = monday_start
+    @show_week = show_week
+    @range_start, @date = parse_date_with_range(date)
+    @today = Date.today
+    @refresh_holidays = refresh_holidays
+    @holidays = {}
+  end
+
+  def load_holidays_for_year(year)
+    @holidays[year] ||= HolidayCache.load(year, refresh: @refresh_holidays)
+  end
+
+  def holiday?(date)
+    holidays = load_holidays_for_year(date.year)
+    HolidayCache.holiday?(holidays, date)
+  end
+
+  def holiday_name(date)
+    holidays = load_holidays_for_year(date.year)
+    HolidayCache.holiday_name(holidays, date)
+  end
+
+  # Output date with D-day and optional holiday name for fzf
+  def output_date(date)
+    parts = []
+
+    # D-day 계산
+    diff = (date - @today).to_i
+    if diff == 0
+      parts << "Today"
+    elsif diff > 0
+      parts << "D-#{diff}"
+    else
+      parts << "D+#{diff.abs}"
+    end
+
+    # 공휴일 이름
+    name = holiday_name(date)
+    parts << name if name
+
+    "#{date} (#{parts.join(', ')})"
+  end
+
+  # Output range with day count
+  def output_range(d1, d2)
+    d1, d2 = d2, d1 if d1 > d2
+    days = (d2 - d1).to_i + 1
+    "#{d1}--#{d2} (#{days} days)"
+  end
+
+  def parse_date_with_range(input)
+    return [nil, Date.today] if input.nil? || input.empty?
+    if input.include?('--')
+      parts = input.split('--')
+      [Date.parse(parts[0]), Date.parse(parts[1])]
+    else
+      [nil, Date.parse(input)]
+    end
+  rescue ArgumentError
+    [nil, Date.today]
+  end
+
+  def month_width
+    @show_week ? 23 : 20  # +3 for "WW " prefix
+  end
+
+  # Render calendar for fzf preview
+  def render(monday_start: nil, show_week: nil)
+    @monday_start = monday_start unless monday_start.nil?
+    @show_week = show_week unless show_week.nil?
+    cols = (ENV['FZF_PREVIEW_COLUMNS'] || 22).to_i
+    rows = (ENV['FZF_PREVIEW_LINES'] || 9).to_i
+
+    # Responsive based on month_width
+    w = month_width
+    month_cols = cols >= (w * 3 + 4) ? 3 : (cols >= (w * 2 + 2) ? 2 : 1)
+    month_rows = [[rows / 9, 1].max, 4].min
+
+    puts render_grid(month_cols, month_rows)
+  end
+
+  # Shift date by offset
+  def shift(offset)
+    @date = case offset
+      when /^([+-])(\d+)d$/ then @date + ($1 == '+' ? $2.to_i : -$2.to_i)
+      when /^([+-])(\d+)w$/ then @date + ($1 == '+' ? $2.to_i * 7 : -$2.to_i * 7)
+      when /^([+-])(\d+)m$/ then $1 == '+' ? @date >> $2.to_i : @date << $2.to_i
+      when /^([+-])(\d+)y$/ then $1 == '+' ? @date >> ($2.to_i * 12) : @date << ($2.to_i * 12)
+      when '0' then week_start(@date)
+      when '$' then week_start(@date) + 6
+      else @date
+    end
+    puts @range_start ? output_range(@range_start, @date) : output_date(@date)
+  end
+
+  # Get the first day of the week containing the given date
+  def week_start(date)
+    if @monday_start
+      # Monday = 0, Sunday = 6
+      offset = (date.wday + 6) % 7
+    else
+      # Sunday = 0, Saturday = 6
+      offset = date.wday
+    end
+    date - offset
+  end
+
+  # Toggle range selection
+  def toggle_range
+    if @range_start
+      # Cancel range mode
+      puts output_date(@date)
+    else
+      # Start range mode
+      puts output_range(@date, @date)
+    end
+  end
+
+  # Parse various date formats and jump
+  def goto(query)
+    result = parse_goto(query) || @date
+    puts output_date(result)
+  end
+
+  def parse_goto(query)
+    return nil if query.nil? || query.strip.empty?
+    q = query.strip
+
+    # Relative: +7, -3, +2w, -1m, +1y
+    if q =~ /^([+-])(\d+)([dwmy]?)$/
+      sign, num, unit = $1, $2.to_i, $3
+      num = -num if sign == '-'
+      case unit
+      when 'd', '' then return @date + num
+      when 'w' then return @date + (num * 7)
+      when 'm' then return @date >> num
+      when 'y' then return @date >> (num * 12)
+      end
+    end
+
+    # Full date: 2024-12-25
+    if q =~ /^(\d{4})-(\d{1,2})-(\d{1,2})$/
+      return Date.new($1.to_i, $2.to_i, $3.to_i) rescue nil
+    end
+
+    # Month/Day: 12/25 or 12-25
+    if q =~ /^(\d{1,2})[\/\-](\d{1,2})$/
+      return Date.new(@date.year, $1.to_i, $2.to_i) rescue nil
+    end
+
+    # Day only: 25
+    if q =~ /^(\d{1,2})$/ && $1.to_i <= 31
+      return Date.new(@date.year, @date.month, $1.to_i) rescue nil
+    end
+
+    # Year only: 2024
+    if q =~ /^(\d{4})$/
+      return Date.new($1.to_i, @date.month, [@date.day, 28].min) rescue nil
+    end
+
+    nil
+  end
+
+  # Run fzf picker
+  def run(format: '%Y-%m-%d', weekday: true)
+    myself = File.expand_path(__FILE__)
+    today = Date.today.to_s
+    flags = [@monday_start ? '-m' : '-s', @show_week ? '-W' : nil].compact.join(' ')
+
+    binds = [
+      "left:reload(#{myself} {1} #{flags} --shift -1d)",
+      "right:reload(#{myself} {1} #{flags} --shift +1d)",
+      "up:reload(#{myself} {1} #{flags} --shift -1w)",
+      "down:reload(#{myself} {1} #{flags} --shift +1w)",
+      "h:reload(#{myself} {1} #{flags} --shift -1d)",
+      "l:reload(#{myself} {1} #{flags} --shift +1d)",
+      "k:reload(#{myself} {1} #{flags} --shift -1w)",
+      "j:reload(#{myself} {1} #{flags} --shift +1w)",
+      "[:reload(#{myself} {1} #{flags} --shift -1m)",
+      "]:reload(#{myself} {1} #{flags} --shift +1m)",
+      "H:reload(#{myself} {1} #{flags} --shift -1m)",
+      "L:reload(#{myself} {1} #{flags} --shift +1m)",
+      "K:reload(#{myself} {1} #{flags} --shift -1y)",
+      "J:reload(#{myself} {1} #{flags} --shift +1y)",
+      "{:reload(#{myself} {1} #{flags} --shift -1y)",
+      "}:reload(#{myself} {1} #{flags} --shift +1y)",
+      "t:reload(#{myself} #{today} #{flags} --shift +0d)",
+      "tab:reload(#{myself} {1} #{flags} --goto {q})",
+      "(:reload(#{myself} {1} #{flags} --shift 0)",
+      "):reload(#{myself} {1} #{flags} --shift $)",
+      "space:reload(#{myself} {1} #{flags} --toggle-range)",
+      "v:reload(#{myself} {1} #{flags} --toggle-range)",
+      "esc:reload(#{myself} {1} #{flags} --shift +0d)+clear-query",
+      "q:abort",
+    ]
+
+    header = "h/l:day  j/k:week  (/):week-end  [/]:month  {/}:year  t:today"
+
+    cmd = [
+      'fzf',
+      '--disabled',
+      '--no-info',
+      '--ansi',
+      '--no-separator',
+      '--height=15',
+      '--layout=reverse',
+      "--header=#{header}",
+      "--preview=#{myself} {1} #{flags} --preview",
+      '--preview-window=up:10:wrap',
+      *binds.flat_map { |b| ['--bind', b] }
+    ]
+
+    IO.popen(cmd, 'r+') do |fzf|
+      fzf.puts @range_start ? output_range(@range_start, @date) : output_date(@date)
+      fzf.close_write
+      result = fzf.gets&.strip
+      if result && !result.empty?
+        if result.include?('--')
+          # Range output (no weekday)
+          parts = result.split('--')
+          d1, d2 = Date.parse(parts[0]), Date.parse(parts[1])
+          d1, d2 = d2, d1 if d1 > d2
+          puts "#{d1.strftime(format)}--#{d2.strftime(format)}"
+        else
+          date = Date.parse(result)
+          output = date.strftime(format)
+          output = "#{output} #{date.strftime('%a')}" if weekday
+          puts output
+        end
+      end
+    end
+  end
+
+  private
+
+  def render_grid(month_cols, month_rows)
+    total_months = month_cols * month_rows
+    start_offset = -(total_months / 2)
+
+    months = (0...total_months).map do |i|
+      offset = start_offset + i
+      render_month(@date >> offset)
+    end
+
+    # Combine months into grid
+    output = []
+    month_rows.times do |row|
+      row_months = months[row * month_cols, month_cols]
+      combined = combine_months(row_months)
+      output << combined
+      output << "" if row < month_rows - 1
+    end
+
+    output.join("\n")
+  end
+
+  def render_month(month_date)
+    first_day = Date.new(month_date.year, month_date.month, 1)
+    last_day = Date.new(month_date.year, month_date.month, -1)
+    week_prefix = @show_week ? "   " : ""
+
+    lines = []
+
+    # Header: month name with seasonal color
+    is_current_month = (month_date.year == @today.year && month_date.month == @today.month)
+    month_color = MONTH_COLORS[month_date.month]
+    month_name = first_day.strftime("%B %Y")
+    month_name = is_current_month ? "[#{month_name}]" : " #{month_name} "
+    header = month_name.center(month_width)
+    lines << "#{month_color}#{header}#{COLORS[:reset]}"
+
+    # Day names
+    day_names = (@monday_start ? DAYS_MON : DAYS_SUN).join(" ")
+    lines << "#{week_prefix}#{day_names}"
+
+    # Days grid
+    week = []
+    week_start_date = nil
+    # Pad start (Monday start: shift wday so Monday=0)
+    start_wday = @monday_start ? (first_day.wday + 6) % 7 : first_day.wday
+    start_wday.times { week << "  " }
+
+    (1..last_day.day).each do |day|
+      current = Date.new(month_date.year, month_date.month, day)
+      week_start_date ||= current
+      day_str = day.to_s.rjust(2)
+
+      # Apply colors
+      in_range = @range_start && current >= [@range_start, @date].min && current <= [@range_start, @date].max
+      is_holiday = holiday?(current)
+      if current == @date && current == @today
+        day_str = "#{COLORS[:both]}#{day_str}#{COLORS[:reset]}"
+      elsif current == @date
+        day_str = "#{COLORS[:selected]}#{day_str}#{COLORS[:reset]}"
+      elsif in_range
+        day_str = "#{COLORS[:range]}#{day_str}#{COLORS[:reset]}"
+      elsif current == @today
+        day_str = "#{COLORS[:today]}#{day_str}#{COLORS[:reset]}"
+      elsif is_holiday || current.sunday?
+        day_str = "#{COLORS[:sunday]}#{day_str}#{COLORS[:reset]}"
+      elsif current.saturday?
+        day_str = "#{COLORS[:saturday]}#{day_str}#{COLORS[:reset]}"
+      end
+
+      week << day_str
+
+      if week.size == 7
+        wnum = @show_week ? week_start_date.strftime("%V ") : ""
+        lines << "#{wnum}#{week.join(" ")}"
+        week = []
+        week_start_date = nil
+      end
+    end
+
+    # Pad end
+    unless week.empty?
+      while week.size < 7
+        week << "  "
+      end
+      wnum = @show_week ? week_start_date.strftime("%V ") : ""
+      lines << "#{wnum}#{week.join(" ")}"
+    end
+
+    # Ensure consistent height (8 lines: header + days + 6 week rows)
+    while lines.size < 8
+      lines << " " * month_width
+    end
+
+    lines
+  end
+
+  def combine_months(month_arrays)
+    max_lines = month_arrays.map(&:size).max
+    separator = "  "
+    w = month_width
+
+    (0...max_lines).map do |i|
+      month_arrays.map do |m|
+        line = m[i] || ""
+        # Pad to month_width chars (accounting for ANSI codes)
+        visible_length = line.gsub(/\e\[[0-9;]*m/, '').length
+        padding = [w - visible_length, 0].max
+        line + " " * padding
+      end.join(separator)
+    end.join("\n")
+  end
+end
+
+# CLI
+if ARGV.include?('-h') || ARGV.include?('--help')
+  puts <<~HELP
+    when - fzf-based date picker
+
+    Usage: when [date]
+
+    Options:
+      -h, --help          Show this help
+      -f, --format FMT    Date format (default: %Y-%m-%d)
+      -w, --weekday       Include weekday (default)
+      --no-weekday        Exclude weekday
+      -m, --monday        Week starts on Monday (default)
+      -s, --sunday        Week starts on Sunday
+      -W, --week          Show ISO week numbers
+      --refresh-holidays  Refresh Korean holidays cache
+
+    Formats:
+      %Y-%m-%d    2025-11-26
+      %y-%m-%d    25-11-26
+      %m/%d/%Y    11/26/2025
+      %d.%m.%Y    26.11.2025
+
+    Keybinds:
+      h/l, ←/→      Day
+      j/k, ↑/↓      Week
+      (/)           Week start/end
+      H/L, [/]      Month
+      J/K, {/}      Year
+      t             Today
+      Enter         Select
+
+    Query jump (type, then Tab):
+      25            Day of current month
+      12/25         Month/Day of current year
+      2024-12-25    Full date
+      +7, -3        Relative days (from selected)
+      +2w, -1m      Relative weeks/months
+
+    Stdin:
+      echo '2025-12-25' | when  # Start from piped date
+
+    Holidays:
+      Korean holidays are shown in red (same as Sunday).
+      Data from https://holidays.hyunbin.page
+      Cache: ~/.cache/day/[year].json
+
+    Examples:
+      when                      # 2025-11-26 Wed
+      when --no-weekday         # 2025-11-26
+      when -f '%y-%m-%d'        # 25-11-26 Wed
+      when -s                   # Sunday start calendar
+  HELP
+elsif ARGV.include?('--refresh-holidays')
+  # Just refresh holidays cache for current year
+  HolidayCache.load(Date.today.year, refresh: true)
+  puts "Holidays cache refreshed for #{Date.today.year}"
+elsif ARGV.include?('--preview')
+  # First non-flag argument is the date (or range)
+  date = ARGV.find { |a| a =~ /^\d{4}-\d{2}-\d{2}(--\d{4}-\d{2}-\d{2})?$/ }
+  monday = !ARGV.include?('-s') && !ARGV.include?('--sunday')
+  show_week = ARGV.include?('-W') || ARGV.include?('--week')
+  DatePicker.new(date, monday_start: monday, show_week: show_week).render
+elsif ARGV.include?('--toggle-range')
+  date = ARGV.find { |a| a =~ /^\d{4}-\d{2}-\d{2}(--\d{4}-\d{2}-\d{2})?$/ }
+  monday = !ARGV.include?('-s') && !ARGV.include?('--sunday')
+  show_week = ARGV.include?('-W') || ARGV.include?('--week')
+  DatePicker.new(date, monday_start: monday, show_week: show_week).toggle_range
+elsif ARGV.include?('--shift')
+  idx = ARGV.index('--shift')
+  date = ARGV.find { |a| a =~ /^\d{4}-\d{2}-\d{2}(--\d{4}-\d{2}-\d{2})?$/ }
+  offset = ARGV[idx + 1]
+  monday = !ARGV.include?('-s') && !ARGV.include?('--sunday')
+  show_week = ARGV.include?('-W') || ARGV.include?('--week')
+  DatePicker.new(date, monday_start: monday, show_week: show_week).shift(offset)
+elsif ARGV.include?('--goto')
+  idx = ARGV.index('--goto')
+  date = ARGV.find { |a| a =~ /^\d{4}-\d{2}-\d{2}(--\d{4}-\d{2}-\d{2})?$/ }
+  query = ARGV[idx + 1]
+  monday = !ARGV.include?('-s') && !ARGV.include?('--sunday')
+  show_week = ARGV.include?('-W') || ARGV.include?('--week')
+  DatePicker.new(date, monday_start: monday, show_week: show_week).goto(query)
+else
+  # Parse options
+  args = ARGV.dup
+  format = '%Y-%m-%d'
+  weekday = true
+  monday_start = true
+  show_week = false
+  date = nil
+
+  while args.any?
+    case args.first
+    when '-f', '--format'
+      args.shift
+      format = args.shift
+    when '-w', '--weekday'
+      args.shift
+      weekday = true
+    when '--no-weekday'
+      args.shift
+      weekday = false
+    when '-m', '--monday'
+      args.shift
+      monday_start = true
+    when '-s', '--sunday'
+      args.shift
+      monday_start = false
+    when '-W', '--week'
+      args.shift
+      show_week = true
+    else
+      date ||= args.shift
+    end
+  end
+
+  # Read from stdin if available and no date given
+  if date.nil? && !$stdin.tty?
+    date = $stdin.gets&.strip
+  end
+
+  DatePicker.new(date, monday_start: monday_start, show_week: show_week).run(format: format, weekday: weekday)
+end
