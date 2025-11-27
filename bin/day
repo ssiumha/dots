@@ -11,11 +11,12 @@ require 'fileutils'
 module HolidayCache
   CACHE_DIR = File.expand_path('~/.cache/day')
   BASE_URL = 'https://holidays.hyunbin.page'
+  CACHE_MAX_AGE = 365 * 24 * 60 * 60  # 1 year in seconds
 
   def self.load(year, refresh: false)
     cache_file = File.join(CACHE_DIR, "#{year}.json")
 
-    if refresh || !File.exist?(cache_file)
+    if refresh || !File.exist?(cache_file) || cache_expired?(cache_file)
       download(year, cache_file)
     end
 
@@ -26,11 +27,21 @@ module HolidayCache
     {}
   end
 
+  def self.cache_expired?(cache_file)
+    return true unless File.exist?(cache_file)
+    (Time.now - File.mtime(cache_file)) > CACHE_MAX_AGE
+  end
+
   def self.download(year, cache_file)
     FileUtils.mkdir_p(CACHE_DIR)
     uri = URI("#{BASE_URL}/#{year}.json")
-    response = Net::HTTP.get_response(uri)
 
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    http.open_timeout = 5
+    http.read_timeout = 10
+
+    response = http.get(uri.path)
     if response.is_a?(Net::HTTPSuccess)
       File.write(cache_file, response.body)
     end
@@ -102,24 +113,16 @@ class DatePicker
   end
 
   # Output date with D-day and optional holiday name for fzf
-  def output_date(date)
-    parts = []
-
-    # D-day 계산
-    diff = (date - @today).to_i
-    if diff == 0
-      parts << "Today"
-    elsif diff > 0
-      parts << "D-#{diff}"
-    else
-      parts << "D+#{diff.abs}"
-    end
+  def output_date(date, weekday_marker: false)
+    parts = [CLI.format_dday(date, @today)]
 
     # 공휴일 이름
     name = holiday_name(date)
     parts << name if name
 
-    "#{date} (#{parts.join(', ')})"
+    result = "#{date} (#{parts.join(', ')})"
+    result += " [w]" if weekday_marker
+    result
   end
 
   # Output range with day count
@@ -161,7 +164,7 @@ class DatePicker
   end
 
   # Shift date by offset
-  def shift(offset)
+  def shift(offset, weekday_marker: false)
     @date = case offset
       when /^([+-])(\d+)d$/ then @date + ($1 == '+' ? $2.to_i : -$2.to_i)
       when /^([+-])(\d+)w$/ then @date + ($1 == '+' ? $2.to_i * 7 : -$2.to_i * 7)
@@ -171,7 +174,7 @@ class DatePicker
       when '$' then week_start(@date) + 6
       else @date
     end
-    puts @range_start ? output_range(@range_start, @date) : output_date(@date)
+    puts @range_start ? output_range(@range_start, @date) : output_date(@date, weekday_marker: weekday_marker)
   end
 
   # Get the first day of the week containing the given date
@@ -197,10 +200,15 @@ class DatePicker
     end
   end
 
+  # Toggle weekday marker
+  def toggle_weekday(current_on)
+    puts output_date(@date, weekday_marker: !current_on)
+  end
+
   # Parse various date formats and jump
-  def goto(query)
+  def goto(query, weekday_marker: false)
     result = parse_goto(query) || @date
-    puts output_date(result)
+    puts output_date(result, weekday_marker: weekday_marker)
   end
 
   def parse_goto(query)
@@ -249,33 +257,34 @@ class DatePicker
     flags = [@monday_start ? '-m' : '-s', @show_week ? '-W' : nil].compact.join(' ')
 
     binds = [
-      "left:reload(#{myself} {1} #{flags} --shift -1d)",
-      "right:reload(#{myself} {1} #{flags} --shift +1d)",
-      "up:reload(#{myself} {1} #{flags} --shift -1w)",
-      "down:reload(#{myself} {1} #{flags} --shift +1w)",
-      "h:reload(#{myself} {1} #{flags} --shift -1d)",
-      "l:reload(#{myself} {1} #{flags} --shift +1d)",
-      "k:reload(#{myself} {1} #{flags} --shift -1w)",
-      "j:reload(#{myself} {1} #{flags} --shift +1w)",
-      "[:reload(#{myself} {1} #{flags} --shift -1m)",
-      "]:reload(#{myself} {1} #{flags} --shift +1m)",
-      "H:reload(#{myself} {1} #{flags} --shift -1m)",
-      "L:reload(#{myself} {1} #{flags} --shift +1m)",
-      "K:reload(#{myself} {1} #{flags} --shift -1y)",
-      "J:reload(#{myself} {1} #{flags} --shift +1y)",
-      "{:reload(#{myself} {1} #{flags} --shift -1y)",
-      "}:reload(#{myself} {1} #{flags} --shift +1y)",
-      "t:reload(#{myself} #{today} #{flags} --shift +0d)",
-      "tab:reload(#{myself} {1} #{flags} --goto {q})",
-      "(:reload(#{myself} {1} #{flags} --shift 0)",
-      "):reload(#{myself} {1} #{flags} --shift $)",
+      "left:reload(#{myself} {1} {3} #{flags} --shift -1d)",
+      "right:reload(#{myself} {1} {3} #{flags} --shift +1d)",
+      "up:reload(#{myself} {1} {3} #{flags} --shift -1w)",
+      "down:reload(#{myself} {1} {3} #{flags} --shift +1w)",
+      "h:reload(#{myself} {1} {3} #{flags} --shift -1d)",
+      "l:reload(#{myself} {1} {3} #{flags} --shift +1d)",
+      "k:reload(#{myself} {1} {3} #{flags} --shift -1w)",
+      "j:reload(#{myself} {1} {3} #{flags} --shift +1w)",
+      "[:reload(#{myself} {1} {3} #{flags} --shift -1m)",
+      "]:reload(#{myself} {1} {3} #{flags} --shift +1m)",
+      "H:reload(#{myself} {1} {3} #{flags} --shift -1m)",
+      "L:reload(#{myself} {1} {3} #{flags} --shift +1m)",
+      "K:reload(#{myself} {1} {3} #{flags} --shift -1y)",
+      "J:reload(#{myself} {1} {3} #{flags} --shift +1y)",
+      "{:reload(#{myself} {1} {3} #{flags} --shift -1y)",
+      "}:reload(#{myself} {1} {3} #{flags} --shift +1y)",
+      "t:reload(#{myself} #{today} {3} #{flags} --shift +0d)",
+      "tab:reload(#{myself} {1} {3} #{flags} --goto {q})",
+      "(:reload(#{myself} {1} {3} #{flags} --shift 0)",
+      "):reload(#{myself} {1} {3} #{flags} --shift $)",
       "space:reload(#{myself} {1} #{flags} --toggle-range)",
       "v:reload(#{myself} {1} #{flags} --toggle-range)",
+      "W:reload(#{myself} {1} {3} #{flags} --toggle-weekday)",
       "esc:reload(#{myself} {1} #{flags} --shift +0d)+clear-query",
       "q:abort",
     ]
 
-    header = "h/l:day  j/k:week  (/):week-end  [/]:month  {/}:year  t:today"
+    header = "h/l:day  j/k:week  (/):week-end  [/]:month  {/}:year  t:today  W:weekday"
 
     cmd = [
       'fzf',
@@ -292,7 +301,7 @@ class DatePicker
     ]
 
     IO.popen(cmd, 'r+') do |fzf|
-      fzf.puts @range_start ? output_range(@range_start, @date) : output_date(@date)
+      fzf.puts @range_start ? output_range(@range_start, @date) : output_date(@date, weekday_marker: weekday)
       fzf.close_write
       result = fzf.gets&.strip
       if result && !result.empty?
@@ -303,11 +312,15 @@ class DatePicker
           d1, d2 = d2, d1 if d1 > d2
           puts "#{d1.strftime(format)}--#{d2.strftime(format)}"
         else
+          # Check for [w] marker
+          show_weekday = result.include?('[w]')
           date = Date.parse(result)
           output = date.strftime(format)
-          output = "#{output} #{date.strftime('%a')}" if weekday
+          output = "#{output} #{date.strftime('%a')}" if show_weekday
           puts output
         end
+      else
+        exit 1
       end
     end
   end
@@ -427,18 +440,53 @@ class DatePicker
   end
 end
 
+# CLI helpers
+module CLI
+  def self.parse_date
+    ARGV.find { |a| a =~ /^\d{4}-\d{2}-\d{2}(--\d{4}-\d{2}-\d{2})?$/ }
+  end
+
+  def self.weekday_on?
+    ARGV.any? { |a| a == '[w]' }
+  end
+
+  def self.monday_start?
+    !ARGV.include?('-s') && !ARGV.include?('--sunday')
+  end
+
+  def self.show_week?
+    ARGV.include?('-W') || ARGV.include?('--week')
+  end
+
+  def self.new_picker(date = parse_date)
+    DatePicker.new(date, monday_start: monday_start?, show_week: show_week?)
+  end
+
+  def self.format_dday(date, today = Date.today)
+    diff = (date - today).to_i
+    if diff == 0
+      "Today"
+    elsif diff > 0
+      "D-#{diff}"
+    else
+      "D+#{diff.abs}"
+    end
+  end
+end
+
 # CLI
 if ARGV.include?('-h') || ARGV.include?('--help')
   puts <<~HELP
-    when - fzf-based date picker
+    day - fzf-based date picker
 
-    Usage: when [date]
+    Usage: day [date]
 
     Options:
       -h, --help          Show this help
+      -e, --eval EXPR     Evaluate date expression (non-interactive)
       -f, --format FMT    Date format (default: %Y-%m-%d)
-      -w, --weekday       Include weekday (default)
-      --no-weekday        Exclude weekday
+      -w, --weekday       Include weekday in output
+      -D, --dday          Include D-day info in output (eval mode)
       -m, --monday        Week starts on Monday (default)
       -s, --sunday        Week starts on Sunday
       -W, --week          Show ISO week numbers
@@ -457,6 +505,7 @@ if ARGV.include?('-h') || ARGV.include?('--help')
       H/L, [/]      Month
       J/K, {/}      Year
       t             Today
+      W             Toggle weekday output
       Enter         Select
 
     Query jump (type, then Tab):
@@ -467,7 +516,7 @@ if ARGV.include?('-h') || ARGV.include?('--help')
       +2w, -1m      Relative weeks/months
 
     Stdin:
-      echo '2025-12-25' | when  # Start from piped date
+      echo '2025-12-25' | day   # Start from piped date
 
     Holidays:
       Korean holidays are shown in red (same as Sunday).
@@ -475,45 +524,108 @@ if ARGV.include?('-h') || ARGV.include?('--help')
       Cache: ~/.cache/day/[year].json
 
     Examples:
-      when                      # 2025-11-26 Wed
-      when --no-weekday         # 2025-11-26
-      when -f '%y-%m-%d'        # 25-11-26 Wed
-      when -s                   # Sunday start calendar
+      day                       # fzf picker
+      day 2024-12-25            # fzf starting from date
+      day -e +7                 # 2025-12-04 (D-7)
+      day -e 2024-12-25         # 2024-12-25 (D-28)
+      day -e 2024-12-25 +7      # 2025-01-01 (D-35)
+      day -e +2w                # 2 weeks later
+      day -e -1m                # 1 month ago
+      day --no-weekday          # 2025-11-26
+      day -f '%y-%m-%d'         # 25-11-26
+      day -s                    # Sunday start calendar
   HELP
 elsif ARGV.include?('--refresh-holidays')
   # Just refresh holidays cache for current year
   HolidayCache.load(Date.today.year, refresh: true)
   puts "Holidays cache refreshed for #{Date.today.year}"
+elsif ARGV.include?('-e') || ARGV.include?('--eval')
+  # Non-interactive eval mode
+  args = ARGV.dup
+  format = '%Y-%m-%d'
+  weekday = false
+  show_dday = false
+  base_date = nil
+  expr = nil
+
+  while args.any?
+    case args.first
+    when '-e', '--eval'
+      args.shift
+    when '-f', '--format'
+      args.shift
+      format = args.shift
+    when '-w', '--weekday'
+      args.shift
+      weekday = true
+    when '-D', '--dday'
+      args.shift
+      show_dday = true
+    else
+      arg = args.shift
+      # Is it a relative expression?
+      if arg =~ /^[+-]\d+[dwmy]?$/
+        expr = arg
+      # Is it a date?
+      elsif arg =~ /^\d{4}-\d{2}-\d{2}$/
+        begin
+          base_date = Date.parse(arg)
+        rescue ArgumentError
+          $stderr.puts "Error: Invalid date '#{arg}'"
+          exit 1
+        end
+      # Month/Day format
+      elsif arg =~ /^(\d{1,2})[\/\-](\d{1,2})$/
+        begin
+          base_date = Date.new(Date.today.year, $1.to_i, $2.to_i)
+        rescue ArgumentError
+          $stderr.puts "Error: Invalid date '#{arg}'"
+          exit 1
+        end
+      else
+        $stderr.puts "Error: Invalid argument '#{arg}'"
+        $stderr.puts "Usage: day -e [DATE] [+/-OFFSET]"
+        exit 1
+      end
+    end
+  end
+
+  base_date ||= Date.today
+  picker = DatePicker.new(base_date.to_s)
+  result = expr ? picker.parse_goto(expr) : base_date
+
+  if result.nil?
+    $stderr.puts "Error: Invalid expression '#{expr}'"
+    exit 1
+  end
+
+  # Format output
+  output = result.strftime(format)
+  output = "#{output} #{result.strftime('%a')}" if weekday
+
+  # D-day info
+  if show_dday
+    output = "#{output} (#{CLI.format_dday(result)})"
+  end
+
+  puts output
 elsif ARGV.include?('--preview')
-  # First non-flag argument is the date (or range)
-  date = ARGV.find { |a| a =~ /^\d{4}-\d{2}-\d{2}(--\d{4}-\d{2}-\d{2})?$/ }
-  monday = !ARGV.include?('-s') && !ARGV.include?('--sunday')
-  show_week = ARGV.include?('-W') || ARGV.include?('--week')
-  DatePicker.new(date, monday_start: monday, show_week: show_week).render
+  CLI.new_picker.render
 elsif ARGV.include?('--toggle-range')
-  date = ARGV.find { |a| a =~ /^\d{4}-\d{2}-\d{2}(--\d{4}-\d{2}-\d{2})?$/ }
-  monday = !ARGV.include?('-s') && !ARGV.include?('--sunday')
-  show_week = ARGV.include?('-W') || ARGV.include?('--week')
-  DatePicker.new(date, monday_start: monday, show_week: show_week).toggle_range
+  CLI.new_picker.toggle_range
+elsif ARGV.include?('--toggle-weekday')
+  CLI.new_picker.toggle_weekday(CLI.weekday_on?)
 elsif ARGV.include?('--shift')
-  idx = ARGV.index('--shift')
-  date = ARGV.find { |a| a =~ /^\d{4}-\d{2}-\d{2}(--\d{4}-\d{2}-\d{2})?$/ }
-  offset = ARGV[idx + 1]
-  monday = !ARGV.include?('-s') && !ARGV.include?('--sunday')
-  show_week = ARGV.include?('-W') || ARGV.include?('--week')
-  DatePicker.new(date, monday_start: monday, show_week: show_week).shift(offset)
+  offset = ARGV[ARGV.index('--shift') + 1]
+  CLI.new_picker.shift(offset, weekday_marker: CLI.weekday_on?)
 elsif ARGV.include?('--goto')
-  idx = ARGV.index('--goto')
-  date = ARGV.find { |a| a =~ /^\d{4}-\d{2}-\d{2}(--\d{4}-\d{2}-\d{2})?$/ }
-  query = ARGV[idx + 1]
-  monday = !ARGV.include?('-s') && !ARGV.include?('--sunday')
-  show_week = ARGV.include?('-W') || ARGV.include?('--week')
-  DatePicker.new(date, monday_start: monday, show_week: show_week).goto(query)
+  query = ARGV[ARGV.index('--goto') + 1]
+  CLI.new_picker.goto(query, weekday_marker: CLI.weekday_on?)
 else
   # Parse options
   args = ARGV.dup
   format = '%Y-%m-%d'
-  weekday = true
+  weekday = false
   monday_start = true
   show_week = false
   date = nil
