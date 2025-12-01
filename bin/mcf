@@ -1,0 +1,32 @@
+#!/bin/bash
+# Find and edit mise config files with fzf
+
+MISE_FILES=(
+  ".mise.local.toml"
+  "mise.local.toml"
+  ".mise.toml"
+  "mise.toml"
+  ".mise/config.toml"
+  "mise/config.toml"
+  ".config/mise.toml"
+  ".config/mise/config.toml"
+)
+
+found=()
+dir="$PWD"
+while [[ "$dir" != "/" ]]; do
+  for f in "${MISE_FILES[@]}"; do
+    [[ -f "$dir/$f" ]] && found+=("$dir/$f")
+  done
+  dir="$(dirname "$dir")"
+done
+
+if [[ ${#found[@]} -eq 0 ]]; then
+  echo "No mise config found" >&2
+  exit 1
+elif [[ ${#found[@]} -eq 1 ]]; then
+  exec "${EDITOR:-vim}" "${found[0]}"
+else
+  selected=$(printf '%s\n' "${found[@]}" | sed "s|^$HOME|~|" | fzf --prompt="mise config> ")
+  [[ -n "$selected" ]] && exec "${EDITOR:-vim}" "${selected/#\~/$HOME}"
+fi
