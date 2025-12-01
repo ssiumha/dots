@@ -109,6 +109,8 @@ require('packer').startup(function(use)
       vim.g.matchup_matchparen_offscreen = { method = "popup" }
       vim.g.matchup_matchparen_deferred = 1
       vim.g.matchup_matchparen_hi_surround_always = 1
+      vim.g.matchup_treesitter_enabled = 1
+      vim.g.matchup_treesitter_disabled = { 'ruby' }
     end
   }
 
@@ -357,11 +359,6 @@ require'nvim-treesitter.configs'.setup {
     -- disable = { 'embedded_template' }
   },
 
-  matchup = {
-    enable = true,
-    disable = { 'ruby' },
-  },
-
   textobjects = {
     select = {
       enable = true,
@@ -401,9 +398,6 @@ require'treesitter-context'.setup{
   max_lines = 10,
   mode = 'topline',
   multiline_threshold = 1,
-  patterns = {
-    default = { 'class', 'function', 'method' }
-  }
 }
 
 vim.opt.foldmethod = 'expr'
@@ -521,18 +515,6 @@ end
 -- HiPhish/rainbow-delimiters.nvim
 ----------------------------------
 local rainbow_delimiters = require 'rainbow-delimiters'
-
-vim.api.nvim_create_autocmd('LspAttach', {
-  pattern = '*.html.erb',
-  callback = function()
-    if not vim.b.rainbow_delimiters_enabled
-       and vim.treesitter.get_parser() ~= nil
-    then
-      rainbow_delimiters.enable()
-      vim.b.rainbow_delimiters_enabled = true
-    end
-  end
-})
 
 ---@type rainbow_delimiters.config
 vim.g.rainbow_delimiters = {

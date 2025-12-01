@@ -327,7 +327,13 @@ function! LocalLinkFzf() abort
   call fzf#run(fzf#wrap({
     \ 'source': cmd,
     \ 'sink*': function('s:HandleLinkSelection', [base_dir, current_file]),
-    \ 'options': ['--prompt', '[[', '--print-query', '--preview', 'head -20 {}'],
+    \ 'options': [
+    \   '--prompt', '[[',
+    \   '--print-query',
+    \   '--expect', 'ctrl-n',
+    \   '--preview', 'head -20 {}',
+    \   '--header', 'ctrl-n: 날짜 노트'
+    \ ],
     \ 'down': '40%'
   \ }))
 endfunction
@@ -336,8 +342,20 @@ function! s:HandleLinkSelection(base_dir, current_file, result) abort
   if len(a:result) < 1 | return | endif
 
   let query = a:result[0]
-  let selection = len(a:result) > 1 ? a:result[1] : ''
+  let key = len(a:result) > 1 ? a:result[1] : ''
+  let selection = len(a:result) > 2 ? a:result[2] : ''
 
+  " ctrl-n: 쿼리 + /날짜 형태 링크 생성
+  if key ==# 'ctrl-n'
+    let path = trim(query)
+    if empty(path) | return | endif
+    let link = path . '/' . strftime('%Y-%m-%d')
+    execute "normal! a[[" . link . "]]"
+    startinsert!
+    return
+  endif
+
+  " 일반 선택 또는 직접 입력
   if !empty(selection)
     let current_dir = fnamemodify(a:current_file, ':h')
     let target = a:base_dir . '/' . selection
