@@ -1,0 +1,83 @@
+#!/bin/bash
+
+# Delete local branches interactively
+# Usage: git br-cleanup
+
+git rev-parse --git-dir > /dev/null 2>&1 || { echo "Not a git repository"; exit 1; }
+
+# Prune remote tracking branches
+echo "Fetching and pruning..."
+git fetch -p
+
+# Get current and main branch to exclude
+current=$(git branch --show-current)
+main_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | cut -d'/' -f4)
+[ -z "$main_branch" ] && main_branch="main"
+
+# Build formatted list with metadata
+col_header=$(printf "%-30s  %-10s  %-15s  %s" "Branch" "Date" "Age" "Status")
+list="$col_header"$'\n'
+
+# Get all local branches with tracking info
+while IFS= read -r line; do
+  branch=$(echo "$line" | sed 's/^[* ]*//' | awk '{print $1}')
+
+  # Skip current and main branch
+  [ "$branch" = "$current" ] && continue
+  [ "$branch" = "$main_branch" ] && continue
+  [ "$branch" = "master" ] && continue
+  [ "$branch" = "main" ] && continue
+
+  date=$(git log -1 --format='%ad' --date=short "$branch" 2>/dev/null)
+  age=$(git log -1 --format='%ar' "$branch" 2>/dev/null)
+
+  # Determine status
+  if echo "$line" | grep -q ': gone]'; then
+    status="[gone]"
+  elif echo "$line" | grep -q '\[.*\]'; then
+    status="[tracking]"
+  else
+    status="[unpushed]"
+  fi
+
+  list+=$(printf "%-30s  %-10s  %-15s  %s" "$branch" "$date" "$age" "$status")
+  list+=$'\n'
+done <<< "$(git branch -vv)"
+
+# Check if any branches to show
+branch_count=$(echo "$list" | grep -v '^$' | tail -n +2 | wc -l | tr -d ' ')
+if [ "$branch_count" -eq 0 ]; then
+  echo "No branches to cleanup"
+  exit 0
+fi
+
+# Select branches to delete with fzf
+selected=$(echo "$list" | grep -v '^$' | fzf --tmux 80%,60% \
+  --multi \
+  --header-lines=1 \
+  --header "TAB:select  ^a:all  ^d:none  ENTER:delete  ESC:cancel" \
+  --bind 'ctrl-a:select-all' \
+  --bind 'ctrl-d:deselect-all' \
+  --preview 'git log -10 --oneline --graph {1}' \
+  --preview-window 'up:40%' \
+  | awk '{print $1}')
+
+if [ -z "$selected" ]; then
+  echo "No branches selected"
+  exit 0
+fi
+
+# Confirm and delete
+count=$(echo "$selected" | wc -l | tr -d ' ')
+echo ""
+echo "Deleting $count branch(es):"
+echo "$selected" | sed 's/^/  - /'
+echo ""
+read -p "Confirm? [y/N] " confirm
+
+if [[ "$confirm" =~ ^[Yy]$ ]]; then
+  echo "$selected" | xargs git branch -D
+  echo "✅ Done"
+else
+  echo "Cancelled"
+fi

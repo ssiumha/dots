@@ -80,6 +80,7 @@
   swm = !git switch $(git main-branch)
 
   br = branch
+  br-cleanup = !$HOME/.config/git/alias/br-cleanup
 
   pr = pull --autostash --ff-only
   puo = push origin HEAD

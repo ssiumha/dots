@@ -1,8 +1,50 @@
 #!/bin/bash
 
-# $1:graph / $2:hash / $3:date / $4:name / $5:subject / $6:branch
-git log --graph --oneline \
-        --format='%x09%C(green)%h%C(reset)%x09%C(reset)%ad%x09%<(16,trunc)%C(blue)%an%x09%C(reset)%s%x09%C(auto)%d' \
-        --color $@ \
-  | awk -F '\t' '{ printf "%-6s\t%s\t%s %s %s %s\t%s\n", $1, $2, $3, $4, $5, $6, $7 }' \
-  | less -S -R
+git rev-parse --git-dir > /dev/null 2>&1 || { echo "Not a git repository"; exit 1; }
+
+# ==== Helper commands (for fzf subshell) ====
+get_hash='grep -oE "[a-f0-9]{7,}" | head -1'
+show_stat='git show --color --format=fuller --stat'
+show_patch='git show --color --format=fuller'
+
+# ==== Git status indicators ====
+staged=$(git diff --cached --numstat 2>/dev/null | wc -l | tr -d ' ')
+unstaged=$(git diff --numstat 2>/dev/null | wc -l | tr -d ' ')
+status_info=""
+[ "$staged" -gt 0 ] && status_info="✚${staged}"
+[ "$unstaged" -gt 0 ] && status_info="${status_info} ✎${unstaged}"
+[ -n "$status_info" ] && status_info="  ${status_info}"
+
+# ==== Headers ====
+header_browse="[BROWSE]  ^/:search  ^s:stat  ^d:diff  ^e:vim  ^b:branch  ^f:fetch  q:quit${status_info}"
+header_search="[SEARCH]  ^/:browse  esc:clear  q:quit"
+
+# ==== Git log command ====
+log_cmd="git log --graph --oneline --format='%x09%C(green)%h%C(reset)%x09%C(reset)%ad%x09%<(16,trunc)%C(blue)%an%x09%C(reset)%s%x09%C(auto)%d' --color $@"
+awk_fmt='{ printf "%-6s\t%s\t%s %s %s %s\t%s\n", $1, $2, $3, $4, $5, $6, $7 }'
+export log_cmd awk_fmt
+
+# ==== Main ====
+eval "$log_cmd" | awk -F '\t' "$awk_fmt" \
+  | fzf --ansi --tmux 100% --disabled --no-sort --layout=reverse \
+        --prompt '> ' \
+        --header "$header_browse" \
+        --preview 'h=$(echo {} | '"$get_hash"'); '"$show_stat"' $h' \
+        --preview-window 'up:50%' \
+        --bind 'q:abort' \
+        --bind 'ctrl-s:change-preview(h=$(echo {} | '"$get_hash"'); '"$show_stat"' $h)' \
+        --bind 'ctrl-d:change-preview(h=$(echo {} | '"$get_hash"'); '"$show_patch"' $h)' \
+        --bind 'ctrl-e:execute(h=$(echo {} | '"$get_hash"') && git show $h > /tmp/git-show-$h.diff && nvim /tmp/git-show-$h.diff)' \
+        --bind 'ctrl-b:execute(
+          h=$(echo {} | '"$get_hash"')
+          cur=$(git branch --show-current)
+          name=$(git branch --format="%(refname:short)" | fzf --tmux 60%,40% \
+            --print-query --disabled \
+            --header "Current: $cur | tab:copy  enter:confirm" \
+            --bind "tab:replace-query" \
+            --bind "enter:print-query" | tail -1)
+          [ -n "$name" ] && git switch -c "$name" $h
+        )+abort' \
+        --bind 'ctrl-f:change-header(⏳ Fetching...)+execute-silent(git fetch --all)+reload(eval "$log_cmd" | awk -F "\t" "$awk_fmt")+change-header('"$header_browse"')' \
+        --bind 'ctrl-/:toggle-search+transform-header:echo "{fzf:header}" | grep -q "^\[BROWSE\]" && echo "'"$header_search"'" || echo "'"$header_browse"'"' \
+        --bind 'esc:disable-search+clear-query+change-header('"$header_browse"')'
