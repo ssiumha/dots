@@ -44,6 +44,7 @@ tap "jorgerojas26/lazysql"
 brew "lazysql"
 
 # cask "dbeaver-community"
+cask "beekeeper-studio"
 
 ################################
 # Util tools

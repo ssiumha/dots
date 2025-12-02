@@ -36,6 +36,7 @@ case $ft in
   toml)
     case $fp in
       *mise.toml       ) snips+=("mise.snips") ;;
+      *mise.*.toml       ) snips+=("mise.snips") ;;
       *mise/config.toml) snips+=("mise.snips") ;;
     esac ;;
   yaml)

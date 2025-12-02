@@ -5,6 +5,7 @@
 # LOCAL
 ################
 **/*.local*
+tmp
 
 ################
 # TOOLS
@@ -21,6 +22,7 @@
 .ai
 .roast
 .serena
+.claude
 claude-swarm.yml
 **/.claude/settings.local.json
 

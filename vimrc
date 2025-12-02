@@ -79,6 +79,7 @@ if has('nvim')
   set signcolumn=yes
   set scrollback=50000
   set laststatus=3 " global status line
+  set cmdheight=0
 endif
 
 "----------------
@@ -115,6 +116,9 @@ set backup swapfile
 let &undodir = expand('$HOME/.cache/vim/undo')
 let &backupdir = expand('$HOME/.cache/vim/backup')
 let &directory = expand('$HOME/.cache/vim/swap')
+
+let &viewdir = expand('$HOME/.cache/vim/view')
+set viewoptions=folds,cursor
 
 " TODO: UpdateRemotePlugin
 " TODO: gem install neovim --bindir ~/.local/bin
@@ -160,6 +164,35 @@ Plug 'junegunn/fzf.vim'
     \ 'source': 'fd -td',
     \ 'sink': 'tabe'
     \ }))
+
+  function! s:qf_handler(lines) abort
+    if len(a:lines) < 2
+      return
+    endif
+    let l:cmd = get({'ctrl-t': 'tabedit', 'ctrl-x': 'split', 'ctrl-v': 'vsplit'}, a:lines[0], 'edit')
+    let l:parts = split(a:lines[1], ':')
+    execute l:cmd . ' +' . l:parts[1] . ' ' . fnameescape(l:parts[0])
+  endfunction
+
+  function! FzfQuickfix() abort
+    let l:list = getqflist()
+    if empty(l:list)
+      echo 'Quickfix list is empty'
+      return
+    endif
+    let l:items = []
+    for l:item in l:list
+      if l:item.bufnr > 0
+        call add(l:items, bufname(l:item.bufnr) . ':' . l:item.lnum . ':' . l:item.text)
+      endif
+    endfor
+    call fzf#run(fzf#wrap({
+      \ 'source': l:items,
+      \ 'options': ['--prompt', 'Quickfix> '],
+      \ 'sink*': function('s:qf_handler')
+      \ }))
+  endfunction
+  command! Cw call FzfQuickfix()
 
   nnoremap <space>p  <esc>:Files<cr>
   nnoremap <space>pp <esc>:Files<cr>
@@ -414,9 +447,12 @@ Plug 'dense-analysis/ale'
 
 " TODO
 " Plug 'tpope/vim-endwise'
-" Plug 'tpope/vim-speeddating'
 
 " Edit
+Plug 'Konfekt/FastFold'
+  let g:fastfold_savehook = 1
+  " let g:fastfold_include_filetypes = ['markdown'] " default is all
+
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-surround'
@@ -434,6 +470,11 @@ Plug 'itchyny/vim-qfedit'
 Plug 'stefandtw/quickfix-reflector.vim'
   " let g:qf_write_changes = 0
 Plug 'thinca/vim-qfreplace'
+
+Plug 'dhruvasagar/vim-table-mode'
+  let g:table_mode_always_active = 0
+
+Plug 'godlygeek/tabular'
 
 Plug 'mattn/emmet-vim'
   let g:user_emmet_leader_key = '<c-y>'
@@ -535,6 +576,39 @@ function! MatchTag()
   " return empty(l:match) ? '' : l:match . '>'
   return ""
 endfunction
+
+"----------------
+" note
+"----------------
+" Require: $WEBDAV_UI_DEV, $WEBDAV_UI_DAILY, $WEBDAV_UI_MONTHLY
+let g:webdav_note_patterns = {}
+let g:webdav_note_patterns.daily = {
+  \ 'server': 'daily',
+  \ 'path': '/%Y-%m/%Y-%m-%d.md',
+  \ 'template': '',
+  \ 'unit': 'day'
+  \ }
+
+let g:webdav_note_patterns.monthly = {
+  \ 'server': 'monthly',
+  \ 'path': '/%Y-%m.md',
+  \ 'template': '',
+  \ 'unit': 'month'
+  \ }
+
+let g:webdav_note_patterns.fleeting = {
+  \ 'server': 'fleeting',
+  \ 'path': '/{title}.md',
+  \ 'template': '',
+  \ 'unit': 'day',
+  \ 'prompt_title': '%y%m%d '
+  \ }
+
+nnoremap <space>ou :WebDAVUIFzf<CR>
+nnoremap <space>od :WebDAVNote daily<CR>
+nnoremap <space>om :WebDAVNote monthly<CR>
+nnoremap <space>of :WebDAVNote fleeting<CR>
+nnoremap <space>or :WebDAVFzf dev<CR>
 
 "----------------
 " methods
