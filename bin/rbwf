@@ -1,0 +1,418 @@
+#!/bin/zsh
+# shellcheck source=/dev/null
+
+# Minimal environment setup (avoid full zshrc)
+export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+eval "$(mise activate zsh 2>/dev/null)" || true
+export FZF_DEFAULT_OPTS="--layout=reverse --border"
+
+# Parse options
+RBWF_POPUP=0
+RBWF_TARGET=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --popup) RBWF_POPUP=1; shift ;;
+    --target=*) RBWF_TARGET="${1#--target=}"; shift ;;
+    --target) RBWF_TARGET="$2"; shift 2 ;;
+    *) break ;;
+  esac
+done
+
+# Disable fzf tmux integration when running inside tmux popup
+if [[ "$RBWF_POPUP" -eq 1 ]]; then
+  unset FZF_TMUX FZF_TMUX_OPTS FZF_TMUX_HEIGHT
+  export FZF_DEFAULT_OPTS=$(echo "$FZF_DEFAULT_OPTS" | sed -E 's/--tmux[= ][^ ]*//g; s/--tmux//g')
+fi
+
+# rbwf - rbw + fzf integration for password management
+#
+# Usage:
+#   rbwf                        # interactive fzf selection
+#   rbwf --popup                # popup mode (disable fzf tmux integration)
+#   rbwf --popup --target=%3    # popup mode + send to specific pane
+#   rbwf add                    # add new entry
+#   rbwf sync                   # sync rbw database
+#   rbwf help                   # show ctrl-x custom field guide
+#
+# Options:
+#   --popup         disable fzf tmux integration (for tmux popup)
+#   --target=PANE   target pane for send-keys (default: ! = last pane)
+#
+# fzf bindings:
+#   enter   - send password to pane (or stdout if no tmux)
+#   ctrl-y  - copy password to clipboard
+#   ctrl-t  - copy TOTP code
+#   ctrl-f  - select field to copy (fzf submenu)
+#   ctrl-x  - execute cmd field (with env vars and expect)
+#   ctrl-e  - edit selected entry
+#   ctrl-o  - open bitwarden web
+#   ctrl-r  - sync and reload list
+
+set -euo pipefail
+
+SELF="$(realpath "$0")"
+
+# Clipboard: pbcopy > xclip > xsel > OSC52
+clip() {
+  local text="$1"
+  if command -v pbcopy &>/dev/null; then
+    printf '%s' "$text" | pbcopy
+  elif command -v xclip &>/dev/null; then
+    printf '%s' "$text" | xclip -selection clipboard
+  elif command -v xsel &>/dev/null; then
+    printf '%s' "$text" | xsel --clipboard --input
+  else
+    # OSC 52 fallback for remote terminals
+    local encoded
+    encoded=$(printf '%s' "$text" | base64 | tr -d '\n')
+    printf '\033]52;c;%s\a' "$encoded"
+  fi
+}
+
+send_keys() {
+  local text="$1"
+  local target="${RBWF_TARGET:-!}"
+
+  if [[ -n "${TMUX:-}" ]]; then
+    tmux send-keys -t "$target" -l "$text"
+  else
+    printf '%s' "$text"
+  fi
+}
+
+ensure_unlocked() {
+  if ! rbw unlocked 2>/dev/null; then
+    echo "Unlocking rbw..." >&2
+    rbw unlock
+  fi
+}
+
+# Get entry as JSON
+get_json() {
+  local entry="$1"
+  rbw get --raw --full "$entry" 2>/dev/null
+}
+
+cmd_add() {
+  ensure_unlocked
+  local name user
+  read -rp "Entry name: " name
+  [[ -z "$name" ]] && { echo "Cancelled" >&2; return 1; }
+  read -rp "Username (optional): " user
+  if [[ -n "$user" ]]; then
+    rbw add "$name" "$user"
+  else
+    rbw add "$name"
+  fi
+  rbw sync
+}
+
+cmd_sync() {
+  echo "Syncing..." >&2
+  rbw sync
+  echo "Done" >&2
+}
+
+cmd_help() {
+  cat <<'EOF'
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ ctrl-x (exec) Custom Fields Guide
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create custom fields in Bitwarden web UI (ctrl-o to open):
+
+  cmd           (required) Command to execute
+  env:VAR       Environment variable (prefix with "env:")
+  expect        Auto-input for prompts (format: prompt:value,prompt:value)
+
+{{field}} references (substituted at runtime):
+  {{password}}  Entry's password
+  {{username}}  Entry's username
+  {{totp}}      Generated TOTP code
+  {{uri}}       First URI
+  {{any}}       Any custom field by name
+
+─────────────────────────────────────────────────────────────────────────────
+Example 1: psql with PGPASSWORD env var
+─────────────────────────────────────────────────────────────────────────────
+  name:             prod-db
+  username:         dbuser
+  password:         secret123
+  custom fields:
+    host            db.example.com
+    dbname          myapp
+    cmd             psql -h {{host}} -U {{username}} {{dbname}}
+    env:PGPASSWORD  {{password}}
+
+─────────────────────────────────────────────────────────────────────────────
+Example 2: ssh with expect (auto password input)
+─────────────────────────────────────────────────────────────────────────────
+  name:             prod-server
+  username:         deploy
+  password:         secret123
+  custom fields:
+    host            server.example.com
+    cmd             ssh {{username}}@{{host}}
+    expect          password:{{password}}
+
+─────────────────────────────────────────────────────────────────────────────
+Example 3: ssh + sudo (multi-stage expect)
+─────────────────────────────────────────────────────────────────────────────
+  custom fields:
+    cmd             ssh {{username}}@{{host}}
+    expect          password:{{password}},sudo password:{{password}}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EOF
+}
+
+# Select field and copy
+cmd__field() {
+  local entry="$1"
+  local json
+  json=$(get_json "$entry")
+
+  # Build field list: name -> value
+  local fields
+  fields=$(echo "$json" | jq -r '
+    [
+      ["password", .data.password],
+      ["username", (.data.username // "")],
+      ["totp", "(generate)"],
+      ["uri", (.data.uris[0].uri // "")]
+    ] + [.fields[]? | [.name, .value]]
+    | .[] | select(.[1] != "" and .[1] != null) | "\(.[0])\t\(.[1])"
+  ')
+
+  local selected
+  selected=$(echo "$fields" | fzf \
+    --prompt="Select field> " \
+    --header="enter:copy C-o:web" \
+    --delimiter="\t" \
+    --with-nth=1 \
+    --preview='echo {2}' \
+    --preview-window='up:1:wrap' \
+    --bind="ctrl-o:execute-silent(open \"\$(rbw config show | jq -r '.base_url // \"https://vault.bitwarden.com\"')\")+abort"
+  ) || return 0
+
+  local field_name field_value
+  field_name=$(echo "$selected" | cut -f1)
+  field_value=$(echo "$selected" | cut -f2)
+
+  # Special handling for TOTP
+  if [[ "$field_name" == "totp" ]]; then
+    field_value=$(rbw code "$entry" 2>/dev/null || echo "")
+    [[ -z "$field_value" ]] && { echo "No TOTP configured" >&2; return 1; }
+  fi
+
+  clip "$field_value"
+  echo "Copied $field_name" >&2
+}
+
+# Internal subcommands for fzf bindings
+cmd__clip() {
+  local entry="$1"
+  clip "$(rbw get "$entry")"
+}
+
+cmd__totp() {
+  local entry="$1"
+  local code
+  code=$(rbw code "$entry" 2>/dev/null || echo "")
+  if [[ -n "$code" ]]; then
+    clip "$code"
+  else
+    echo "No TOTP configured" >&2
+  fi
+}
+
+cmd__send() {
+  local entry="$1"
+  send_keys "$(rbw get "$entry")"
+}
+
+# Substitute {{field}} references in a string
+# {{password}}, {{username}}, {{totp}}, {{uri}}, {{fieldname}}
+substitute_refs() {
+  local text="$1"
+  local json="$2"
+  local result="$text"
+
+  # Find all {{references}}
+  local refs
+  refs=$(echo "$result" | grep -oE '\{\{[a-zA-Z_][a-zA-Z0-9_]*\}\}' | sort -u)
+
+  for ref in $refs; do
+    # Extract field name from {{name}}
+    local field_name="${ref#\{\{}"
+    field_name="${field_name%\}\}}"
+    local field_value=""
+
+    case "$field_name" in
+      password)
+        field_value=$(echo "$json" | jq -r '.data.password // ""')
+        ;;
+      username)
+        field_value=$(echo "$json" | jq -r '.data.username // ""')
+        ;;
+      totp)
+        local entry_name
+        entry_name=$(echo "$json" | jq -r '.name')
+        field_value=$(rbw code "$entry_name" 2>/dev/null || echo "")
+        ;;
+      uri)
+        field_value=$(echo "$json" | jq -r '.data.uris[0].uri // ""')
+        ;;
+      *)
+        # Custom field lookup
+        field_value=$(echo "$json" | jq -r --arg name "$field_name" '.fields[]? | select(.name == $name) | .value // ""')
+        ;;
+    esac
+
+    # Replace {{ref}} with value
+    result="${result//$ref/$field_value}"
+  done
+
+  echo "$result"
+}
+
+# Execute command with env vars and optional expect
+cmd__exec() {
+  local entry="$1"
+  local json
+  json=$(get_json "$entry")
+
+  # Get cmd field
+  local cmd
+  cmd=$(echo "$json" | jq -r '.fields[]? | select(.name == "cmd") | .value // ""')
+  if [[ -z "$cmd" ]]; then
+    echo "No cmd field found" >&2
+    return 1
+  fi
+
+  # Substitute @refs in cmd
+  cmd=$(substitute_refs "$cmd" "$json")
+
+  # Collect env:* fields
+  local env_exports=""
+  local env_fields
+  env_fields=$(echo "$json" | jq -r '.fields[]? | select(.name | startswith("env:")) | "\(.name)\t\(.value)"')
+
+  while IFS=$'\t' read -r env_name env_value; do
+    [[ -z "$env_name" ]] && continue
+    local var_name="${env_name#env:}"
+    local var_value
+    var_value=$(substitute_refs "$env_value" "$json")
+    env_exports+="export $var_name='$var_value'; "
+  done <<< "$env_fields"
+
+  # Check for expect field
+  local expect_pattern
+  expect_pattern=$(echo "$json" | jq -r '.fields[]? | select(.name == "expect") | .value // ""')
+
+  if [[ -n "$expect_pattern" ]]; then
+    # Build expect script
+    local expect_script="spawn $cmd"$'\n'
+
+    # Parse expect patterns: "prompt1:{{value1}},prompt2:{{value2}}"
+    IFS=',' read -rA patterns <<< "$expect_pattern"
+    for pattern in "${patterns[@]}"; do
+      local prompt="${pattern%%:*}"
+      local value_ref="${pattern#*:}"
+      local value
+      value=$(substitute_refs "$value_ref" "$json")
+      expect_script+="expect \"*${prompt}*\""$'\n'
+      expect_script+="send \"${value}\\r\""$'\n'
+    done
+    expect_script+="interact"
+
+    # Run in tmux pane
+    if [[ -n "${TMUX:-}" ]]; then
+      tmux split-window -v "bash -c '${env_exports} expect -c \"$expect_script\"'"
+    else
+      eval "${env_exports} expect -c \"$expect_script\""
+    fi
+  else
+    # No expect, just run with env vars
+    if [[ -n "${TMUX:-}" ]]; then
+      tmux split-window -v "bash -c '${env_exports} $cmd; exec \$SHELL'"
+    else
+      eval "${env_exports} $cmd"
+    fi
+  fi
+}
+
+main() {
+  local mode="${1:-}"
+  local arg="${2:-}"
+
+  case "$mode" in
+    help)       cmd_help; exit 0 ;;
+    add)        cmd_add; exit 0 ;;
+    sync)       cmd_sync; exit 0 ;;
+    _clip)      cmd__clip "$arg"; exit 0 ;;
+    _totp)      cmd__totp "$arg"; exit 0 ;;
+    _send)      cmd__send "$arg"; exit 0 ;;
+    _field)     cmd__field "$arg"; exit 0 ;;
+    _exec)      cmd__exec "$arg"; exit 0 ;;
+  esac
+
+  ensure_unlocked
+
+  # List format: "name\tuser\tname" (last column hidden, used for commands)
+  # First line is column header (used with --header-lines=1)
+  # awk pads columns, then sed adds ANSI color to first line only
+  local list_cmd="(printf 'NAME\tUSER\t_\n'; rbw list --raw | jq -r '.[] | \"\(if .folder then .folder + \"/\" else \"\" end)\(.name)\t\(.user // \"-\")\t\(.name)\"') | awk -F'\t' '{printf \"%-30s\t%-15s\t%s\n\", \$1, \$2, \$3}' | sed '1s/.*/"$'\033[1;34m'"&"$'\033[0m'"/'"
+
+  # Detect context from last pane line (ssh user@host, psql -h host, etc.)
+  local initial_query=""
+  if [[ -n "${RBWF_TARGET:-}" ]] && [[ -n "${TMUX:-}" ]]; then
+    local last_line
+    last_line=$(tmux capture-pane -p -t "${RBWF_TARGET}" 2>/dev/null | grep -v '^$' | tail -1)
+    # Extract host from ssh user@host or ssh -l user host
+    if [[ "$last_line" =~ ssh[[:space:]]+([^@[:space:]]+@)?([^[:space:]]+) ]]; then
+      initial_query="${match[2]:-${BASH_REMATCH[2]}}"
+    # Extract host from psql -h host
+    elif [[ "$last_line" =~ psql.*-h[[:space:]]+([^[:space:]]+) ]]; then
+      initial_query="${match[1]:-${BASH_REMATCH[1]}}"
+    fi
+  fi
+
+  # Common fzf options
+  local preview="rbw get --raw --full {3} 2>/dev/null | jq 'del(.data.password)' | yq -P"
+  local fzf_opts=(
+    --delimiter="\t"
+    --with-nth=1,2
+    --preview="$preview"
+    --preview-window='bottom:40%:wrap'
+  )
+
+  # Main fzf interface
+  local selected
+  selected=$(eval "$list_cmd" | fzf \
+    --prompt="rbw> " \
+    --header="enter:send C-y:copy C-t:totp C-f:field C-x:exec C-e:edit C-o:web C-r:sync" \
+    --header-lines=1 \
+    --header-lines-border=bottom \
+    --ansi \
+    --query="$initial_query" \
+    "${fzf_opts[@]}" \
+    --bind="ctrl-r:reload($list_cmd)" \
+    --bind="ctrl-o:execute-silent(open \"\$(rbw config show | jq -r '.base_url // \"https://vault.bitwarden.com\"')/#/vault?itemId=\$(rbw get --raw {3} | jq -r '.id')\")" \
+    --bind="ctrl-e:execute(rbw edit {3})+reload($list_cmd)" \
+    --bind="ctrl-f:become($SELF _field {3})" \
+    --bind="ctrl-x:become($SELF _exec {3})" \
+    --bind="ctrl-y:execute-silent($SELF _clip {3})+abort" \
+    --bind="ctrl-t:execute-silent($SELF _totp {3})+abort" \
+  ) || exit 0
+
+  local entry
+  entry=$(echo "$selected" | cut -f3)
+
+  [[ -z "$entry" ]] && exit 0
+
+  # Default action: send password
+  cmd__send "$entry"
+}
+
+main "$@"
