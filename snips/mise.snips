@@ -9,6 +9,14 @@ ruby = "latest"
 run = "bundle exec ruby app.rb"
 endsnippet
 
+snippet note_memo ""
+[_]
+hello = """
+"""
+
+[_.memo]
+endsnippet
+
 snippet use_python "with virtualenv"
 [tools]
 python = { version="3.12.0", virtualenv=".venv" }

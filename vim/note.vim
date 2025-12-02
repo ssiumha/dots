@@ -39,12 +39,10 @@ function! RestoreOrDefault()
   " else
     execute 'edit ' . s:default_file
   " endif
-
-  bufdo filetype detect
 endfunction
 
 autocmd VimLeave * mksession! ~/.local/vim/neovide_session.vim
-autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | call RestoreOrDefault() | endif
+autocmd VimEnter * ++nested if argc() == 0 && !exists("s:std_in") | call RestoreOrDefault() | endif
 
 let g:timeline_perl =<< trim EOF
 if (/^@{1,2}(\d{3}-\d{2}-\d{2})\b/) {

@@ -63,6 +63,16 @@ join -a 1 -a 2 -e "-" -o '0,1.2,2.2' /tmp/before.txt /tmp/after.txt  ## key,name
 
 openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out cert.crt -keyout cert.key
 openssl rand -hex 16  ## generate random password
+openssl enc -aes-256-cbc -base64 -k <input_secret> -P -pbkdf2 -iter 100000  ## generate aes256 key, iv
+openssl rand 32 > aes256.key.dat ## generate aes256 key file
+openssl rand 16 > aes256.iv.dat ## generate aes256 iv file
+xxd -p aes256.key.dat | tr -d '\n'  ## print aes256 key hex
+
+echo -n 'hello world' | openssl enc -aes-256-cbc -nosalt -K $(xxd -p -c 256 key.dat) -iv $(xxd -p iv.key) -a -A  ## encrypt aes256
+
+CAROOT="$(pwd)/pki" mkcert -ecdsa -cert-file server.crt -key-file server.key "api.internal.local" "*.svc.cluster.local" 10.0.0.10 ::1  ## create certificate. if want rsa. remove -ecdsa ;; every opts is SAN
+
+zip -e -r output.zip folder/  ## encrypt zip file
 
 for i in {1..100}; do echo $i; done
 for i in $(echo $res); do echo $i; done  ## iterate variable line by line
@@ -179,6 +189,7 @@ npx playwright codegen ${URL}
 
 # docker
 curl host.docker.internal  ## request host in docker image
+curl "http://localhost:3000/trpc/foo.bar?input=$(echo '{"id":1}' | jq -sRr @uri)"
 curl -XGET -s -o /dev/null -w "%{http_code}" "http://example.com"  ## check http status code
 curl --head "http://example.com"  ## fetch head only
 curl 'https://endoflife.date/api/amazon-eks.json' | jq -r '(["cycle", "release", "eol"], (.[] | [.cycle, .releaseDate, .eol])) | @tsv' | column -ts $'\t'  ## EOL EKS
@@ -211,6 +222,7 @@ docker ps --format json | jq -r '([.Names, .State, .ID, .Image, .Ports] | @tsv)'
 docker run --rm -it --network bridge mysql mysqlsh root@host.docker.internal:3306 -e 'util.checkForServerUpgrade();'
 docker run --rm -it --env MYSQL_DATABASE=dev --env MYSQL_ROOT_PASSWORD=password -p 3306:3306 mysql:8.0
 
+LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32; echo  ## generate random string
 docker run --rm -it ubuntu cat /proc/sys/kernel/random/uuid | tr -d '-' | base64 | cut -b 1-22  ## generate uuid 22 char
 
 docker run --rm -it ruby:slim bash  ## ~200MB
@@ -245,6 +257,7 @@ aws configure --profile ${PROFILE} ## region=ap-northeast-2, format=text|table|j
 aws s3 ls
 aws s3 ls --recursive --human-readable --summarize s3://bucket-name/directory
 aws s3api get-bucket-lifecycle-configuration --bucket ${BUCKET}
+aws s3 cp s3://bucket-name/path/file.txt ./file.txt  ## download
 aws sts get-caller-identity  ## check simply current account info
 aws sts get-caller-identity --profile ${PROFILE}
 aws sts get-caller-identity --query Account --output text  ## get aws account id
@@ -360,6 +373,9 @@ sq inspect @active
 sq diff @dbname/staging.actor @dbname/prod.actor
 sq tbl copy .actor .actor2
 sq sql --src @dbname 'UPDATE actor SET name = "test" WHERE id = 1'
+
+# duckdb
+duckdb -c 'select * from read_csv_auto("data.tsv", delim="\t", types={"extra":"VARCHAR"});'
 
 # curl
 curl --header "Host: test.example.com" http://aws-domain.elb.amazonaws.com  ## DNS 설정 없이 ingress 테스트할 때 사용

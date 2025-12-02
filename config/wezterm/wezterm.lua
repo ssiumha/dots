@@ -7,6 +7,8 @@ return {
   hide_tab_bar_if_only_one_tab = true,
   font_size = 12.0,
 
+  normalize_output_to_unicode_nfc = true,
+
   font = wezterm.font_with_fallback {
     'Menlo',
     'Monaco',
