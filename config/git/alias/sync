@@ -1,0 +1,36 @@
+#!/bin/bash
+# Sync current branch with upstream (fetch + rebase)
+# Usage: git sync
+#
+# Uses GIT_UPSTREAM env var (default: origin/main)
+# Note: Uses rebase.autoStash for uncommitted changes
+
+set -e
+
+git rev-parse --git-dir > /dev/null 2>&1 || { echo "Not a git repository"; exit 1; }
+
+upstream="${GIT_UPSTREAM:-origin/main}"
+remote="${upstream%%/*}"
+branch="${upstream#*/}"
+current=$(git branch --show-current)
+
+if [ -z "$current" ]; then
+  echo "Error: Not on a branch (detached HEAD)"
+  exit 1
+fi
+
+# Fetch latest
+echo "Fetching from $remote..."
+if ! git fetch "$remote" "$branch" 2>&1; then
+  echo ""
+  echo "Hint: Set GIT_UPSTREAM in .mise.local.toml if using a different upstream:"
+  echo '  [env]'
+  echo '  GIT_UPSTREAM = "up/main"  # or "origin/master"'
+  exit 1
+fi
+
+# Rebase onto upstream (autoStash handles uncommitted changes)
+echo "Rebasing $current onto $upstream..."
+git rebase "$upstream"
+
+echo "Synced: $current is now up to date with $upstream"

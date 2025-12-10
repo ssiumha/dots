@@ -79,7 +79,8 @@
   swf = !$HOME/.config/git/alias/swf
   swm = !git switch $(git main-branch)
 
-  br = branch
+  b = branch
+  br = !$HOME/.config/git/alias/br
   br-cleanup = !$HOME/.config/git/alias/br-cleanup
 
   pr = pull --autostash --ff-only
@@ -90,4 +91,9 @@
 
   up-branch = !echo $(git remote | grep up || git remote | grep origin)
   main-branch = !git symbolic-ref refs/remotes/origin/HEAD | cut -d'/' -f4
-  sync-up = !$HOME/.config/git/alias/sync-up
+
+  # Workflow commands (require GIT_UPSTREAM env var)
+  upstream = !$HOME/.config/git/alias/upstream
+  begin = !$HOME/.config/git/alias/begin
+  sync = !$HOME/.config/git/alias/sync
+  submit = !$HOME/.config/git/alias/submit

@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Create a new branch from a specific commit
+# Usage: git br-from <commit-hash>
+
+git rev-parse --git-dir > /dev/null 2>&1 || { echo "Not a git repository"; exit 1; }
+
+hash="${1:-HEAD}"
+cur=$(git branch --show-current)
+
+name=$(git branch --format="%(refname:short)" | fzf \
+  --height=80% \
+  --print-query \
+  --header "Current: $cur | Base: $hash | Type name or select | enter:confirm" \
+  --preview "git log -10 --oneline --graph {}" \
+  --preview-window "up:40%" | tail -1)
+
+[ -n "$name" ] && git switch -c "$name" "$hash"

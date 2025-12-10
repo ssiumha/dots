@@ -1,0 +1,106 @@
+#!/bin/bash
+
+# Interactive branch management with fzf
+# Usage: git br [base-commit]
+#
+# Keybindings:
+#   enter   - switch to selected branch (remote: create tracking branch)
+#   tab     - toggle local/all branches
+#   ctrl-x  - create new branch
+#   ctrl-s  - show branch details
+#   ctrl-f  - fetch all remotes
+#   ctrl-r  - rebase current branch onto selected
+#   q       - quit
+
+git rev-parse --git-dir > /dev/null 2>&1 || { echo "Not a git repository"; exit 1; }
+
+base_commit="${1:-HEAD}"
+current=$(git branch --show-current)
+
+# Headers
+header_local="enter:switch  tab:+remote  ^x:new  ^d:del  ^s:show  ^f:fetch  ^r:rebase  q:quit | $current"
+header_all="enter:switch  tab:-remote  ^x:new  ^d:del  ^s:show  ^f:fetch  ^r:rebase  q:quit | $current"
+
+# Branch list functions
+list_local() {
+  git branch --format="%(refname:short)" | while read -r branch; do
+    date=$(git log -1 --format='%ad' --date=short "$branch" 2>/dev/null)
+    age=$(git log -1 --format='%ar' "$branch" 2>/dev/null)
+    if [ "$branch" = "$current" ]; then
+      printf "* %-35s  %s  %s\n" "$branch" "$date" "$age"
+    else
+      printf "  %-35s  %s  %s\n" "$branch" "$date" "$age"
+    fi
+  done
+}
+
+list_all() {
+  # Local branches
+  git branch --format="%(refname:short)" | while read -r branch; do
+    date=$(git log -1 --format='%ad' --date=short "$branch" 2>/dev/null)
+    age=$(git log -1 --format='%ar' "$branch" 2>/dev/null)
+    if [ "$branch" = "$current" ]; then
+      printf "* %-35s  %s  %-15s  [local]\n" "$branch" "$date" "$age"
+    else
+      printf "  %-35s  %s  %-15s  [local]\n" "$branch" "$date" "$age"
+    fi
+  done
+  # Remote branches (exclude HEAD)
+  git branch -r --format="%(refname:short)" | grep -v '/HEAD$' | while read -r branch; do
+    date=$(git log -1 --format='%ad' --date=short "$branch" 2>/dev/null)
+    age=$(git log -1 --format='%ar' "$branch" 2>/dev/null)
+    printf "  %-35s  %s  %-15s  [remote]\n" "$branch" "$date" "$age"
+  done
+}
+
+export -f list_local list_all
+export current
+
+selected=$(list_local | fzf --ansi --tmux 80%,70% \
+  --header "$header_local" \
+  --preview 'b=$(echo {} | awk "{ if (\$1 == \"*\") print \$2; else print \$1 }"); git log -15 --oneline --graph "$b"' \
+  --preview-window 'up:40%' \
+  --bind 'q:abort' \
+  --bind 'enter:accept' \
+  --bind "tab:transform:[[ \$FZF_HEADER == *'+remote'* ]] && echo 'reload(list_all)+change-header($header_all)' || echo 'reload(list_local)+change-header($header_local)'" \
+  --bind "ctrl-x:execute(
+    name=\$(echo '' | fzf --tmux 50%,30% --print-query --prompt 'New branch name: ' --header 'Base: $base_commit | enter:create  esc:cancel' | head -1)
+    [ -n \"\$name\" ] && git switch -c \"\$name\" $base_commit
+  )+abort" \
+  --bind 'ctrl-s:execute(b=$(echo {} | awk "{ if (\$1 == \"*\") print \$2; else print \$1 }"); git show "$b" | less)' \
+  --bind 'ctrl-f:execute-silent(git fetch --all)+reload(list_local)+change-header('"$header_local"')' \
+  --bind 'ctrl-r:execute(b=$(echo {} | awk "{ if (\$1 == \"*\") print \$2; else print \$1 }"); git rebase "$b")+abort' \
+  --bind 'ctrl-d:execute(
+    b=$(echo {} | awk "{ if (\$1 == \"*\") print \$2; else print \$1 }")
+    if [ "$b" = "'"$current"'" ]; then
+      echo "Cannot delete current branch"
+      read -p "Press enter..."
+    else
+      read -p "Delete branch $b? [y/N] " confirm
+      if [[ "$confirm" =~ ^[Yy]$ ]]; then
+        git branch -D "$b" && echo "Deleted $b"
+      else
+        echo "Cancelled"
+      fi
+      read -p "Press enter..."
+    fi
+  )+reload(list_local)')
+
+# Handle enter (switch to branch)
+if [ -n "$selected" ]; then
+  branch=$(echo "$selected" | awk '{ if ($1 == "*") print $2; else print $1 }')
+  type=$(echo "$selected" | awk '{print $NF}')
+
+  if [ "$branch" = "$current" ]; then
+    exit 0
+  fi
+
+  if [ "$type" = "[remote]" ]; then
+    # Remote branch: create tracking branch
+    local_name=$(echo "$branch" | sed 's|^[^/]*/||')
+    git switch -c "$local_name" --track "$branch"
+  else
+    # Local branch: just switch
+    git switch "$branch"
+  fi
+fi

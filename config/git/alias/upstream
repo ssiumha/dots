@@ -1,0 +1,40 @@
+#!/bin/bash
+# Get or display upstream base branch
+# Usage:
+#   git upstream        # Show current upstream setting
+#   git upstream --help # Show help
+#
+# Set via environment variable:
+#   GIT_UPSTREAM="up/main" in .mise.local.toml
+
+set -e
+
+show_help() {
+  cat <<'EOF'
+Usage: git upstream
+
+Display the upstream base branch for workflow commands (begin, sync, submit).
+
+Configuration:
+  Set GIT_UPSTREAM environment variable in .mise.local.toml:
+
+    [env]
+    GIT_UPSTREAM = "up/main"      # for forked repos
+    GIT_UPSTREAM = "origin/main"  # for regular repos
+
+Related commands:
+  git begin [topic]  - Create new branch from upstream
+  git sync           - Rebase current branch onto upstream
+  git submit         - Sync, push, and create PR
+EOF
+}
+
+case "${1:-}" in
+  -h|--help)
+    show_help
+    exit 0
+    ;;
+esac
+
+upstream="${GIT_UPSTREAM:-origin/main}"
+echo "$upstream"

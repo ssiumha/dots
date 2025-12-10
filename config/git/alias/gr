@@ -16,8 +16,32 @@ status_info=""
 [ -n "$status_info" ] && status_info="  ${status_info}"
 
 # ==== Headers ====
-header_browse="[BROWSE]  ^/:search  ^s:stat  ^d:diff  ^e:vim  ^b:branch  ^f:fetch  q:quit${status_info}"
+header_browse="[BROWSE]  ^/:search  ^s:stat  ^d:diff  ^e:vim  ^b:branch  ^f:fetch  ^g:PR  q:quit${status_info}"
 header_search="[SEARCH]  ^/:browse  esc:clear  q:quit"
+
+# ==== PR Creation ====
+pr_template='/tmp/pr-template.md'
+pr_create='
+branch=$(git branch --show-current)
+base=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed "s@^refs/remotes/origin/@@")
+[ -z "$base" ] && base="main"
+cat > '"$pr_template"' << EOF
+# PR: $branch
+
+## Summary
+
+
+## Test plan
+
+EOF
+nvim '"$pr_template"'
+[ $? -ne 0 ] && exit 1
+title=$(head -1 '"$pr_template"' | sed "s/^# //")
+body=$(tail -n +3 '"$pr_template"')
+if [ -n "$title" ]; then
+  gh pr create --base "$base" --title "$title" --body "$body" && gh pr view --web
+fi
+'
 
 # ==== Git log command ====
 log_cmd="git log --graph --oneline --format='%x09%C(green)%h%C(reset)%x09%C(reset)%ad%x09%<(16,trunc)%C(blue)%an%x09%C(reset)%s%x09%C(auto)%d' --color $@"
@@ -35,16 +59,8 @@ eval "$log_cmd" | awk -F '\t' "$awk_fmt" \
         --bind 'ctrl-s:change-preview(h=$(echo {} | '"$get_hash"'); '"$show_stat"' $h)' \
         --bind 'ctrl-d:change-preview(h=$(echo {} | '"$get_hash"'); '"$show_patch"' $h)' \
         --bind 'ctrl-e:execute(h=$(echo {} | '"$get_hash"') && git show $h > /tmp/git-show-$h.diff && nvim /tmp/git-show-$h.diff)' \
-        --bind 'ctrl-b:execute(
-          h=$(echo {} | '"$get_hash"')
-          cur=$(git branch --show-current)
-          name=$(git branch --format="%(refname:short)" | fzf --tmux 60%,40% \
-            --print-query --disabled \
-            --header "Current: $cur | tab:copy  enter:confirm" \
-            --bind "tab:replace-query" \
-            --bind "enter:print-query" | tail -1)
-          [ -n "$name" ] && git switch -c "$name" $h
-        )+abort' \
+        --bind 'ctrl-b:execute(h=$(echo {} | '"$get_hash"'); git br $h)' \
         --bind 'ctrl-f:change-header(⏳ Fetching...)+execute-silent(git fetch --all)+reload(eval "$log_cmd" | awk -F "\t" "$awk_fmt")+change-header('"$header_browse"')' \
+        --bind 'ctrl-g:execute('"$pr_create"')' \
         --bind 'ctrl-/:toggle-search+transform-header:echo "{fzf:header}" | grep -q "^\[BROWSE\]" && echo "'"$header_search"'" || echo "'"$header_browse"'"' \
         --bind 'esc:disable-search+clear-query+change-header('"$header_browse"')'

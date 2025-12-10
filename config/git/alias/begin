@@ -1,0 +1,49 @@
+#!/bin/bash
+# Start a new work branch from upstream
+# Usage:
+#   git begin          # Creates branch: 241210-1430
+#   git begin feature  # Creates branch: 241210-1430-feature
+#
+# Uses GIT_UPSTREAM env var (default: origin/main)
+
+set -e
+
+git rev-parse --git-dir > /dev/null 2>&1 || { echo "Not a git repository"; exit 1; }
+
+# Check for uncommitted changes
+if ! git diff-index --quiet HEAD -- 2>/dev/null; then
+  echo "Error: You have uncommitted changes"
+  echo "Please commit or stash them before starting a new branch"
+  git status --short
+  exit 1
+fi
+
+upstream="${GIT_UPSTREAM:-origin/main}"
+remote="${upstream%%/*}"
+branch="${upstream#*/}"
+
+# Fetch latest from upstream
+echo "Fetching from $remote..."
+if ! git fetch "$remote" "$branch" 2>&1; then
+  echo ""
+  echo "Hint: Set GIT_UPSTREAM in .mise.local.toml if using a different upstream:"
+  echo '  [env]'
+  echo '  GIT_UPSTREAM = "up/main"  # or "origin/master"'
+  exit 1
+fi
+
+# Generate branch name: YYMMDD-HHMM[-topic]
+timestamp=$(date +%y%m%d-%H%M)
+topic="${1:-}"
+
+if [ -n "$topic" ]; then
+  new_branch="${timestamp}-${topic}"
+else
+  new_branch="${timestamp}"
+fi
+
+# Create and switch to new branch
+echo "Creating branch: $new_branch (from $upstream)"
+git switch -c "$new_branch" "$upstream"
+
+echo "Ready to work on: $new_branch"
