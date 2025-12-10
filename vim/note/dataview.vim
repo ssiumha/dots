@@ -1,6 +1,32 @@
 " Load day.vim for PickDate function
 runtime note/day.vim
 
+" Base62 for anchor ID generation
+let s:base62 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+
+function! s:Base62Encode(num)
+  if a:num == 0 | return '0' | endif
+  let result = ''
+  let n = a:num
+  while n > 0
+    let result = s:base62[n % 62] . result
+    let n = n / 62
+  endwhile
+  return result
+endfunction
+
+function! s:RandomBase62(len)
+  let result = ''
+  for i in range(a:len)
+    let result .= s:base62[rand() % 62]
+  endfor
+  return result
+endfunction
+
+function! s:GenerateAnchorId()
+  return s:Base62Encode(localtime()) . s:RandomBase62(3)
+endfunction
+
 " Dataview emoji shorthand mappings (date fields only)
 " https://blacksmithgu.github.io/obsidian-dataview/annotation/metadata-tasks/
 let s:emoji_to_field = {
@@ -75,7 +101,7 @@ function! DataviewProperty() abort
   let items = map(copy(fields), {_, f -> f.key . ':: ' . f.val})
 
   let header = "enter:edit  ctrl-n:new  ctrl-d:delete\n"
-  let header .= "🗓️due ✅completion ➕created 🛫start ⏳scheduled"
+  let header .= "🗓️due ✅completion ➕created 🛫start ⏳scheduled  id:anchor"
 
   call fzf#run(fzf#wrap({
     \ 'source': items,
@@ -118,6 +144,14 @@ endfunction
 " FZF 종료 후 값 입력 처리
 " idx == -1: 새 필드 추가, idx >= 0: 기존 필드 수정
 function! s:InputValueDeferred(key, current_val, fields, idx) abort
+  " id 필드 신규 추가 시 자동 생성
+  if a:key ==# 'id' && a:idx == -1
+    let val = s:GenerateAnchorId()
+    call s:AddFieldAndApply(a:fields, a:key, val)
+    echo 'Anchor: ' . val
+    return
+  endif
+
   if has_key(s:field_to_emoji, a:key)
     " 날짜 필드: PickDate (floaterm)
     let initial = empty(a:current_val) ? strftime('%Y-%m-%d') : a:current_val

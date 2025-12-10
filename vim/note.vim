@@ -1,8 +1,15 @@
 let g:neovide_transparency = 0.97
 let g:neovide_scale_factor = 1.4
 
+try
+  set guifont=JetBrains\ Maple\ Mono:h14
 " set guifont=Menlo:h14
-set linespace=4
+
+catch
+endtry
+
+set linespace=2
+
 set nocursorcolumn
 set conceallevel=2
 set concealcursor=nci
@@ -11,8 +18,8 @@ color spacemacs-theme
 
 " lightweight
 set indentexpr=
-set formatoptions-=at
-set synmaxcol=200
+set formatoptions-=at formatoptions+=ro
+set synmaxcol=500
 silent! NoMatchParen
 let g:ale_lint_on_text_changed = 'never'
 let g:ale_lint_on_insert_leave = 1
@@ -121,261 +128,27 @@ function! MarkdownFoldExpr() abort
   return '='
 endfunction
 
-" WebDAV 링크 파싱: server:path 형식 감지
-function! ParseWikiLink(link)
-  " @로 시작하면 self-nested 링크
-  if a:link =~ '^@'
-    return {
-      \ 'type': 'self',
-      \ 'path': a:link[1:]
-    \ }
-  endif
-
-  " server:path 형식인지 체크 (path는 /로 시작)
-  let parts = split(a:link, ':', 1)
-  if len(parts) >= 2 && parts[1] =~ '^/'
-    return {
-      \ 'type': 'webdav',
-      \ 'server': parts[0],
-      \ 'path': join(parts[1:], ':')
-    \ }
-  else
-    return {'type': 'local', 'path': a:link}
-  endif
-endfunction
-
-" Extract URL from markdown link [text](url) format
-function! ExtractMarkdownLinkUrl()
-  let line = getline('.')
-  let col = col('.') - 1
-
-  " Find [text](url) pattern around cursor
-  let start = match(line, '\[.\{-}\](', 0)
-  while start >= 0 && start <= col
-    let end = match(line, ')', start)
-    if end > col
-      " Cursor is inside this link
-      let url_start = match(line, '(', start) + 1
-      return line[url_start : end-1]
-    endif
-    let start = match(line, '\[.\{-}\](', end)
-  endwhile
-
-  return ''
-endfunction
-
-function! s:ExtractWikilinkFull()
-  let [line, col, start] = [getline('.'), col('.') - 1, 0]
-  while 1
-    let [ms, me] = [match(line, '\[\[', start), match(line, '\]\]', start)]
-    if ms == -1 || me == -1 | break | endif
-    if col >= ms && col <= me + 1
-      let content = line[ms + 2 : me - 1]
-      let p = stridx(content, '|')
-      return p != -1
-        \ ? {'found': 1, 'target': content[:p-1], 'alias': content[p+1:], 'start': ms, 'end': me + 2}
-        \ : {'found': 1, 'target': content, 'alias': '', 'start': ms, 'end': me + 2}
-    endif
-    let start = me + 2
-  endwhile
-  return {'found': 0}
-endfunction
-
-function! s:ExtractMarkdownLinkFull()
-  let [line, col, start] = [getline('.'), col('.') - 1, 0]
-  while 1
-    let ms = match(line, '\[', start)
-    if ms == -1 | break | endif
-    let be = match(line, '\]', ms)
-    if be == -1 | break | endif
-    if be + 1 < len(line) && line[be + 1] == '('
-      let pe = match(line, ')', be + 2)
-      if pe != -1 && col >= ms && col <= pe
-        return {'found': 1, 'title': line[ms+1:be-1], 'url': line[be+2:pe-1], 'start': ms, 'end': pe + 1}
-      endif
-    endif
-    let start = be + 1
-  endwhile
-  return {'found': 0}
-endfunction
-
-function! InsertWikilink() abort
-  let target = input('Target: ')
-  if empty(target) | return | endif
-  let alias = input('Alias: ')
-  exe 'normal! a' . (empty(alias) ? '[['.target.']]' : '[['.target.'|'.alias.']]')
-endfunction
-
-function! InsertMarkdownLink() abort
-  let url = input('URL: ')
-  if empty(url) | return | endif
-  let title = input('Title: ', url)
-  exe 'normal! a[' . title . '](' . url . ')'
-endfunction
-
-function! EditLinkAtCursor() abort
-  let w = s:ExtractWikilinkFull()
-  if w.found
-    let t = input('Target: ', w.target)
-    if empty(t) | return | endif
-    let a = input('Alias: ', w.alias)
-    if empty(a) && !empty(w.alias) | return | endif
-    let link = empty(a) ? '[['.t.']]' : '[['.t.'|'.a.']]'
-    call setline('.', getline('.')[0:w.start-1] . link . getline('.')[w.end:])
-    return
-  endif
-
-  let m = s:ExtractMarkdownLinkFull()
-  if m.found
-    let u = input('URL: ', m.url)
-    if empty(u) | return | endif
-    let t = input('Title: ', m.title)
-    if empty(t) | return | endif
-    let link = '[' . t . '](' . u . ')'
-    call setline('.', getline('.')[0:m.start-1] . link . getline('.')[m.end:])
-    return
-  endif
-
-  echo "No link under cursor"
-endfunction
-
-function! InsertLink() abort
-  echo "Link: [w]iki [m]arkdown"
-  let c = nr2char(getchar()) | redraw
-  if c ==# 'w' | call InsertWikilink()
-  elseif c ==# 'm' | call InsertMarkdownLink()
-  endif
-endfunction
-
-function! SmartLink() abort
-  if s:ExtractWikilinkFull().found || s:ExtractMarkdownLinkFull().found
-    call EditLinkAtCursor()
-  else
-    call InsertLink()
-  endif
-endfunction
-
 runtime note/util.vim
+runtime note/link.vim
 runtime note/dataview.vim
 runtime note/outline.vim
 runtime note/move.vim
 
-function! GetMarkdownPagePath()
-  let syn_name = synIDattr(synID(line('.'), col('.'), 1), 'name')
-
-  " WikiLink: [[link]]
-  if syn_name ==# 'markdownWikiLink'
-    let link = substitute(expand('<cWORD>'), '^\[\[\([^]|]\+\).*$', '\1', '')
-    return ParseWikiLink(link)
-  endif
-
-  " Markdown Link: [text](url)
-  if syn_name =~# 'markdown.*Link\|markdownUrl'
-    let url = ExtractMarkdownLinkUrl()
-    if !empty(url)
-      return ParseWikiLink(url)
-    endif
-  endif
-
-  return {'type': 'none'}
-endfunction
-
-function! OpenWiki() abort
-  let link_info = GetMarkdownPagePath()
-
-  if link_info.type == 'webdav'
-    " WebDAV 파일 열기
-    tabnew
-    call webdav#file#get(link_info.path, link_info.server)
-  elseif link_info.type == 'self'
-    " Self-nested: 현재 파일명 폴더 안 문서
-    let base = expand('%:p:r')
-    let page = base . '/' . link_info.path
-    " 확장자 없으면 .md 추가
-    if page !~ '\.[^./]\+$'
-      let page .= '.md'
-    endif
-    execute 'tabe' fnameescape(page)
-  elseif link_info.type == 'local'
-    " 기존 로컬 파일 열기
-    let page = link_info.path
-    if page !~ '/$'
-      " 확장자 없으면 .md 추가
-      if page !~ '\.[^./]\+$'
-        let page .= '.md'
-      endif
-    endif
-    let page = page =~# '^\v(/|\~|\w+:)' ? page : expand('%:p:h') . '/' . page
-    execute 'tabe' fnameescape(page)
-  else
-    normal! <CR>
-  endif
-endfunction
-
-" FZF로 로컬 파일 탐색 → wikilink 삽입
-function! LocalLinkFzf() abort
-  " 우선순위: git root → index.md marker → 현재 디렉토리
-  let git_root = trim(system('git rev-parse --show-toplevel 2>/dev/null'))
-  let marker_root = NoteRootByMarker(expand('%:p:h'), 'index.md')
-  let base_dir = !empty(git_root) ? git_root : (!empty(marker_root) ? marker_root : expand('%:p:h'))
-  let current_file = expand('%:p')
-
-  let cmd = 'fd -t f -e md --base-directory ' . shellescape(base_dir)
-
-  call fzf#run(fzf#wrap({
-    \ 'source': cmd,
-    \ 'sink*': function('s:HandleLinkSelection', [base_dir, current_file]),
-    \ 'options': [
-    \   '--prompt', '[[',
-    \   '--print-query',
-    \   '--expect', 'ctrl-n',
-    \   '--preview', 'head -20 {}',
-    \   '--header', 'ctrl-n: 날짜 노트'
-    \ ],
-    \ 'down': '40%'
-  \ }))
-endfunction
-
-function! s:HandleLinkSelection(base_dir, current_file, result) abort
-  if len(a:result) < 1 | return | endif
-
-  let query = a:result[0]
-  let key = len(a:result) > 1 ? a:result[1] : ''
-  let selection = len(a:result) > 2 ? a:result[2] : ''
-
-  " ctrl-n: 쿼리 + /날짜 형태 링크 생성
-  if key ==# 'ctrl-n'
-    let path = trim(query)
-    if empty(path) | return | endif
-    let link = path . '/' . strftime('%Y-%m-%d')
-    execute "normal! a[[" . link . "]]"
-    startinsert!
-    return
-  endif
-
-  " 일반 선택 또는 직접 입력
-  if !empty(selection)
-    let current_dir = fnamemodify(a:current_file, ':h')
-    let target = a:base_dir . '/' . selection
-    let relative = NoteRelativePath(target, current_dir)
-    let relative = substitute(relative, '\.md$', '', '')
-    let link = relative
-  else
-    let link = query
-  endif
-
-  if empty(link) | return | endif
-
-  execute "normal! a[[" . link . "]]"
-  startinsert!
-endfunction
-
 augroup MyMarkdown
   autocmd!
   autocmd FileType markdown silent! TableModeEnable
+  autocmd FileType markdown setlocal comments=b:-,b:*,b:+,n:>
+  autocmd FileType markdown setlocal tabstop=2 shiftwidth=2 expandtab
+  autocmd FileType markdown setlocal nowrap linebreak breakindent breakindentopt=shift:2
   autocmd FileType markdown setlocal foldmethod=expr foldexpr=MarkdownFoldExpr() foldenable
   autocmd FileType markdown setlocal foldtext=getline(v:foldstart).'...'
   autocmd FileType markdown nnoremap <buffer> <tab> za
+  autocmd FileType markdown setlocal formatoptions+=ro
+  autocmd FileType markdown inoremap <buffer><expr> <tab> getline('.') =~ '^\s*-\s' ? '<C-t>' : '<tab>'
+  autocmd FileType markdown inoremap <buffer><expr> <s-tab> getline('.') =~ '^\s*-\s' ? '<C-d>' : '<s-tab>'
+  autocmd FileType markdown inoremap <buffer><expr> <CR> getline('.') =~# '^\s*[-*+]\s*$' ? '<Esc>S<CR>' : '<CR>'
+  " Copilot accept: <C-]> (Tab은 리스트 indent용)
+  autocmd FileType markdown imap <buffer><silent><script><expr> <C-]> copilot#Accept("\<CR>")
   autocmd FileType markdown nnoremap <buffer> <cr> :call OpenWiki()<cr>
   autocmd FileType markdown nnoremap <buffer> <c-c><c-l> :call SmartLink()<cr>
   autocmd FileType markdown inoremap <buffer> <C-c><C-l> <C-o>:call SmartLink()<CR>
@@ -383,6 +156,7 @@ augroup MyMarkdown
   autocmd FileType markdown nnoremap <buffer> <c-c><c-p> :call DataviewProperty()<cr>
   autocmd FileType markdown nnoremap <buffer> <c-c><c-o> :call MarkdownOutline()<cr>
   autocmd FileType markdown nnoremap <buffer> <c-c><c-w> :MoveFileFzf<cr>
+  autocmd FileType markdown nnoremap <buffer> <c-c><c-t> :call TransformUrlFzf()<cr>
 
   autocmd FileType markdown nnoremap <buffer> <C-c>. :PickDateAtCursor<CR>
   autocmd FileType markdown inoremap <buffer> <C-c>. <c-o>:PickDateAtCursor<CR>
@@ -419,20 +193,45 @@ augroup MyMarkdown
     hi MyTodo guifg=#000000 guibg=#FFD700 gui=bold
     hi MyDone guifg=#000000 guibg=#98FB98 gui=bold
     hi link markdownWikiLink markdownLinkText
+    hi link markdownRefLinkText markdownLinkText
     hi Conceal guifg=#bc6ec5 guibg=#292b2e
     hi markdownDataviewField guifg=#888888 gui=italic
+
+    hi markdownList1 guifg=#88aaff
+    hi markdownList2 guifg=#9cdcfe
+    hi markdownList3 guifg=#b5cea8
+    hi markdownList4 guifg=#ce9178
+    hi markdownList5 guifg=#dcdcaa
+    hi markdownList6 guifg=#c586c0
   }
 
   autocmd Syntax markdown {
     syntax match MyTodo /\<TODO\>/
     syntax match MyDone /\<DONE\>/
     syntax match markdownWikiLink /\[\[.*\]\]/
-    syntax match markdownDone /\v^\s*-\s\[x\]\s.*$/
-    syntax match markdownDelegated /\v^\s*-\s\[\>\]\s.*$/ contains=markdownStrike
+
+    syntax match markdownList1 /^- /
+    syntax match markdownList2 /^  - /
+    syntax match markdownList3 /^    - /
+    syntax match markdownList4 /^      - /
+    syntax match markdownList5 /^        - /
+    syntax match markdownList6 /^          - /
+
+    # markdownDone/Delegated must come AFTER markdownList for priority
+    # markdownDoneCheckbox: [x]를 먼저 매치해서 링크로 인식 방지
+    # markdownLinkText만 포함 - nextgroup으로 markdownLink 연결됨
+    syntax match markdownDoneCheckbox /\[x\]/ contained
+    syntax match markdownDelegatedCheckbox /\[>\]/ contained
+    syntax match markdownDone /\v^\s*-\s\[x\]\s.*$/ contains=markdownWikiLink,markdownLinkText,markdownRefLinkText,markdownDoneCheckbox
+    syntax match markdownDelegated /\v^\s*-\s\[\>\]\s.*$/ contains=markdownStrike,markdownWikiLink,markdownLinkText,markdownRefLinkText,markdownDelegatedCheckbox
 
     syntax match markdownDataviewField /\[[^\[\]]*::[^\[\]]*\]/ contains=markdownDataviewDelim
     syntax match markdownDataviewDelim /\[\|\]/ contained conceal
   }
+
+  " Inline link: [text](url) → [text]🔗
+  autocmd Syntax markdown syntax clear markdownLinkText
+  autocmd Syntax markdown syntax match markdownLinkText /\[[^\]]\+\]\ze(/ nextgroup=markdownLink
 
   autocmd Syntax markdown syntax clear markdownLink
   autocmd Syntax markdown syntax region markdownLink
@@ -440,4 +239,14 @@ augroup MyMarkdown
         \ start="(" end=")"
         \ contains=markdownUrl
         \ conceal keepend contained cchar=🔗
+
+  " Reference link: [text][id] → [text]📎
+  " 기본 markdownId가 중복 매치되므로 clear
+  autocmd Syntax markdown syntax clear markdownId
+  autocmd Syntax markdown syntax match markdownRefLinkText /\[[^\]]\+\]\ze\[/ nextgroup=markdownRefLink
+  autocmd Syntax markdown syntax match markdownRefLink /\[[^\]]\+\]/ contained conceal cchar=📎
+
+  " Reference definition: [id]: url?query → [id]: url?…
+  autocmd Syntax markdown syntax match markdownRefDefQuery /[?#][^[:space:]]\+/ contained conceal cchar=…
+  autocmd Syntax markdown syntax match markdownRefDef /^\[[^\]]\+\]:\s\+\S\+/ contains=markdownRefDefQuery
 augroup END

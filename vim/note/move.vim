@@ -50,7 +50,7 @@ function! MoveFileFzf() abort
   call fzf#run(fzf#wrap({
     \ 'source': cmd,
     \ 'sink*': function('s:HandleMoveSelection', [base_dir, current_file]),
-    \ 'options': ['--prompt', 'Move to> ', '--print-query', '--header', 'Enter: select folder | Query: create new folder'],
+    \ 'options': ['--prompt', 'Move to> ', '--print-query', '--expect', 'ctrl-r', '--header', 'Enter: move | ^r: rename'],
     \ 'down': '40%'
   \ }))
 endfunction
@@ -59,7 +59,15 @@ function! s:HandleMoveSelection(base_dir, current_file, result) abort
   if len(a:result) < 1 | return | endif
 
   let query = a:result[0]
-  let selection = len(a:result) > 1 ? a:result[1] : ''
+  let key = len(a:result) > 1 ? a:result[1] : ''
+  let selection = len(a:result) > 2 ? a:result[2] : ''
+
+  " ctrl-r: rename
+  if key ==# 'ctrl-r'
+    call s:RenameFile(a:base_dir, a:current_file)
+    return
+  endif
+
   let target_dir = !empty(selection) ? (a:base_dir . '/' . selection) : (a:base_dir . '/' . query)
 
   if empty(target_dir) || target_dir == a:base_dir
@@ -99,6 +107,36 @@ function! s:HandleMoveSelection(base_dir, current_file, result) abort
   execute 'bwipeout ' . bufnr(a:current_file)
 
   echo "Moved to: " . new_path
+endfunction
+
+function! s:RenameFile(base_dir, current_file) abort
+  let current_name = fnamemodify(a:current_file, ':t:r')
+  let ext = fnamemodify(a:current_file, ':e')
+  let dir = fnamemodify(a:current_file, ':h')
+
+  let new_name = input('New name: ', current_name)
+  if empty(new_name) || new_name == current_name
+    echo "\nCancelled"
+    return
+  endif
+
+  let new_path = dir . '/' . new_name . '.' . ext
+
+  if filereadable(new_path)
+    let confirm = input("File exists. Overwrite? (y/N): ")
+    if confirm !~? '^y'
+      echo "\nCancelled"
+      return
+    endif
+  endif
+
+  call s:UpdateWikilinksForMove(a:base_dir, a:current_file, new_path)
+  call rename(a:current_file, new_path)
+
+  execute 'edit ' . fnameescape(new_path)
+  execute 'bwipeout ' . bufnr(a:current_file)
+
+  echo "Renamed to: " . new_path
 endfunction
 
 function! s:UpdateWikilinksForMove(base_dir, old_path, new_path) abort
