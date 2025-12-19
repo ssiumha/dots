@@ -1,11 +1,37 @@
 ---
-name: claude-md-guide
-description: 프로젝트별 claude.md를 리뷰하고 정리합니다. 가이드라인에 따라 분석하고, Skills로 분리할 내용을 찾아 개선안을 제시합니다.
+name: claude-guide
+description: Claude Code 설정을 안내합니다. CLAUDE.md, rules, commands, skills, agents 구조와 사용법, "설정", "가이드", "헬프" 요청 시 사용하세요.
 ---
 
-# Claude.md Guide
+# Claude Guide
 
-프로젝트별 `claude.md` 파일을 리뷰하고 정리하는 skill입니다.
+Claude Code 설정 구조를 안내하고, 프로젝트별 CLAUDE.md를 리뷰합니다.
+
+## 설정 유형 선택 가이드
+
+Claude Code는 다양한 설정 방식을 제공합니다. **컨텍스트 소비 최소화**를 위해 적절한 유형을 선택하세요.
+
+| 유형 | 로드 시점 | 용도 |
+|------|----------|------|
+| CLAUDE.md | 항상 | 핵심 규칙, 필수 설정 |
+| rules/ | 항상 | 상세 규칙 분리 (20줄+ 시) |
+| commands/ | 호출 시만 | 반복 작업 템플릿 (/dev-start) |
+| skills/ | 필요 시만 | 전문 지식 패키지 (drawio) |
+| agents/ | 위임 시만 | 독립 컨텍스트 작업 (code-review) |
+
+### 어디에 넣을까?
+
+**CLAUDE.md**: 커밋 규칙, 테스트 정책, 금지 사항 (항상 적용되어야 할 것)
+**rules/**: 상세 규칙 (20줄+), 영역별 분리 (frontend/, backend/)
+**commands/**: 반복 워크플로우 (/review, /deploy, /docs)
+**skills/**: 특정 주제 전문 지식 (항상 필요하지 않은 것)
+**agents/**: 독립 컨텍스트 필요한 작업 (코드 리뷰, 탐색)
+
+---
+
+## CLAUDE.md 리뷰
+
+프로젝트별 CLAUDE.md를 리뷰하고 정리합니다.
 
 **핵심 목표**:
 - 프로젝트 고유 정보만 유지 (50-100줄)

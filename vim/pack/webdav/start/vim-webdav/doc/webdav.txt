@@ -1,6 +1,6 @@
 *webdav.txt*  WebDAV file editing for Vim
 
-Author: ssiumha
+Author: seungsooha
 License: MIT
 Version: 1.0
 

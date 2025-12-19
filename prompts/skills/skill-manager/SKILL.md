@@ -1,11 +1,21 @@
 ---
-name: skill-creator
-description: 작업 패턴을 분석하여 재사용 가능한 skill로 변환합니다. 반복 작업 완료 후 "skill에 반영해줘" 요청 시 사용하세요.
+name: skill-manager
+description: Skill 생성/수정/갱신을 지원합니다. prompts/skills/ 작업, "skill 만들어줘", "skill 수정", "skill 확장", "skill에 반영" 요청 시 proactively 사용하세요.
 ---
 
-# Skill Creator
+# Skill Manager
 
-작업 패턴을 자동으로 분석하여 재사용 가능한 skill로 변환하거나 기존 skill을 갱신합니다.
+Skill을 생성, 수정, 갱신하고 best practices를 검증합니다.
+
+## 자동 트리거
+
+이 skill은 다음 조건에서 **proactively** 작동합니다:
+
+| 조건 | 예시 |
+|------|------|
+| "skill" + 작업 동사 | "skill 만들어줘", "skill 수정해줘" |
+| skill 이름 언급 + 작업 | "living-docs 확장해줘" |
+| prompts/skills/ 파일 작업 | SKILL.md 수정 요청 |
 
 **핵심 철학**:
 - 작업 컨텍스트 자동 분석 (대화, 파일 변경)
@@ -238,14 +248,23 @@ description: 작업 패턴을 분석하여 재사용 가능한 skill로 변환�
 4. **토큰 효율**: SKILL.md는 핵심만, 상세 내용은 resources/로 분리
 5. **검증 자동화**: 체크리스트 기반, 분량/파일명/구조 자동 확인
 
+## 안티패턴
+
+| ❌ 문제 | ✅ 해결 |
+|--------|--------|
+| SKILL.md 500줄 초과 | resources/로 상세 내용 분리 |
+| 프로젝트 특정 정보 포함 | placeholder 사용 ({project}, {name}) |
+| 다른 skill과 내용 중복 | 참조로 대체 ("tdd-practices 참조") |
+| description에 키워드 부족 | 트리거 키워드 명시적 포함 |
+
 ## Examples
 
 ### 기존 Skill 갱신
 ```
 User: "여태까지 작업을 living-docs에 반영해줘"
-→ 워크플로우 1: 작업 분석 (간결성 지침 추가)
+→ 워크플로우 1: 작업 분석
 → 워크플로우 2: living-docs 발견 (높은 연관성)
-→ 워크플로우 3A: 갱신 실행 (안티패턴 섹션 추가)
+→ 워크플로우 3A: 갱신 실행
 → Git 커밋
 ```
 
@@ -254,16 +273,16 @@ User: "여태까지 작업을 living-docs에 반영해줘"
 User: "이 작업 패턴을 skill로 만들어줘"
 → 워크플로우 1: 작업 분석
 → 워크플로우 2: 관련 skill 없음
-→ 워크플로우 3B: 신규 생성 (유형 선택 → 작성 → 검증 → 커밋)
+→ 워크플로우 3B: 신규 생성 (유형 선택 → 작성 → 검증)
 → 사용법 안내
 ```
 
-### 갱신 vs 신규 선택
+### Skill 확장/리네임 (proactive 트리거)
 ```
-User: "배포 자동화 작업을 skill에 반영해줘"
-→ 워크플로우 2: patterns-devops, ansible-deployment 발견 (중간 연관성)
-→ 사용자 질문: "[1] patterns-devops 갱신 vs [2] 신규 생성?"
-→ 사용자 선택에 따라 3A 또는 3B
+User: "claude-guide skill 확장해줘" 또는 "living-docs에 워크플로우 추가해줘"
+→ 자동 트리거: skill 이름 + 작업 동사 감지
+→ 워크플로우 3A: 기존 skill 갱신
+→ Best practices 검증
 ```
 
 ## Technical Details

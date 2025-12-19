@@ -50,6 +50,13 @@ description: 로컬 CI부터 배포까지 DevOps 패턴을 제공합니다. Just
 - "롤백", "rollback"
 - "서비스", "service"
 
+**데이터베이스** (`resources/05-database.md`)
+- "postgres", "postgresql", "psql"
+- "mysql", "mariadb"
+- "DB 설정", "database"
+- "익스텐션", "extension"
+- "쿼리 튜닝", "성능 분석"
+
 **언어별 도구** (`resources/languages/{언어}.md`)
 - "TypeScript" + (lint/test) → `languages/typescript.md`
 - "Python" + (lint/test) → `languages/python.md` (향후)
@@ -147,4 +154,5 @@ User: "Docker로 개발 환경 구축해줘"
 - `resources/02-ci-cd-pipelines.md`: GitHub Actions/GitLab CI
 - `resources/03-docker.md`: Docker, compose.yaml
 - `resources/04-deployment.md`: 배포 스크립트, PM2
+- `resources/05-database.md`: PostgreSQL/MySQL 개발 환경, 성능 분석 도구
 - `resources/languages/typescript.md`: Biome, Vitest/Jest

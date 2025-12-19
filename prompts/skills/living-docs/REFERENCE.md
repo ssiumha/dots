@@ -5,7 +5,7 @@
 ### 공통 필드
 
 - `id`: 문서 고유 식별자 (형식: `{type}-{slug}`)
-- `type`: 문서 유형 (knowledge, decision, todo)
+- `type`: 문서 유형 (knowledge, decision, todo, requirement)
 - `created`: 생성 날짜 (YYYY-MM-DD)
 - `updated`: 최종 수정 날짜 (YYYY-MM-DD)
 - `tags`: 검색용 태그 배열
@@ -34,6 +34,19 @@
 - `assignee`: 담당자
 - `completed`: 완료 날짜 (status=done일 때)
 
+### Requirement 문서
+
+- `ears-pattern`: EARS 패턴 유형
+  - ubiquitous | state-driven | event-driven | optional-feature | unwanted-behavior | complex
+- `system`: 대상 시스템/컴포넌트명
+- `status`: 요구사항 상태
+  - draft | proposed | approved | implemented | deprecated
+- `priority`: 우선순위 (low | medium | high | critical)
+- `category`: 요구사항 분류
+  - functional | non-functional | constraint | interface
+- `depends-on`: 선행 요구사항 ID 배열
+- `verified-by`: 검증 TODO/테스트 ID 배열
+
 ## 문서 ID 생성 규칙
 
 ### Knowledge 문서
@@ -57,6 +70,14 @@
 - 예시:
   - ID: `todo-ip-update` → 파일: `todos/ip-update.md`
   - ID: `todo-api-docs` → 파일: `todos/api-docs.md`
+
+### Requirement 문서
+- 형식: `req-{category}-{slug}`
+- 파일 경로: `requirements/{category}/{slug}.md`
+- 예시:
+  - ID: `req-functional-user-login` → 파일: `requirements/functional/user-login.md`
+  - ID: `req-security-password-encryption` → 파일: `requirements/security/password-encryption.md`
+  - ID: `req-performance-api-response` → 파일: `requirements/performance/api-response.md`
 
 **Slug 규칙:**
 - kebab-case 사용 (소문자, 하이픈으로 연결)
@@ -133,15 +154,25 @@ related:
 │   ├── decisions/
 │   │   ├── aws-region.md
 │   │   └── tech-stack.md
-│   └── todos/
-│       ├── ip-update.md          # status: pending/in-progress
-│       ├── api-docs.md            # status: pending/in-progress
-│       └── completed/             # 완료된 TODO 보관
-│           ├── 2025-01/
-│           │   ├── auth-setup.md
-│           │   └── db-migration.md
-│           └── 2025-02/
-│               └── feature-x.md
+│   ├── todos/
+│   │   ├── ip-update.md          # status: pending/in-progress
+│   │   ├── api-docs.md            # status: pending/in-progress
+│   │   └── completed/             # 완료된 TODO 보관
+│   │       ├── 2025-01/
+│   │       │   ├── auth-setup.md
+│   │       │   └── db-migration.md
+│   │       └── 2025-02/
+│   │           └── feature-x.md
+│   └── requirements/              # 요구사항 문서 (EARS 패턴)
+│       ├── functional/
+│       │   ├── user-login.md
+│       │   └── user-registration.md
+│       ├── non-functional/
+│       │   └── api-response-time.md
+│       ├── security/
+│       │   └── password-encryption.md
+│       └── interface/
+│           └── external-payment-api.md
 └── another-project/
     └── ...
 ```
@@ -160,6 +191,22 @@ pending → in-progress → done
    ↑           ↓
    └───────────┘
 ```
+
+## 상태 전이 (Requirement)
+
+```
+draft → proposed → approved → implemented
+                      ↓              ↓
+                deprecated ←────────┘
+```
+
+| 상태 | 설명 | 전환 가능 |
+|------|------|----------|
+| draft | 초안 작성됨 | → proposed |
+| proposed | 검토 요청됨 | → approved, → draft |
+| approved | 승인됨, 구현 대기 | → implemented, → deprecated |
+| implemented | 구현 완료 | → deprecated |
+| deprecated | 폐기됨 | - |
 
 ## 날짜 형식
 
@@ -299,6 +346,14 @@ docs(todo): add resource tasks (user, post, comment)
 # 완료 및 아카이브
 docs(todo): complete {slug} - moved to completed/YYYY-MM
 docs(todo): archive completed todos from YYYY-MM
+```
+
+### Requirement 문서
+```bash
+docs(requirement): add {category}/{slug}
+docs(requirement): update {slug} - {간단한 설명}
+docs(requirement): update {slug} status to {status}
+docs(requirement): deprecate {slug}
 ```
 
 ### Refactoring

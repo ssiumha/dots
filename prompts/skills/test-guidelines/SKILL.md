@@ -1,6 +1,6 @@
 ---
 name: test-guidelines
-description: 테스트 작성 원칙과 모범 사례를 제공합니다. 테스트 코드 작성, 테스트 검증, 테스트 리뷰가 필요할 때 사용하세요. (project, gitignored)
+description: 테스트 작성 원칙과 모범 사례를 제공합니다. 테스트 코드 작성, Mock 과다 진단, DI 구조 개선, 테스트 리뷰가 필요할 때 사용하세요. (project, gitignored)
 ---
 
 # Test Guidelines
@@ -8,10 +8,10 @@ description: 테스트 작성 원칙과 모범 사례를 제공합니다. 테스
 테스트 작성의 핵심 원칙과 워크플로우를 제공하는 스킬입니다.
 
 **핵심 철학**:
-- 실제 구현 우선, Mock은 최후의 수단
+- 실제 구현 우선, Mock 과다는 설계 문제 신호
 - 작은 단위부터 시작 (Bottom-up)
 - 반복되는 패턴은 fixture/factory로 재사용
-- Mock 사용 시 반드시 사용자 승인 필요
+- Mock 필요 시 구조 진단 먼저, 필요하면 사용자와 논의
 - **테스트 실패 = 실제 문제. 절대 우회하지 말 것**
 
 ## Instructions
@@ -31,10 +31,15 @@ description: 테스트 작성 원칙과 모범 사례를 제공합니다. 테스
    - 테스트 케이스 목록: Happy path, Edge cases, Error cases
    - 사용자에게 전략 설명 및 확인
 
-3. **⚠️ Mock 필요성 판단 및 사용자 확인**
-   - Mock이 필요한 경우 반드시 사용자에게 물어보기
-   - 대안 제시 (실제 구현, Test Double, Fake)
-   - **사용자 승인 없이 절대 Mock 사용 금지**
+3. **⚠️ Mock 필요성 판단 → 구조 진단**
+   - Mock 대상 의존성 나열 (실제 사용되는 것만)
+   - **의존성 3개 이상**: 구조 문제 가능성 언급
+   - **질문하기**:
+     - "이 클래스가 의존성을 직접 생성하나요? (new, import)"
+     - "의존성 주입(DI)으로 변경하면 테스트가 쉬워질 수 있어요"
+     - "더 작은 단위로 분리 가능한가요?"
+   - **선택지 제시**: 구조 개선(권장) vs Mock 사용(임시)
+   - 사용자 결정 후 진행
 
 4. **Fixture/Factory 패턴 고려**
    - 반복되는 테스트 데이터 패턴 확인
@@ -172,38 +177,129 @@ description: 테스트 작성 원칙과 모범 사례를 제공합니다. 테스
 
 ## Mock/Stub 사용 철학
 
-### ⚠️ Mock은 최후의 수단
+### ⚠️ Mock 과다 = 설계 문제 신호
 
-**우선순위**:
-1. 실제 구현 사용
-2. 가벼운 Test Double (In-memory DB, Fake, Stub)
-3. ⚠️ 사용자 허락 후 Mock 사용
+Mock이 많이 필요하다면 먼저 질문하기:
 
-### Mock 사용 정당화
+**구조 진단 질문:**
+1. 테스트 대상이 의존성을 직접 생성하나요? (new, import)
+   → DI 패턴 미적용 신호
+2. Mock 대상이 3개 이상인가요?
+   → 책임 과다 (SRP 위반) 가능성
+3. 내부 구현을 Mock해야 하나요?
+   → 강한 결합 신호
+
+**대응 우선순위:**
+1. 구조 개선 제안 (DI 적용, 책임 분리)
+2. 인터페이스 추출 + Fake 구현
+3. 사용자 승인 후 Mock (임시 해결책으로 명시)
+
+### Robert Martin Goldilocks Rule
+
+> "Mock across architecturally significant boundaries, but not within those boundaries."
 
 ```
-✅ Mock 필요:
-- 외부 API (결제, 이메일)
+✅ Mock OK (아키텍처 경계):
+- 외부 API (결제, 이메일, 3rd party)
 - 파일 시스템 대량 I/O
 - 현재 시간 의존성
 - 네트워크 요청
 - 느린 연산 (>1초)
 
-❌ Mock 불필요:
-- 단순 함수 (순수 함수)
-- 내부 모듈/클래스
-- 쉽게 재현 가능한 로직
-- 빠른 계산 (< 100ms)
+❌ Mock 피하기 (내부 경계):
+- 같은 모듈 내 클래스/함수
 - 프로젝트 내부 의존성
+- 순수 함수
+- 빠른 계산 (< 100ms)
 ```
+
+### Mock 필요 시 워크플로우
+
+1. **진단**: 왜 Mock이 필요한지 분석
+2. **질문**: 사용자에게 구조 개선 의향 확인
+3. **선택지 제시**:
+   ```
+   A. 구조 개선 (권장)
+      - DI 적용, 책임 분리
+      - 장기적으로 테스트 용이성 향상
+
+   B. Mock 사용 (임시)
+      - 현재 구조 유지
+      - 기술 부채로 기록
+   ```
+4. **사용자 결정에 따라 진행**
 
 ### Test Double 유형
 
-1. Dummy: 전달만 됨
-2. Stub: 미리 정의된 응답
-3. Spy: 호출 기록 + 실제 동작
-4. **Mock**: 행위 검증 (사용자 승인 필요)
-5. Fake: 간단한 구현
+1. **Dummy**: 전달만 됨 (사용되지 않음)
+2. **Stub**: 미리 정의된 응답 반환
+3. **Spy**: 호출 기록 + 실제 동작
+4. **Fake**: 간단한 구현 (In-memory DB 등) ← 권장
+5. **Mock**: 행위 검증 ← 구조 진단 후 사용
+
+## 테스트하기 어려운 구조 개선
+
+Mock이 과다하게 필요한 코드는 구조 개선으로 해결할 수 있습니다.
+
+### DI 미적용 패턴 (Bad)
+
+```python
+# ❌ 의존성을 직접 생성 → Mock 필수
+class OrderService:
+    def __init__(self):
+        self.payment = PaymentGateway()  # 직접 생성
+        self.email = EmailService()      # 직접 생성
+        self.logger = Logger()           # 직접 생성
+
+    def process(self, order):
+        self.payment.charge(order.total)
+        self.email.send(order.user, "주문 완료")
+```
+
+테스트하려면 PaymentGateway, EmailService, Logger 모두 Mock 필요.
+
+### DI 적용 패턴 (Good)
+
+```python
+# ✅ 의존성 주입 → Fake로 테스트 가능
+class OrderService:
+    def __init__(self, payment, email, logger):
+        self.payment = payment  # 주입받음
+        self.email = email      # 주입받음
+        self.logger = logger    # 주입받음
+
+    def process(self, order):
+        self.payment.charge(order.total)
+        self.email.send(order.user, "주문 완료")
+
+# 테스트
+def test_process_order():
+    fake_payment = FakePaymentGateway()
+    fake_email = FakeEmailService()
+    fake_logger = FakeLogger()
+
+    service = OrderService(fake_payment, fake_email, fake_logger)
+    service.process(order)
+
+    assert fake_payment.charged_amount == 10000
+    assert fake_email.sent_to == "user@example.com"
+```
+
+### 개선 효과
+
+| 항목 | DI 미적용 | DI 적용 |
+|------|-----------|---------|
+| Mock 필요성 | 필수 (3개) | 불필요 (Fake 사용) |
+| 테스트 속도 | Mock 설정 오버헤드 | 빠름 |
+| 의존성 명시성 | 숨겨짐 | 명시적 |
+| 재사용성 | 낮음 | 높음 |
+
+### 구조 개선 체크리스트
+
+- [ ] 의존성이 생성자에서 주입되는가?
+- [ ] 인터페이스/프로토콜로 추상화되었는가?
+- [ ] Fake 구현이 존재하는가?
+- [ ] 단일 책임 원칙(SRP)을 준수하는가?
 
 ## 언어별 가이드
 
@@ -248,15 +344,46 @@ description: 테스트 작성 원칙과 모범 사례를 제공합니다. 테스
 - [ ] 공통 Setup/Teardown 정리
 
 ### Mock 사용
-- [ ] 사용자 승인 받음
-- [ ] 정말 필요한 부분에만 사용
-- [ ] 최소한으로 사용
+- [ ] 아키텍처 경계에서만 사용 (Goldilocks Rule)
+- [ ] 의존성 3개 이상 시 구조 진단 완료
+- [ ] 구조 개선 vs Mock 사용 선택지 제시함
+- [ ] 내부 모듈/클래스는 Mock하지 않음
 
 ### 테스트 품질
 - [ ] 빠른 실행 (< 1초)
 - [ ] 명확한 실패 원인
 - [ ] Edge case/error case 검증
 - [ ] Flaky 아님 (항상 같은 결과)
+
+## Examples
+
+### 새 테스트 작성 (Mock 불필요)
+```
+User: "UserService 테스트 작성해줘"
+→ Workflow 1: 코드 분석 (순수 함수 위주)
+→ 의존성 확인: 없음
+→ AAA 패턴으로 테스트 작성
+→ 실행 및 검증
+```
+
+### Mock 과다 감지 → 구조 개선 제안
+```
+User: "OrderService 테스트 작성해줘"
+→ Workflow 1: 코드 분석
+→ 의존성 확인: PaymentGateway, EmailService, Logger (3개)
+→ ⚠️ 구조 진단: "의존성 3개, DI 미적용"
+→ 질문: "구조 개선(권장) vs Mock 사용(임시)?"
+→ 사용자 선택에 따라 진행
+```
+
+### 기존 테스트 리뷰 (Mock 과다 발견)
+```
+User: "테스트 코드 리뷰해줘"
+→ Workflow 2: 테스트 파일 분석
+→ Mock 10개 발견
+→ ⚠️ "Mock 과다 - Goldilocks Rule 위반"
+→ 구조 개선 제안 (DI 적용, 책임 분리)
+```
 
 ## Technical Details
 

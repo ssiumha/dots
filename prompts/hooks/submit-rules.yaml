@@ -320,6 +320,63 @@ skill-ansible-deployment:
 
     💡 Tip: Use copy module's native diff instead of shell scripts for colored output.
 
+# Justfile Syntax Skill Activation
+skill-justfile-syntax:
+  keywords:
+    - "justfile"
+    - "Justfile"
+    - "heredoc"
+    - "EOF"
+    - "<<EOF"
+    - "<< EOF"
+
+  trigger_message: |
+    📋 JUSTFILE SYNTAX SKILL
+
+    Justfile 편집 감지. 인덴트 규칙 확인:
+    - 레시피 본문: 4칸 공백 인덴트
+    - heredoc 내용: 인덴트 없음 (첫 칸 시작)
+    - EOF 마커: 인덴트 없음
+
+    Use 'justfile-syntax' skill for detailed syntax rules.
+
+# Whitepaper-KR Skill Activation
+skill-whitepaper-kr:
+  keywords:
+    # 백서 관련 직접 키워드
+    - "백서"
+    - "whitepaper"
+    - "white paper"
+    - "기술백서"
+    - "기술 백서"
+    - "투자자료"
+    - "투자 자료"
+
+    # 프로젝트 유형
+    - "AI 백서"
+    - "SaaS 백서"
+    - "블록체인 백서"
+    - "토크노믹스"
+    - "tokenomics"
+
+    # 백서 섹션 관련
+    - "executive summary"
+    - "문제 정의"
+    - "시장 기회"
+    - "로드맵 작성"
+
+  trigger_message: |
+    📄 WHITEPAPER-KR SKILL
+
+    Detected whitepaper-related keywords. Consider using the 'whitepaper-kr' skill for:
+    - Creating full technical whitepapers (Korean)
+    - Writing specific sections (Overview, Solution, Architecture, etc.)
+    - Supporting different project types: General Tech, AI, Blockchain
+    - Providing templates and writing guidelines
+
+    💡 Tip: Specify project type (AI/SaaS/Blockchain) for tailored templates.
+    For blockchain projects, includes tokenomics and legal sections.
+
 # 향후 추가 예시 (주석)
 # skill-pdf-tools:
 #   keywords:

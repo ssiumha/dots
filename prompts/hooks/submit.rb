@@ -44,21 +44,15 @@ begin
     end
   end
 
-  # 활성화된 규칙이 있으면 프롬프트 앞에 리마인더 추가
+  # 활성화된 규칙이 있으면 평문으로 context 추가 (exit 0 + stdout)
   unless activated_rules.empty?
-    reminder = activated_rules.join("\n\n")
-    input_data['prompt'] = "#{reminder}\n\n#{prompt}"
+    puts activated_rules.join("\n\n")
   end
-
-  # 수정된 JSON 출력
-  puts JSON.generate(input_data)
+  # 규칙 없으면 아무것도 출력하지 않음 (기본 동작)
 
 rescue => e
-  # 에러 발생 시 빈 JSON 반환 (Hook이 실패해도 사용자 경험 방해 안함)
+  # 에러 발생 시 아무것도 출력하지 않음 (Hook 실패해도 사용자 경험 방해 안함)
   $stderr.puts "Submit hook error: #{e.message}"
   $stderr.puts e.backtrace.first(3).join("\n")
-
-  # stdin은 이미 읽혔으므로 다시 읽지 않고 빈 JSON 반환
-  puts JSON.generate({})
   exit 0
 end
