@@ -230,7 +230,7 @@ grep "^### 워크플로우" ~/dots/prompts/skills/{skill-name}/SKILL.md
 ## 참고 자료
 
 **대표 skills**:
-- 워크플로우 기반: `living-docs`, `dev-docs`, `test-guidelines`
+- 워크플로우 기반: `ldoc`, `dev-docs`, `test-guidelines`
 - 리소스 로딩 기반: `ansible-deployment`, `patterns-devops`
 - Phase 기반: `tdd-practices`
 - 가이드/리뷰 기반: `claude-md-guide`, `review-security`

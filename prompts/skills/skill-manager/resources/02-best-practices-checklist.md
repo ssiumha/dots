@@ -103,7 +103,7 @@ Skill 생성 또는 갱신 후 다음 체크리스트로 품질을 검증하세�
 - [ ] 용어 일관 (워크플로우 vs Workflow)
 
 ### 관계 명시
-- [ ] 다른 skill 참조 명확 (예: living-docs와 통합)
+- [ ] 다른 skill 참조 명확 (예: ldoc와 통합)
 - [ ] 글로벌 규칙 참조 (commit.md, python.md)
 - [ ] REFERENCE.md 참조 (상세 내용)
 

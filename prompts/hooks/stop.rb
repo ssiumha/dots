@@ -16,7 +16,7 @@ require 'json'
 #
 # 현재 기능:
 # - Transcript 분석하여 완료 키워드 감지
-# - 완료 시 living-docs 제안 (exit 2 + stderr)
+# - 완료 시 ldoc 제안 (exit 2 + stderr)
 #
 # =============================================================================
 
@@ -57,7 +57,7 @@ COMPLETION_KEYWORDS = [
 ].freeze
 
 # Living Docs 스크립트 경로
-LIVING_DOCS_SCRIPT = File.expand_path('~/dots/prompts/skills/living-docs/scripts/living-docs')
+LIVING_DOCS_SCRIPT = File.expand_path('~/dots/prompts/skills/ldoc/scripts/ldoc')
 
 # 프로젝트 감지 (현재 디렉토리에서)
 def detect_project(cwd)
@@ -133,7 +133,7 @@ begin
     end
   end
 
-  # 완료 감지 시 living-docs 제안
+  # 완료 감지 시 ldoc 제안
   if has_completion
     $stderr.puts ""
     $stderr.puts "## 📝 Task Completion Detected"
@@ -159,7 +159,7 @@ begin
       end
     end
 
-    $stderr.puts "Consider documenting this work using the **living-docs** skill:"
+    $stderr.puts "Consider documenting this work using the **ldoc** skill:"
     $stderr.puts "- Record architectural decisions (ADR)"
     $stderr.puts "- Update knowledge base"
     $stderr.puts "- Track remaining TODOs"

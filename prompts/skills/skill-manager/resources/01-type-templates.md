@@ -52,7 +52,7 @@ User: "{요청}" → 워크플로우 N → {결과}
 - 중요 원칙: 5-7개
 - Examples: 2-3개
 
-**대표 예시**: living-docs, dev-docs, test-guidelines
+**대표 예시**: ldoc, dev-docs, test-guidelines
 
 ---
 

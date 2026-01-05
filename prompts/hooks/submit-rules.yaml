@@ -2,7 +2,7 @@
 # 프롬프트 제출 시 자동으로 활성화되는 규칙들
 
 # Skill Activation Rules (skill-*)
-skill-living-docs:
+skill-ldoc:
   # 문서/지식베이스/TODO 관련 키워드
   keywords:
     - "문서"
@@ -61,7 +61,7 @@ skill-living-docs:
     🎯 SKILL ACTIVATION CHECK
 
     Detected keywords related to documentation/knowledge management.
-    Consider using the 'living-docs' skill for:
+    Consider using the 'ldoc' skill for:
     - Managing project knowledge base
     - Creating/updating TODO items
     - Recording decisions (ADR)
@@ -69,7 +69,7 @@ skill-living-docs:
     - Automatic document health checks (size, duplication, references)
 
     💡 Tip: If you completed significant work (2+ files modified),
-    consider updating living-docs with architectural decisions or lessons learned.
+    consider updating ldoc with architectural decisions or lessons learned.
 
     💡 Advanced: After modifying documents, automatic health check will detect
     oversized files (300+ lines), duplicate content (80%+ tag overlap),
@@ -145,16 +145,16 @@ skill-dev-docs:
     - "context"
 
   trigger_message: |
-    📘 DEV DOCS SKILL
+    📘 AUTO-DEV / DEV DOCS SKILL
 
-    Detected dev-docs-related keywords. Consider using the 'dev-docs' skill for:
-    - Starting new development tasks (/dev-start)
-    - Resuming paused tasks with full context (/dev-continue)
-    - Checking status of all active tasks (/dev-status)
-    - Completing tasks and integrating to Living Docs (/dev-complete)
-    - Maintaining context across sessions (plan.md, context.md, tasks.md)
+    Detected dev-docs-related keywords. Consider using the 'auto-dev' skill:
+    - /auto-dev [기능] - 자율 모드 (PR까지 멈추지 않음)
+    - /auto-dev --manual - 수동 모드 (작업 시작)
+    - /auto-dev --continue - 작업 재개
+    - /auto-dev --status - 현황 파악
+    - /auto-dev --complete - 작업 완료 및 Living Docs 통합
 
-    💡 Tip: Dev Docs prevents "Claude amnesia" for complex, multi-session work.
+    💡 Tip: Auto-dev prevents "Claude amnesia" for complex, multi-session work.
     Use it for large features, refactorings, or anything that takes multiple days.
 
 # Test Guidelines Skill Activation
@@ -376,6 +376,33 @@ skill-whitepaper-kr:
 
     💡 Tip: Specify project type (AI/SaaS/Blockchain) for tailored templates.
     For blockchain projects, includes tokenomics and legal sections.
+
+# PPT Generator Skill Activation
+skill-ppt-generator:
+  keywords:
+    - "PPT"
+    - "ppt"
+    - "pptx"
+    - "프레젠테이션"
+    - "슬라이드"
+    - "발표자료"
+    - "제안서"
+    - "기획서"
+    - "피치덱"
+    - "pitch deck"
+    - "PowerPoint"
+
+  trigger_message: |
+    📊 PPT GENERATOR SKILL
+
+    Detected PPT-related keywords. Consider using the 'ppt-generator' skill for:
+    - Creating proposal/planning presentations
+    - python-pptx based slide generation
+    - Header templates (minimal/nav/progress)
+    - Slide types (title/content/chart/table/etc.)
+    - Style presets (corporate/startup/minimal)
+
+    💡 Tip: Specify purpose (제안서/기획서/피치덱) and style for tailored output.
 
 # 향후 추가 예시 (주석)
 # skill-pdf-tools:

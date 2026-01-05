@@ -14,7 +14,7 @@ Skill을 생성, 수정, 갱신하고 best practices를 검증합니다.
 | 조건 | 예시 |
 |------|------|
 | "skill" + 작업 동사 | "skill 만들어줘", "skill 수정해줘" |
-| skill 이름 언급 + 작업 | "living-docs 확장해줘" |
+| skill 이름 언급 + 작업 | "ldoc 확장해줘" |
 | prompts/skills/ 파일 작업 | SKILL.md 수정 요청 |
 
 **핵심 철학**:
@@ -261,9 +261,9 @@ Skill을 생성, 수정, 갱신하고 best practices를 검증합니다.
 
 ### 기존 Skill 갱신
 ```
-User: "여태까지 작업을 living-docs에 반영해줘"
+User: "여태까지 작업을 ldoc에 반영해줘"
 → 워크플로우 1: 작업 분석
-→ 워크플로우 2: living-docs 발견 (높은 연관성)
+→ 워크플로우 2: ldoc 발견 (높은 연관성)
 → 워크플로우 3A: 갱신 실행
 → Git 커밋
 ```
@@ -279,7 +279,7 @@ User: "이 작업 패턴을 skill로 만들어줘"
 
 ### Skill 확장/리네임 (proactive 트리거)
 ```
-User: "claude-guide skill 확장해줘" 또는 "living-docs에 워크플로우 추가해줘"
+User: "claude-guide skill 확장해줘" 또는 "ldoc에 워크플로우 추가해줘"
 → 자동 트리거: skill 이름 + 작업 동사 감지
 → 워크플로우 3A: 기존 skill 갱신
 → Best practices 검증

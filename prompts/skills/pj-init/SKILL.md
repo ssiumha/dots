@@ -9,7 +9,7 @@ description: 멀티레포 워크스페이스(~/pj/xxx/)의 CLAUDE.md를 초기�
 
 **대상 구조**: `~/pj/{project}/` 아래 여러 독립 git 저장소 (모노레포 아님)
 
-**문서화**: `living-docs` 스킬과 연동 (`~/docs/pj--{project}/`)
+**문서화**: `ldoc` 스킬과 연동 (`~/docs/pj--{project}/`)
 
 ## Instructions
 
@@ -64,11 +64,11 @@ done
 
 `templates/workspace.md` 기반으로 생성
 
-#### 6. living-docs 연동
+#### 6. ldoc 연동
 
-`living-docs` 스킬을 사용하여 문서 폴더 초기화:
+`ldoc` 스킬을 사용하여 문서 폴더 초기화:
 - 경로: `~/docs/pj--{project}/`
-- `living-docs` 스킬의 폴더 구조 규칙 따름
+- `ldoc` 스킬의 폴더 구조 규칙 따름
 
 ### 워크플로우 2: 기존 워크스페이스 업데이트
 
@@ -87,7 +87,7 @@ done
 2. **저장소 구조** - 테이블 (저장소, 설명, GitHub)
 3. **저장소별 상세** - 기술 스택, 포트, 명령어
 4. **작업 규칙** - 브랜치 정책, Git 규칙
-5. **문서화** - living-docs 연동 (`~/docs/pj--{project}/`)
+5. **문서화** - ldoc 연동 (`~/docs/pj--{project}/`)
 
 ### 선택 섹션
 
@@ -115,7 +115,7 @@ done
 
 1. **저장소 자동 탐색**: git remote로 저장소 정보 자동 수집
 2. **사용자 확인**: 주요 결정은 사용자에게 확인
-3. **living-docs 연동**: 문서 관리는 `living-docs` 스킬에 위임
+3. **ldoc 연동**: 문서 관리는 `ldoc` 스킬에 위임
 4. **간결함 유지**: 필수 정보만, 상세 내용은 각 저장소 README 참조
 
 ## Examples
@@ -129,7 +129,7 @@ Assistant:
 3. 각 저장소 정보 수집
 4. 사용자와 대화 (설명, 연동 관계)
 5. CLAUDE.md 생성
-6. `living-docs` 스킬로 문서 폴더 초기화 제안
+6. `ldoc` 스킬로 문서 폴더 초기화 제안
 
 ## Technical Details
 

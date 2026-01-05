@@ -50,12 +50,28 @@ description: 로컬 CI부터 배포까지 DevOps 패턴을 제공합니다. Just
 - "롤백", "rollback"
 - "서비스", "service"
 
+**Helmfile / K8s** (`resources/06-helmfile-k8s.md`)
+- "helmfile", "Helmfile"
+- "kubernetes", "k8s", "쿠버네티스"
+- "helm", "chart"
+- "NetworkPolicy", "네트워크 정책"
+- "Pod Security", "보안 컨텍스트"
+- "제로 트러스트", "zero trust"
+
 **데이터베이스** (`resources/05-database.md`)
 - "postgres", "postgresql", "psql"
 - "mysql", "mariadb"
 - "DB 설정", "database"
 - "익스텐션", "extension"
 - "쿼리 튜닝", "성능 분석"
+
+**Observability** (`resources/07-observability.md`)
+- "observability", "관측성"
+- "prometheus", "프로메테우스", "메트릭"
+- "grafana", "그라파나", "대시보드"
+- "tracing", "추적", "jaeger", "opentelemetry", "otel"
+- "actuator", "micrometer"
+- "alertmanager", "알림", "알람"
 
 **언어별 도구** (`resources/languages/{언어}.md`)
 - "TypeScript" + (lint/test) → `languages/typescript.md`
@@ -138,6 +154,30 @@ User: "Docker로 개발 환경 구축해줘"
 5. .dockerignore 생성
 6. 로컬 실행 확인: docker compose up
 
+#### 예시 4: Helmfile K8s 배포
+
+User: "Helmfile로 K8s 배포 설정해줘"
+
+1. 키워드 매칭: "Helmfile", "K8s" → Helmfile/K8s
+2. Read resources/06-helmfile-k8s.md
+3. helmfile/ 디렉토리 구조 생성
+4. helmfile.yaml 작성 (환경별 분리)
+5. values/ 파일 작성
+6. 보안 설정 적용 (Pod Security, NetworkPolicy)
+7. 검증: helmfile -e dev diff
+
+#### 예시 5: Observability 설정
+
+User: "Prometheus랑 Grafana로 모니터링 구축해줘"
+
+1. 키워드 매칭: "Prometheus", "Grafana" → Observability
+2. Read resources/07-observability.md
+3. Spring Boot actuator/micrometer 설정
+4. prometheus.yml 또는 ServiceMonitor 작성
+5. compose.yaml에 observability 스택 추가
+6. Grafana Dashboard 구성
+7. 검증: /actuator/prometheus 엔드포인트 확인
+
 ## 중요 원칙
 
 1. **토큰 효율**: 필요한 리소스만 Read (40-60% 절감)
@@ -155,4 +195,6 @@ User: "Docker로 개발 환경 구축해줘"
 - `resources/03-docker.md`: Docker, compose.yaml
 - `resources/04-deployment.md`: 배포 스크립트, PM2
 - `resources/05-database.md`: PostgreSQL/MySQL 개발 환경, 성능 분석 도구
+- `resources/06-helmfile-k8s.md`: Helmfile 배포, K8s 보안 베이스라인
+- `resources/07-observability.md`: Prometheus, Grafana, OpenTelemetry
 - `resources/languages/typescript.md`: Biome, Vitest/Jest

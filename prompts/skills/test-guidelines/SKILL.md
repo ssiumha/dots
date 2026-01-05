@@ -29,6 +29,7 @@ description: 테스트 작성 원칙과 모범 사례를 제공합니다. 테스
 2. **테스트 전략 수립**
    - AAA 패턴 (Arrange-Act-Assert) 적용
    - 테스트 케이스 목록: Happy path, Edge cases, Error cases
+   - **경계값 테스트**: `resources/boundary-testing.md` 참조 (숫자, 문자열, 날짜 경계)
    - 사용자에게 전략 설명 및 확인
 
 3. **⚠️ Mock 필요성 판단 → 구조 진단**

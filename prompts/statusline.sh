@@ -35,15 +35,35 @@ else
   days_since_tue=7
 fi
 
-# Sum weekly tokens (input + output) from JSONL files
+# Calculate exact reset timestamp (last Tuesday 10am)
+RESET_DATE=$(date -v-"${days_since_tue}"d +%Y-%m-%d)
+RESET_TS="${RESET_DATE} 10:00:00"
+
+# Sum weekly tokens from JSONL files (birthtime-based filtering)
+# Rate limit uses input + output only (cache tokens not counted in rate limit)
+#
+# Calibration history:
+# - 2025-12-22: 3.4M (in+out) = 53% → limit ~6.4M
+# - 2025-12-23: Fixed mtime→birthtime. in=28K, out=15K = 43K → /usage 1% → limit ~4.3M
+#   cache_create=497K, cache_read=3.3M (not counted in rate limit)
 CLAUDE_DIR="$HOME/.claude/projects"
 WEEKLY_TOKENS=0
 if [ -d "$CLAUDE_DIR" ]; then
-  # Sum both input_tokens and output_tokens
-  WEEKLY_TOKENS=$(find "$CLAUDE_DIR" -name "*.jsonl" -mtime -"$days_since_tue" 2>/dev/null | \
-    xargs grep -oh '"input_tokens":[0-9]*\|"output_tokens":[0-9]*' 2>/dev/null | \
+  # Get reset timestamp as epoch
+  RESET_EPOCH=$(date -j -f "%Y-%m-%d %H:%M:%S" "$RESET_TS" +%s 2>/dev/null)
+
+  # Sum input + output from files created after reset (birthtime)
+  WEEKLY_TOKENS=$(
+    for f in "$CLAUDE_DIR"/*/*.jsonl; do
+      BIRTH=$(stat -f "%B" "$f" 2>/dev/null)
+      if [ "${BIRTH:-0}" -ge "${RESET_EPOCH:-0}" ] 2>/dev/null; then
+        cat "$f"
+      fi
+    done 2>/dev/null | \
+    grep -oh '"input_tokens":[0-9]*\|"output_tokens":[0-9]*' | \
     cut -d: -f2 | \
-    awk '{s+=$1} END {print s+0}')
+    awk '{s+=$1} END {print s+0}'
+  )
 fi
 
 # Weekly limit (env var or default ~7M for Max PRO)

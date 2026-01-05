@@ -11,7 +11,7 @@ description: 대형 작업과 복잡한 기능 개발 시 컨텍스트를 유지
 
 ### 전제 조건
 
-모든 워크플로우는 자동으로 프로젝트를 확인합니다 (living-docs 스킬 참조).
+모든 워크플로우는 자동으로 프로젝트를 확인합니다 (ldoc 스킬 참조).
 
 ### 문서 위치
 
@@ -38,12 +38,12 @@ description: 대형 작업과 복잡한 기능 개발 시 컨텍스트를 유지
 
    **사용자가 '예' 선택 시:**
 
-   living-docs 스킬의 **워크플로우 5 (지식 탐색)** 실행:
+   ldoc 스킬의 **워크플로우 5 (지식 탐색)** 실행:
 
    1. **키워드 추출**: 작업명에서 검색어 추출
       - `feature-user-auth` → `user`, `auth`, `authentication`, `session`
 
-   2. **관련 문서 검색**: living-docs Workflow 5 로직 활용
+   2. **관련 문서 검색**: ldoc Workflow 5 로직 활용
       - 구조 파악 (lsd --tree)
       - 빠른 인덱스 스캔 (Grep 우선, 최소 Read)
       - 관련 문서만 선택적 Read (상위 3-5개)
@@ -165,7 +165,7 @@ description: 대형 작업과 복잡한 기능 개발 시 컨텍스트를 유지
 
 5. **Living Docs 통합 실행** (사용자 승인 시)
 
-   living-docs 스킬로 각 항목 통합 (decisions/, knowledge/ 문서 생성/업데이트)
+   ldoc 스킬로 각 항목 통합 (decisions/, knowledge/ 문서 생성/업데이트)
 
 6. **아카이브로 이동**
    ```bash
@@ -194,7 +194,7 @@ description: 대형 작업과 복잡한 기능 개발 시 컨텍스트를 유지
 
 1. **3개 문서 필수**: plan, context, tasks를 항상 함께 유지
 2. **타임스탬프 갱신**: 문서 읽기/수정 시 updated 필드 갱신
-3. **완료 후 정리**: 아카이브 + living-docs 통합 검토
+3. **완료 후 정리**: 아카이브 + ldoc 통합 검토
 
 ## Living Docs와의 관계
 
@@ -232,7 +232,7 @@ Assistant: (문서 읽기 → plan.md 완료 처리 → context.md 분석)
 📋 의사결정 (2개), 🏗️ 아키텍처 (1개), ⚠️ 주의사항 (1개)
 [1] 모두 기록 [2] 선택 [3] 아카이브만"
 User: "1번"
-Assistant: (living-docs 스킬로 decisions/ 및 knowledge/ 문서 생성/업데이트 → 아카이브 이동)
+Assistant: (ldoc 스킬로 decisions/ 및 knowledge/ 문서 생성/업데이트 → 아카이브 이동)
 "작업 완료! 의사결정 2개, 아키텍처 1개 기록됨"
 ```
 

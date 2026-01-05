@@ -1,6 +1,6 @@
 ---
 name: claude-guide
-description: Claude Code 설정을 안내합니다. CLAUDE.md, rules, commands, skills, agents 구조와 사용법, "설정", "가이드", "헬프" 요청 시 사용하세요.
+description: Claude Code 설정을 안내합니다. CLAUDE.md, rules, hooks, commands, skills, agents, memory 구조와 사용법, "설정", "가이드", "헬프", "/memory", "/init" 요청 시 사용하세요.
 ---
 
 # Claude Guide
@@ -15,7 +15,8 @@ Claude Code는 다양한 설정 방식을 제공합니다. **컨텍스트 소비
 |------|----------|------|
 | CLAUDE.md | 항상 | 핵심 규칙, 필수 설정 |
 | rules/ | 항상 | 상세 규칙 분리 (20줄+ 시) |
-| commands/ | 호출 시만 | 반복 작업 템플릿 (/dev-start) |
+| hooks/ | 이벤트 시 | 도구 호출 전후 자동 실행 |
+| commands/ | 호출 시만 | 반복 작업 템플릿 (/auto-dev) |
 | skills/ | 필요 시만 | 전문 지식 패키지 (drawio) |
 | agents/ | 위임 시만 | 독립 컨텍스트 작업 (code-review) |
 
@@ -23,9 +24,74 @@ Claude Code는 다양한 설정 방식을 제공합니다. **컨텍스트 소비
 
 **CLAUDE.md**: 커밋 규칙, 테스트 정책, 금지 사항 (항상 적용되어야 할 것)
 **rules/**: 상세 규칙 (20줄+), 영역별 분리 (frontend/, backend/)
+**hooks/**: 도구 호출 전후 자동화 (pre-Bash, post-Edit 등)
 **commands/**: 반복 워크플로우 (/review, /deploy, /docs)
 **skills/**: 특정 주제 전문 지식 (항상 필요하지 않은 것)
 **agents/**: 독립 컨텍스트 필요한 작업 (코드 리뷰, 탐색)
+
+---
+
+## Memory 계층 구조
+
+Claude Code는 여러 위치에서 메모리를 로드합니다. **위에서 아래로 우선순위**가 높습니다.
+
+| 우선순위 | 유형 | 위치 | 공유 범위 |
+|:---:|------|------|----------|
+| 1 | Enterprise policy | macOS: `/Library/Application Support/ClaudeCode/CLAUDE.md`<br>Linux: `/etc/claude-code/CLAUDE.md`<br>Windows: `C:\Program Files\ClaudeCode\CLAUDE.md` | 조직 전체 |
+| 2 | User memory | `~/.claude/CLAUDE.md` | 개인 (모든 프로젝트) |
+| 3 | Project memory | `./CLAUDE.md` 또는 `./.claude/CLAUDE.md` | 팀 (소스 컨트롤) |
+| 4 | Project rules | `./.claude/rules/*.md` | 팀 (소스 컨트롤) |
+| 5 | Project local | `./CLAUDE.local.md` | 개인 (현재 프로젝트만) |
+
+**동작 방식**: cwd에서 루트까지 재귀적으로 탐색하며 모든 `CLAUDE.md`, `CLAUDE.local.md` 로드
+
+> `CLAUDE.local.md`는 자동으로 `.gitignore`에 추가됨
+
+### @ Import 문법
+
+다른 파일을 import할 수 있습니다:
+
+```markdown
+See @README for project overview and @package.json for available npm commands.
+
+# Additional Instructions
+- git workflow @docs/git-instructions.md
+- 개인 설정 @~/.claude/my-project-instructions.md
+```
+
+- 상대/절대 경로 모두 지원
+- 최대 5단계 재귀 import
+- 코드 블록 내에서는 평가되지 않음
+
+### Path-Specific Rules
+
+`.claude/rules/` 내 파일에 YAML frontmatter로 특정 경로에만 적용:
+
+```markdown
+---
+paths: src/api/**/*.ts
+---
+
+# API Development Rules
+
+- All API endpoints must include input validation
+- Use the standard error response format
+```
+
+**Glob 패턴 예시**:
+- `**/*.ts`: 모든 TypeScript 파일
+- `src/**/*`: src/ 하위 모든 파일
+- `src/components/*.tsx`: 특정 디렉토리만
+- `{src,lib}/**/*.ts`: 여러 디렉토리
+
+### Memory 명령어
+
+```bash
+/init    # CLAUDE.md 생성
+/memory  # 로드된 memory 파일 확인
+```
+
+> 공식 문서: https://code.claude.com/docs/en/memory
 
 ---
 
@@ -250,6 +316,77 @@ Read claude.md (또는 CLAUDE.md)
 - 에러 핸들링 → `patterns-error-handling`
 - 보안 → `review-security`
 
+---
+
+## 대규모 프로젝트 CLAUDE.md
+
+대규모 엔터프라이즈 프로젝트는 50-100줄 제한을 초과할 수 있습니다.
+
+### 언제 200줄+ CLAUDE.md가 필요한가?
+
+- 프로젝트 고유 규칙이 많은 경우 (REST API 표준, 로깅 표준, i18n 등)
+- DDD 같은 복잡한 아키텍처를 사용하는 경우
+- 규제 준수 요구사항이 있는 경우 (금융, 의료 등)
+- 체크리스트가 필요한 경우 (새 Controller, 새 Service 등)
+
+### 대규모 프로젝트 권장 섹션
+
+```markdown
+1. Project Overview        # 프로젝트 개요
+2. Quick Commands          # 개발 명령어
+3. Services                # 서비스 엔드포인트
+4. Environment Variables   # 환경변수
+5. Architecture            # 아키텍처 가이드라인 (패키지 구조, 계층 의존성)
+6. REST API Standards      # API 응답 패턴, 로깅 표준
+7. Internationalization    # i18n 메시지 사용법
+8. Swagger Documentation   # API 문서화 규칙
+9. Checklists              # 체크리스트 (새 컨트롤러, 새 서비스, PR)
+10. Testing Strategy       # 테스트 전략, 디렉토리 구조
+11. Troubleshooting        # 자주 발생하는 문제 해결
+12. References             # 상세 문서 링크
+```
+
+### 코드 예시 패턴 (✅/❌)
+
+올바른 방법과 잘못된 방법을 대비하여 명확하게 가이드:
+
+```java
+// ✅ 올바른 패턴: ApiResult 래퍼 사용
+@PostMapping
+public ResponseEntity<ApiResult<UserResponse>> createUser(...) {
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(ApiResult.success(response, message));
+}
+
+// ❌ 잘못된 패턴: ApiResult 없이 직접 반환
+@GetMapping
+public ResponseEntity<List<UserResponse>> getUsers() {
+    return ResponseEntity.ok(service.getAll());  // 이렇게 하지 마세요
+}
+```
+
+**효과**: AI가 명확한 패턴을 학습하여 일관된 코드 생성
+
+### 체크리스트 패턴
+
+새 기능 구현 시 빠뜨리기 쉬운 사항을 명시적으로 나열:
+
+```markdown
+### New Controller Checklist
+
+- [ ] **ApiResult 패턴 적용**: 모든 엔드포인트가 `ResponseEntity<ApiResult<T>>` 반환
+- [ ] **MessageSourceService 주입**: 다국어 메시지 처리를 위해 필수
+- [ ] **Swagger 문서화**: `@Tag`, `@Operation`, `@ApiResponses` 어노테이션 추가
+- [ ] **로깅 표준 준수**: GET은 `debug`, POST/PUT/DELETE는 `info` 레벨
+- [ ] **메시지 파일 업데이트**: messages_ko.properties에 메시지 키 추가
+```
+
+**효과**: AI가 코드 생성 후 자체 검증 가능
+
+### 템플릿
+
+대규모 프로젝트용 템플릿: `templates/enterprise.md`
+
 ## 체크리스트
 
 ### 필수 항목
@@ -301,7 +438,8 @@ Assistant:
 ## Technical Details
 
 템플릿은 `templates/` 디렉토리 참조:
-- minimal.md: 최소 구성
-- web-app.md: 웹앱 프로젝트
-- api-server.md: API 서버
-- monorepo.md: 모노레포
+- minimal.md: 최소 구성 (50줄 이하)
+- web-app.md: 웹앱 프로젝트 (100줄 이하)
+- api-server.md: API 서버 (200줄 이하)
+- monorepo.md: 모노레포 (150줄 이하)
+- enterprise.md: 엔터프라이즈 프로젝트 (200줄+, DDD, 규제 준수)

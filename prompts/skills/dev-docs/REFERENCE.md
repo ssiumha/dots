@@ -360,7 +360,7 @@ JWT 대신 Session 기반 인증을 사용
 - 서버 메모리 사용 증가
 ```
 
-### 통합 후: living-docs
+### 통합 후: ldoc
 
 **~/docs/myproject/decisions/auth-session-based.md:**
 ```markdown
@@ -424,7 +424,7 @@ JWT 대신 Session 기반 인증을 사용하기로 결정했습니다.
    - context.md 리뷰
    - 체크리스트 적용
 
-3. **living-docs 스킬 활성화**
+3. **ldoc 스킬 활성화**
    - 의사결정 → decisions/
    - 아키텍처 → knowledge/architecture/
    - 주의사항 → knowledge/{category}/
