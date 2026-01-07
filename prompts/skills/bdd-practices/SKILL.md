@@ -1,6 +1,6 @@
 ---
 name: bdd-practices
-description: Gherkin 기반 BDD와 기능 명세를 지원합니다. "bdd", "명세", ".feature", "시나리오", "Given/When/Then" 요청 시 사용하세요.
+description: 기능을 사용자 관점에서 명세하거나 인수 테스트가 필요할 때 사용. Gherkin 형식으로 시나리오를 작성합니다. (user)
 ---
 
 # BDD Practices

@@ -1,6 +1,6 @@
 ---
 name: setup-compliance
-description: 프로젝트에 금융 규제 준수 문서를 생성합니다. "규제", "FSS", "ISMS", "PCI DSS", "compliance 설정" 요청 시 사용하세요.
+description: 금융/보안 규제 준수가 필요한 프로젝트에서 사용. FSS, ISMS, PCI DSS 등 컴플라이언스 문서를 생성합니다. (user)
 ---
 
 # Setup Compliance

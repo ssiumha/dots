@@ -1,6 +1,6 @@
 ---
 name: tdd-practices
-description: RED-GREEN-REFACTOR 사이클 기반 테스트 주도 개발(TDD) 가이드. 새 기능 구현, 버그 수정, 리팩토링 시 실패하는 테스트를 먼저 작성하고 최소 구현으로 통과시킵니다. AI 안티패턴(테스트 삭제, 과도한 구현)을 자동 감지하고 경고합니다.
+description: 새 기능 구현, 버그 수정, 리팩토링 시 TDD 사이클을 적용할 때 사용. 실패 테스트 먼저 작성 후 최소 구현으로 통과시키며, AI 안티패턴을 자동 감지합니다. (user)
 ---
 
 # TDD Practices

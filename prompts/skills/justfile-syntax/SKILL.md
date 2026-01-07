@@ -1,6 +1,6 @@
 ---
 name: justfile-syntax
-description: Justfile 편집 시 인덴트/문법 규칙을 제공합니다. justfile, Justfile, 레시피 편집 시 자동으로 사용하세요.
+description: Justfile을 작성하거나 수정할 때 proactively 사용. 인덴트 규칙, heredoc 문법, 레시피 패턴을 안내합니다. (user)
 ---
 
 # Justfile 문법 가이드

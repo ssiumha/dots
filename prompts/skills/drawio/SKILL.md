@@ -1,6 +1,6 @@
 ---
 name: drawio
-description: draw.io 다이어그램을 생성합니다. 아키텍처, 플로우차트, 시퀀스, AWS 인프라, .drawio 파일 작업, "그려줘", "시각화", "diagram" 요청 시 사용하세요.
+description: 시스템 구조, 흐름, 관계를 시각화할 때 사용. 아키텍처, 시퀀스, 플로우차트, AWS 인프라를 draw.io로 생성합니다. (user)
 ---
 
 # draw.io 다이어그램 생성

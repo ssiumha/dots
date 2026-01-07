@@ -1,6 +1,6 @@
 ---
 name: ansible-deployment
-description: Ansible을 활용한 서버 배포 자동화 패턴. diff 확인, SSH 인증, copy 모듈, playbook 구조가 필요할 때 사용하세요.
+description: 서버 설정을 자동화하거나 여러 서버에 배포할 때 사용. Ansible playbook, SSH 인증, diff 확인 패턴을 제공합니다. (user)
 ---
 
 # Ansible Deployment Automation

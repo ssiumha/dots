@@ -18,15 +18,38 @@ Skill 생성 또는 갱신 후 다음 체크리스트로 품질을 검증하세�
 
 ### Frontmatter 품질
 - [ ] name: kebab-case 준수
-- [ ] description: "언제 사용하는지" 명확
-- [ ] description: 구체적 키워드 포함
+- [ ] description: **맥락/상황 설명 우선** ("~할 때 사용")
+- [ ] description: 키워드 나열 지양, 암묵적 상황도 포함
 - [ ] description: 2문장 이내
+
+**Description 예시**:
+```yaml
+# ❌ 키워드 나열 (나쁜 예)
+description: "command 만들어줘", "커맨드 생성" 요청 시 사용
+
+# ✅ 맥락 설명 (좋은 예)
+description: 반복 워크플로우를 slash command로 정의할 때 사용.
+            배치 처리, 파이프라인 자동화를 지원합니다.
+
+# ❌ 명시적 요청만 (나쁜 예)
+description: "보안 리뷰해줘" 요청 시 사용
+
+# ✅ 암묵적 상황 포함 (좋은 예)
+description: 인증/인가 구현, API 추가, 배포 전 검토 시 proactively 사용.
+            OWASP Top 10, credential 노출을 점검합니다.
+```
 
 ### Instructions 품질
 - [ ] 명확한 번호 매김 (워크플로우 1, 2, 3... 또는 Phase 1, 2, 3...)
 - [ ] 각 단계별 입출력 명시
 - [ ] 사용자 확인 지점 명시
 - [ ] Bash 명령어 구체적 (예시 포함)
+
+### Examples 품질 (Context Engineering)
+- [ ] Examples 2-3개 필수 (패턴 전달에 가장 효과적)
+- [ ] 실제 사용 시나리오 기반
+- [ ] User 입력 → Flow → 결과 형식
+- [ ] 긴 설명보다 구체적 예시 우선
 
 ---
 

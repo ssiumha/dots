@@ -1,6 +1,6 @@
 ---
 name: review-security
-description: 보안 관점에서 코드를 검토합니다. OWASP Top 10, credential 노출, injection 공격 등을 체크합니다.
+description: 인증/인가 구현, API 추가, 사용자 입력 처리, 배포 전 검토 시 proactively 사용. OWASP Top 10, credential 노출, injection을 점검합니다. (user)
 ---
 
 # Security Review

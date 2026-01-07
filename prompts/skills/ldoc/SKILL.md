@@ -1,6 +1,6 @@
 ---
 name: ldoc
-description: 프로젝트 지식과 할 일(TODO/todo)을 관리합니다. 문서 작성/업데이트, TODO 생성/완료, 의사결정 기록, 작업 현황 파악 시 사용하세요. (user)
+description: 프로젝트 지식을 체계화하거나 TODO를 관리할 때 사용. 의사결정 기록(ADR), 작업 현황 파악, 문서 건강도 검사를 지원합니다. (user)
 ---
 
 # Living Docs (ldoc)
@@ -364,17 +364,14 @@ mv ~/docs/{project}/todos/{slug}.md \
 - 워크플로우 1, 2, 3, 6 완료 후 자동 실행
 - 사용자가 "찾기 힘들어", "중복", "문서 정리" 언급 시
 
-**에이전트 호출 패턴**:
+**Subagent 호출**:
 
-1. `agents/health-checker.md` 파일 Read
-2. Task 호출:
-   ```
-   Task(
-     subagent_type="general-purpose",
-     prompt="{에이전트 파일 내용}\n\n검사 대상: ~/docs/{project}/"
-   )
-   ```
-3. 에이전트 결과 기반 리팩토링 제안
+```
+Task(
+  subagent_type="ldoc-automation",
+  prompt="WF10 건강도 체크: ~/docs/{project}/"
+)
+```
 
 **자동 체크 항목**:
 - 문서 크기: 300+ 줄 → 분할 제안
@@ -382,7 +379,6 @@ mv ~/docs/{project}/todos/{slug}.md \
 - 참조 건강도: 끊어진 링크, 고아 문서
 
 **상세 로직**: `resources/health-check.md` 참조
-**에이전트 정의**: `agents/health-checker.md` 참조
 
 ### 워크플로우 11: Completed TODO 아카이브 (선택)
 

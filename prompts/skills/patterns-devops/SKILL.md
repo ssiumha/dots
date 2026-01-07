@@ -1,6 +1,6 @@
 ---
 name: patterns-devops
-description: 로컬 CI부터 배포까지 DevOps 패턴을 제공합니다. Justfile, E2E 테스트, CI/CD 파이프라인, Docker, 배포 자동화가 필요할 때 사용하세요.
+description: 로컬 CI, 배포 파이프라인, 컨테이너화가 필요할 때 사용. Justfile, GitHub Actions, Docker, PM2 패턴을 제공합니다. (user)
 ---
 
 # DevOps Patterns

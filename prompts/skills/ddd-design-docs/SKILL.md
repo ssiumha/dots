@@ -1,6 +1,6 @@
 ---
 name: ddd-design-docs
-description: DDD 4계층 아키텍처 기반 설계문서, 패키지 구조, 테스트 구조를 제공합니다. DDD 프로젝트 설계, 도메인 문서화, 아키텍처 설계 시 사용하세요.
+description: 도메인 중심 설계가 필요하거나 복잡한 비즈니스 로직을 구조화할 때 사용. DDD 4계층 아키텍처 패턴을 제공합니다. (user)
 ---
 
 # DDD Design Docs

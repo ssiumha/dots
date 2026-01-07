@@ -1,6 +1,6 @@
 ---
 name: test-guidelines
-description: 테스트 작성 원칙과 모범 사례를 제공합니다. 테스트 코드 작성, Mock 과다 진단, DI 구조 개선, 테스트 리뷰가 필요할 때 사용하세요. (project, gitignored)
+description: 테스트 코드 작성 시 품질을 높이고 싶을 때 사용. Mock 과다 진단, DI 구조 개선, 테스트 가독성 향상을 지원합니다. (user)
 ---
 
 # Test Guidelines

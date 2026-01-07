@@ -1,6 +1,6 @@
 ---
 name: pj-init
-description: 멀티레포 워크스페이스(~/pj/xxx/)의 CLAUDE.md를 초기화합니다. 여러 독립 저장소가 하나의 프로젝트로 관리되는 구조에서 사용하세요. (user)
+description: 여러 저장소를 하나의 프로젝트로 관리할 때 사용. 멀티레포 워크스페이스의 CLAUDE.md를 초기화합니다. (user)
 ---
 
 # PJ Init

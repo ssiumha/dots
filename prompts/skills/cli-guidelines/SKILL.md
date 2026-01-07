@@ -1,6 +1,6 @@
 ---
 name: cli-guidelines
-description: CLI 도구 개발 시 proactively 사용하세요. argparse, Click, clap 등 CLI 라이브러리 사용, 플래그/인자 설계, 도움말 작성, 오류 메시지, 출력 포맷팅이 필요할 때 자동으로 호출됩니다. (clig.dev 기반)
+description: CLI 도구를 개발하거나 명령줄 인터페이스를 설계할 때 proactively 사용. 플래그 설계, 도움말, 오류 메시지 패턴을 제공합니다. (user)
 ---
 
 # CLI Guidelines

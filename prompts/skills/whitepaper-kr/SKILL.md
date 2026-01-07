@@ -1,6 +1,6 @@
 ---
 name: whitepaper-kr
-description: 한국어 기술 백서(Whitepaper) 작성을 지원합니다. 백서, whitepaper, 기술문서, 투자자료, AI백서, SaaS, 블록체인 백서 작성 시 사용하세요.
+description: 기술 프로젝트를 공식 문서로 정리하거나 투자자료가 필요할 때 사용. AI, SaaS, 블록체인 등 한국어 기술 백서를 작성합니다. (user)
 ---
 
 # 기술 백서 작성 Skill

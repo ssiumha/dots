@@ -1,6 +1,6 @@
 ---
 name: skill-manager
-description: Skill 생성/수정/갱신을 지원합니다. prompts/skills/ 작업, "skill 만들어줘", "skill 수정", "skill 확장", "skill에 반영" 요청 시 proactively 사용하세요.
+description: 작업 패턴을 재사용 가능한 skill로 만들 때 사용. 대화에서 반복된 패턴을 자동 감지하여 skill화합니다. (user)
 ---
 
 # Skill Manager

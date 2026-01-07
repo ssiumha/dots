@@ -7,7 +7,9 @@ allowed-tools: Read, Glob, Grep, Edit, Task(code-reviewer)
 
 ## 대상 파일
 
-!`if git rev-parse --git-dir > /dev/null 2>&1; then git diff --name-only HEAD; else for dir in */; do [ -d "$dir/.git" ] && git -C "$dir" diff --name-only HEAD 2>/dev/null | while IFS= read -r f; do printf '%s%s\n' "$dir" "$f"; done; done; fi`
+!`git diff --name-only HEAD`
+
+멀티레포의 경우 각 저장소에서 개별 실행하세요.
 
 ## 워크플로우
 

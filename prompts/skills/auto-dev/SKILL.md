@@ -1,6 +1,6 @@
 ---
 name: auto-dev
-description: 기능 단위 자율 개발. "자율 개발", "PR까지 진행", "auto-dev", "끝까지 구현", "자동으로 완성", "멈추지 말고", "혼자 해봐" 요청 시 사용.
+description: 기능 구현을 PR까지 자율적으로 진행할 때 사용. 복잡한 작업, 멀티 세션 작업에서 컨텍스트를 유지하며 테스트까지 완료합니다. (user)
 ---
 
 # Auto Dev
@@ -103,13 +103,34 @@ LOOP until 모든 task 완료 (최대 20회 반복, 10회 초과 시 사용자 �
 - tasks.md의 모든 checkbox가 [x]
 - 전체 테스트 통과
 
+### Phase 3.5: VERIFY (검증 루프)
+
+**목표**: 품질 2-3배 향상을 위한 체계적 검증
+
+모든 task 완료 후, PR 생성 전 필수 실행:
+
+```
+VERIFY_LOOP (최대 3회):
+  1. 전체 테스트 실행
+  2. [실패] → 수정 후 다시 1번
+  3. code-reviewer agent 호출 (Task tool)
+     - 입력: 변경된 파일 목록
+     - 분석: 품질, 보안, 성능
+  4. [Critical/High 이슈] → 수정 후 다시 1번
+  5. [Medium 이하만] → VERIFY 완료
+```
+
+**조기 종료 조건**:
+- 테스트 통과 + 이슈 없음 → 1회차에서 종료
+- 3회 반복 후에도 Critical 이슈 → 블로커로 전환
+
 ### Phase 4: COMPLETE (완료)
 
 **목표**: 마무리 및 PR 생성
 
-1. **전체 테스트 실행**
-   - 모든 테스트 통과 확인
-   - 실패 시 Phase 3로 복귀
+1. **VERIFY 완료 확인**
+   - Phase 3.5 검증 루프 통과 필수
+   - 미통과 시 Phase 3.5로 복귀
 
 2. **dev-docs 워크플로우 4 실행**
    - Living Docs 통합 제안
@@ -159,6 +180,7 @@ LOOP until 모든 task 완료 (최대 20회 반복, 10회 초과 시 사용자 �
 | PLAN | ldoc 워크플로우 5 | 관련 지식 검색 |
 | IMPLEMENT | tdd-practices | RED-GREEN-REFACTOR |
 | IMPLEMENT | test-verifier agent | Overfitting 감지, 테스트 품질 검증 |
+| VERIFY | code-reviewer agent | 품질, 보안, 성능 분석 |
 | COMPLETE | dev-docs WF4 | Living Docs 통합 |
 
 ## 파일 위치
@@ -289,6 +311,31 @@ dev-docs 워크플로우 4 (작업 완료) 실행:
 3. **테스트 필수**: 테스트 없이 구현 없음
 4. **무한 루프 방지**: 동일 에러 3회까지만
 5. **세션 복원**: state.md 항상 최신 유지
+6. **Context 압축**: 긴 세션 시 핵심만 state.md에 요약
+
+## Context 압축 (긴 세션용)
+
+세션이 길어지면 state.md에 압축된 컨텍스트 유지:
+
+```markdown
+## 압축된 컨텍스트 (마지막 업데이트: {timestamp})
+
+### 완료된 작업
+- task1: 미들웨어 구현 완료
+- task2: 테스트 통과
+
+### 현재 상태
+- 진행 중: task3 (DB 연동)
+- 마지막 에러: ConnectionError (1/3 재시도)
+
+### 핵심 결정사항
+- Redis 대신 인메모리 캐시 선택 (이유: 단순성)
+```
+
+**업데이트 시점**:
+- 각 task 완료 시
+- Phase 전환 시
+- 에러 발생 시
 
 ## 진행 상황 표시
 

@@ -1,6 +1,6 @@
 ---
 name: spring-boot-standards
-description: Spring Boot API 개발 표준을 제공합니다. ApiResult 응답 패턴, 로깅 표준, i18n 메시지, 예외 처리 패턴이 필요할 때 사용하세요.
+description: Spring Boot API 개발 시 일관된 패턴을 적용할 때 사용. 응답 포맷, 로깅, i18n, 예외 처리 표준을 제공합니다. (user)
 ---
 
 # Spring Boot Standards

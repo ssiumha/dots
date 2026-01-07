@@ -1,6 +1,6 @@
 ---
 name: claude-guide
-description: Claude Code 설정을 안내합니다. CLAUDE.md, rules, hooks, commands, skills, agents, memory 구조와 사용법, "설정", "가이드", "헬프", "/memory", "/init" 요청 시 사용하세요.
+description: Claude Code 설정 방법이 궁금하거나 프로젝트 초기화가 필요할 때 사용. CLAUDE.md, rules, hooks, skills 구조를 안내합니다. (user)
 ---
 
 # Claude Guide
