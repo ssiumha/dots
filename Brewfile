@@ -11,6 +11,7 @@ tap "homebrew/cask"
 # Develop tools
 brew "font-d2coding"
 cask "font-hack-nerd-font"
+brew "font-jetbrains-maple-mono"
 
 cask "wezterm"
 cask "raycast"
