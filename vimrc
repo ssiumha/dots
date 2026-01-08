@@ -15,7 +15,7 @@ cnoremap <c-a> <home>
 cnoremap <c-e> <end>
 
 inoremap <c-a> <home>
-inoremap <c-e> <end>
+imap <silent><script><expr> <c-e> copilot#Accept("\<End>")
 inoremap <c-f> <c-o>w
 inoremap <c-b> <c-o>b
 
@@ -295,12 +295,12 @@ Plug 'voldikss/vim-floaterm'
         \   { path -> execute('read ' . path) }, 'filepath')
   nnoremap <space>f <esc>:MySnip<cr>
 
-Plug 'mileszs/ack.vim'
+Plug 'mileszs/ack.vim', { 'on': ['Ack', 'Ack!'] }
   nnoremap <space>a :Ack!<space>
   let g:ackprg = 'rg --vimgrep --smart-case --color=never'
 
 Plug 'tpope/vim-fugitive', { 'on': ['Git'] }
-Plug 'vim-test/vim-test'
+Plug 'vim-test/vim-test', { 'on': ['TestNearest', 'TestFile', 'TestSuite', 'TestLast'] }
 
 " UI
 " TODO: https://github.com/dense-analysis/ale?tab=readme-ov-file#how-can-i-customise-the-statusline
@@ -363,7 +363,7 @@ Plug 'itchyny/lightline.vim'
     endtry
   endfunction
 
-Plug 'liuchengxu/vista.vim'
+Plug 'liuchengxu/vista.vim', { 'on': ['Vista', 'Vista!'] }
   " let g:vista_fzf_opts = []
   " let g:vista_fzf_preview = ['right:50%']
   if has('nvim-0.6.0')
@@ -383,9 +383,9 @@ Plug 'nanotech/jellybeans.vim'
 " Utils
 Plug 'kana/vim-metarw' " TODO: webdav
 
-Plug 'tpope/vim-dadbod'
-Plug 'kristijanhusak/vim-dadbod-ui'
-Plug 'kristijanhusak/vim-dadbod-completion' "Optional
+Plug 'tpope/vim-dadbod', { 'on': ['DB'] }
+Plug 'kristijanhusak/vim-dadbod-ui', { 'on': ['DBUI', 'DBUIToggle'] }
+Plug 'kristijanhusak/vim-dadbod-completion'
   let g:db_ui_table_helpers = {}
   let g:db_ui_table_helpers['postgres'] = {}
   let g:db_ui_table_helpers['postgres']['Show Databases'] = 'SELECT datname FROM pg_database WHERE datistemplate = false;'
@@ -406,7 +406,7 @@ Plug 'justinmk/vim-sneak'
   " nmap <m-c-s> <Plug>Sneak_S
   " nmap <c-s> <Plug>Sneak_s
 
-Plug 'jpalardy/vim-slime'
+Plug 'jpalardy/vim-slime', { 'on': ['SlimeSend', 'SlimeSend1', '<Plug>SlimeRegionSend', '<Plug>SlimeParagraphSend'] }
   let g:slime_target = 'tmux'
   let g:slime_paste_file = tempname()
   " let g:slime_no_mappings = 1
@@ -471,8 +471,9 @@ Plug 'stefandtw/quickfix-reflector.vim'
   " let g:qf_write_changes = 0
 Plug 'thinca/vim-qfreplace'
 
-Plug 'dhruvasagar/vim-table-mode'
+Plug 'dhruvasagar/vim-table-mode', { 'on': ['TableModeToggle', 'TableModeEnable'] }
   let g:table_mode_always_active = 0
+  let g:table_mode_auto_align = 1
 
 Plug 'godlygeek/tabular'
 
