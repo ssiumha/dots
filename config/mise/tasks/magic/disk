@@ -1,38 +1,287 @@
 #!/usr/bin/env ruby
 #MISE description="Check OS Disk"
+#MISE usage="[--refresh] [--group=GROUP]"
 
 require_relative '../common'
+require 'json'
+require 'optparse'
 
-df = `df -g #{Dir.home}`.split("\n")[1].split.then { _1[1..4] }.zip(%i[size used avail capacity]).to_h.invert
-docker_df = `docker system df`
+CACHE_FILE = "/tmp/disk_check_#{Process.uid}.json"
+CACHE_TTL = 86400 # 1 day
 
-def dust(path, n: 5, filter: nil) = `dust -d1 -n#{n} -p -P -om #{filter and "--filter #{filter}"} #{path}`
+$recommendations = []
 
-#{dust Dir.home/:repos, n: 10, filter: 'node_modules'}
-# fd -td -I 'node_modules' ~/repos | grep -E -v 'node_modules/.+/node_modules' | grep -v 'yarn/v6' | xargs dust -d0 -p --force-colors | perl -lape "s;$HOME/;;"
+GROUPS = {
+  homebrew: [
+    { path: '/opt/homebrew/Cellar' },
+  ],
+  repos: [
+    { path: Dir.home/:repos, n: 10 },
+  ],
+  node: [
+    { path: Dir.home/'.npm/_cacache', cleanup: 'npm cache clean --force' },
+    { path: Dir.home/'.yarn/cache', cleanup: 'yarn cache clean' },
+    { path: Dir.home/'.cache/yarn', cleanup: 'yarn cache clean' },
+    { path: Dir.home/'.local/share/yarn', cleanup: 'yarn global 패키지 정리' },
+    { path: Dir.home/'.pnpm-store', cleanup: 'pnpm store prune' },
+    { path: Dir.home/'.local/share/pnpm', cleanup: 'pnpm store prune' },
+    { path: Dir.home/'.cache/pnpm', cleanup: 'pnpm store prune' },
+  ],
+  rust: [
+    { path: Dir.home/'.cargo', cleanup: 'cargo cache -a' },
+    { path: Dir.home/'.rustup', cleanup: 'rustup toolchain list → 사용 안하는 버전 삭제' },
+  ],
+  python: [
+    { path: Dir.home/'.cache/uv', cleanup: 'uv cache clean' },
+    { path: Dir.home/'.cache/pip', cleanup: 'pip cache purge' },
+    { path: Dir.home/'.local/share/virtualenvs', cleanup: 'pipenv --rm 또는 수동 삭제' },
+  ],
+  ml: [
+    { path: Dir.home/'.cache/huggingface', cleanup: 'huggingface-cli delete-cache' },
+    { path: Dir.home/'.cache/kagglehub', cleanup: '수동 삭제' },
+  ],
+  java: [
+    { path: Dir.home/'.gradle', n: 3, cleanup: 'gradle 캐시는 프로젝트별 정리' },
+    { path: Dir.home/'.m2/repository', cleanup: 'mvn dependency:purge-local-repository' },
+  ],
+  misc: [
+    { path: Dir.home/'.local/share/mise/installs' },
+    { path: Dir.home/'.cocoapods', cleanup: 'pod cache clean --all' },
+    { path: Dir.home/'.local/share/nvim', cleanup: ':Lazy clean 또는 수동 삭제' },
+  ],
+  xcode: [
+    { path: Dir.home/'Library/Developer/Xcode/DerivedData', cleanup: 'rm -rf ~/Library/Developer/Xcode/DerivedData/*' },
+    { path: Dir.home/'Library/Developer/Xcode/Archives', cleanup: 'Xcode > Organizer에서 정리' },
+    { path: Dir.home/'Library/Developer/CoreSimulator', cleanup: 'xcrun simctl delete unavailable' },
+    { path: Dir.home/'Library/Developer/Xcode/iOS DeviceSupport', cleanup: '오래된 iOS 버전 수동 삭제' },
+  ],
+  cache: [
+    { path: Dir.home/'Library/Caches', n: 10, cleanup: '앱별 캐시 선택 삭제' },
+    { path: Dir.home/'.cache', n: 10, cleanup: '앱별 캐시 선택 삭제' },
+    { path: Dir.home/'.local/share', n: 10, cleanup: '앱별 데이터 선택 삭제' },
+    { path: '/Library/Caches', n: 5, cleanup: 'sudo rm -rf /Library/Caches/* (주의)' },
+  ],
+  app: [
+    { path: '/Applications', n: 10 },
+    { path: Dir.home/'Downloads', n: 10, cleanup: '오래된 파일 정리' },
+    { path: Dir.home/'Documents', n: 10, cleanup: '큰 파일 정리' },
+    { path: Dir.home/'Movies', n: 5, cleanup: '큰 파일 정리' },
+    { path: Dir.home/'Desktop', n: 5, cleanup: '정리 권장' },
+    { path: Dir.home/'.Trash', cleanup: 'rm -rf ~/.Trash/*' },
+  ],
+  macos: [
+    { path: '/Library/Developer/CommandLineTools', cleanup: 'sudo rm -rf 후 xcode-select --install' },
+    { path: Dir.home/'Library/Application Support/MobileSync/Backup', cleanup: 'Finder > iPhone 백업 관리 또는 수동 삭제' },
+    { path: Dir.home/'Library/Messages/Attachments', cleanup: '메시지 앱에서 오래된 대화 삭제' },
+    { path: Dir.home/'Library/Mail', n: 5, cleanup: '메일 앱에서 오래된 메일 삭제' },
+    { path: Dir.home/'Library/Logs', n: 5, cleanup: 'rm -rf ~/Library/Logs/*' },
+  ],
+}
 
-puts <<-EOF
+# CLI options
+options = { refresh: false, group: nil }
+OptionParser.new do |opts|
+  opts.on('--refresh', 'Ignore cache') { options[:refresh] = true }
+  opts.on('--group=GROUP', 'Show specific group only') { |g| options[:group] = g.to_sym }
+end.parse!
 
-==== System ====
-#{df[:used]}Gi / #{df[:size]}Gi (Avail: #{df[:avail]}Gi, #{df[:capacity]})
+# Cache
+def load_cache
+  return {} unless File.exist?(CACHE_FILE)
+  JSON.parse(File.read(CACHE_FILE), symbolize_names: true)
+rescue
+  {}
+end
 
-==== Docker ====
-#{docker_df}
+def save_cache(cache)
+  File.write(CACHE_FILE, JSON.pretty_generate(cache))
+end
 
-==== Disk ====
-#{dust '/opt/homebrew/Cellar'}
+def cache_valid?(cache, group)
+  return false unless cache.dig(:groups, group, :updated_at)
+  Time.now.to_i - cache[:groups][group][:updated_at] < CACHE_TTL
+end
 
-#{dust Dir.home/:repos, n: 10}
+def cache_age(cache, group)
+  return nil unless cache.dig(:groups, group, :updated_at)
+  delta = Time.now.to_i - cache[:groups][group][:updated_at]
+  case delta
+  when 0..59 then "#{delta}s ago"
+  when 60..3599 then "#{delta / 60}m ago"
+  when 3600..86399 then "#{delta / 3600}h ago"
+  else "#{delta / 86400}d ago"
+  end
+end
 
-#{dust '/Applications', n: 10}
+# Size utils
+def parse_size(str)
+  return 0 unless str
+  m = str.match(/^([\d.]+)([KMGT]?)$/i)
+  return 0 unless m
+  num = m[1].to_f
+  unit = m[2].upcase
+  case unit
+  when 'K' then num * 1024
+  when 'M' then num * 1024**2
+  when 'G' then num * 1024**3
+  when 'T' then num * 1024**4
+  else num
+  end
+end
 
-#{dust Dir.home/'.local/share/mise/installs'}
+def format_size_g(bytes)
+  gb = bytes / (1024.0**3)
+  gb < 0.1 ? sprintf('%.2fG', gb) : sprintf('%.1fG', gb)
+end
 
-#{dust Dir.home/:Library}
+def convert_to_g(line)
+  line.gsub(/(\d+\.?\d*)[MKT]\b/) do |match|
+    bytes = parse_size(match)
+    format_size_g(bytes)
+  end
+end
 
-#{dust Dir.home/'.gradle', n: 1}
+# Dust wrapper
+def dust(path, n: 5)
+  return nil unless File.exist?(path)
+  output = `dust -d1 -n#{n} -p -P -om #{path} 2>/dev/null`.strip
+  return nil if output.empty?
+  # Convert M/K/T to G
+  convert_to_g(output)
+end
 
-#{dust Dir.home/'Library/Developer/Xcode/Archives'}
+def extract_total_size(output)
+  return 0 unless output
+  # dust 마지막 줄이 총 크기
+  last_line = output.lines.last.to_s
+  m = last_line.match(/([\d.]+)G/)
+  m ? m[1].to_f : 0
+end
 
-#{dust Dir.home/'Downloads'}
-EOF
+def run_group(group, items, cache, refresh:)
+  cached = !refresh && cache_valid?(cache, group)
+  age = cache_age(cache, group)
+
+  puts "==== #{group.to_s.capitalize} ====" + (age ? " (cached: #{age})".gray : '')
+  puts
+
+  results = []
+
+  if cached
+    items.each do |item|
+      path = item[:path]
+      output = cache.dig(:groups, group, :items, path.to_sym)
+      if output
+        size = extract_total_size(output)
+        results << { path: path, output: output, cleanup: item[:cleanup], size: size }
+      end
+    end
+  else
+    cache[:groups] ||= {}
+    cache[:groups][group] = { updated_at: Time.now.to_i, items: {} }
+
+    items.each do |item|
+      path = item[:path]
+      next unless File.exist?(path)
+
+      output = dust(path, n: item[:n] || 5)
+      next if output.nil? || output.empty?
+
+      cache[:groups][group][:items][path.to_sym] = output
+      size = extract_total_size(output)
+      results << { path: path, output: output, cleanup: item[:cleanup], size: size }
+    end
+  end
+
+  # Sort by size (largest first)
+  results.sort_by { -_1[:size] }.each do |r|
+    print_item(r[:output], r[:cleanup])
+    # cleanup 힌트가 있는 항목은 recommendations에 추가
+    if r[:cleanup] && r[:size] > 0.1
+      $recommendations << { name: r[:path].sub(Dir.home, '~'), size: r[:size], cleanup: r[:cleanup] }
+    end
+  end
+
+  puts
+end
+
+def print_item(output, cleanup)
+  puts output
+  puts "  └─ #{cleanup}".yellow if cleanup
+  puts
+end
+
+# System info (no cache)
+def print_system
+  puts "==== System ===="
+  df = `df -g #{Dir.home}`.split("\n")[1].split.then { _1[1..4] }.zip(%i[size used avail capacity]).to_h.invert
+  puts "#{df[:used]}Gi / #{df[:size]}Gi (Avail: #{df[:avail]}Gi, #{df[:capacity]})"
+  puts
+
+  puts "==== Docker ===="
+  if system('docker info > /dev/null 2>&1')
+    docker_output = `docker system df 2>/dev/null`
+    puts docker_output
+    puts "  └─ docker system prune -a".yellow
+
+    # Docker reclaimable 파싱해서 recommendations에 추가
+    docker_output.lines.each do |line|
+      if line =~ /^Images\s+\d+\s+\d+\s+([\d.]+[KMGT]?B)\s+([\d.]+[KMGT]?B)\s+\((\d+)%\)/
+        reclaimable = $2.gsub('B', '')
+        percent = $3
+        size_bytes = parse_size(reclaimable)
+        size_g = size_bytes / (1024.0**3)
+        if size_g > 0.5
+          $recommendations << { name: "Docker Images (#{percent}% reclaimable)", size: size_g, cleanup: 'docker system prune -a' }
+        end
+      elsif line =~ /^Build Cache\s+\d+\s+\d+\s+([\d.]+[KMGT]?B)\s+([\d.]+[KMGT]?B)/
+        reclaimable = $2.gsub('B', '')
+        size_bytes = parse_size(reclaimable)
+        size_g = size_bytes / (1024.0**3)
+        if size_g > 0.5
+          $recommendations << { name: "Docker Build Cache", size: size_g, cleanup: 'docker builder prune' }
+        end
+      end
+    end
+  else
+    puts "(not running)".gray
+  end
+  puts
+end
+
+def print_recommendations
+  return if $recommendations.empty?
+
+  puts "==== Recommendations ====".red.bold
+  puts "정리 가능한 항목 (크기순):".gray
+  puts
+
+  $recommendations.sort_by { -_1[:size] }.first(10).each do |r|
+    puts "  #{'%6.1fG' % r[:size]}  #{r[:name]}"
+    puts "         └─ #{r[:cleanup]}".yellow
+  end
+  puts
+end
+
+# Main
+cache = options[:refresh] ? {} : load_cache
+
+if options[:group]
+  group = options[:group]
+  if GROUPS.key?(group)
+    run_group(group, GROUPS[group], cache, refresh: options[:refresh])
+    save_cache(cache)
+  else
+    puts "Unknown group: #{group}"
+    puts "Available: #{GROUPS.keys.join(', ')}"
+  end
+else
+  print_system
+
+  GROUPS.each do |group, items|
+    run_group(group, items, cache, refresh: options[:refresh])
+  end
+
+  print_recommendations
+  save_cache(cache)
+end

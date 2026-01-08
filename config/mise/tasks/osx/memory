@@ -1,13 +1,11 @@
 #!/bin/sh
 total=$(($(sysctl -n hw.memsize)/1024/1024/1024))
 vm_stat | awk -v total=$total '
-  /Pages free/       {free=$3}
-  /Pages active/     {active=$3}
-  /Pages speculative/{spec=$3}
-  /Pages inactive/   {inactive=$3}
-  /Pages wired/      {wired=$4}
+  NR==1 {for(i=1;i<=NF;i++) if($i ~ /^[0-9]+$/) page=$i}
+  /Pages active/     {gsub(/\./,"",$3); active=$3}
+  /Pages speculative/{gsub(/\./,"",$3); spec=$3}
+  /Pages wired/      {gsub(/\./,"",$4); wired=$4}
   END {
-    page=4096
-    used=(active+spec+inactive+wired)*page/1024/1024/1024
+    used=(active+spec+wired)*page/1024/1024/1024
     printf "%.1f/%dGB\n", used, total
   }'

@@ -1,0 +1,324 @@
+#!/usr/bin/env ruby
+#MISE description="SSH 터널 + Sequel IRB 세션"
+#MISE alias="db:irb"
+
+require 'bundler/inline'
+gemfile do
+  source 'https://rubygems.org'
+  gem 'sequel'
+  gem 'pg'
+  gem 'irb'
+end
+
+require 'uri'
+require 'socket'
+
+# 사용법:
+#   mise run db:irb <ssh-host> <postgres-url>          # SSH 터널 사용
+#   mise run db:irb <ssh-host> <postgres-url> --write  # prod에서 쓰기 허용
+#   mise run db:irb - <postgres-url>                   # 로컬 직접 연결
+#   mise run db:irb <postgres-url>                     # 로컬 직접 연결 (단축)
+
+write_mode = ARGV.delete('--write')
+
+if ARGV[0]&.start_with?('postgres')
+  ssh_target = nil
+  db_url = ARGV[0]
+else
+  ssh_target = ARGV[0] == '-' ? nil : ARGV[0]
+  db_url = ARGV[1]
+end
+
+abort "Usage: mise run db:irb [ssh-host|-] <postgres-url> [--write]" unless db_url
+
+# Password escape 필요 여부 판단
+def needs_escape?(password)
+  return false if password.nil? || password.empty?
+  # 이미 %XX 형태가 있으면 encoded로 간주
+  return false if password.match?(/%[0-9A-Fa-f]{2}/)
+  # 특수문자가 있으면 escape 필요
+  password.match?(/[^a-zA-Z0-9._~-]/)
+end
+
+uri = URI.parse(db_url)
+abort "Invalid database URL" unless uri.host
+
+# escape 안 된 password 자동 처리
+if needs_escape?(uri.password)
+  uri.password = URI.encode_www_form_component(uri.password)
+  db_url = uri.to_s
+end
+
+local_port = uri.port || 5432
+
+# localhost를 127.0.0.1로 변환 (IPv6 문제 방지)
+connect_host = uri.host == 'localhost' ? '127.0.0.1' : uri.host
+
+if ssh_target
+  # SSH 터널 시작 (SSH config의 LocalForward 사용)
+  pid = spawn("ssh", "-N", ssh_target)
+
+  cleanup = -> { Process.kill('TERM', pid) rescue nil }
+  at_exit(&cleanup)
+  trap('INT') { cleanup.call; exit 130 }
+
+  # 터널 연결 대기 (최대 10초)
+  connected = false
+  10.times do
+    begin
+      TCPSocket.new(connect_host, local_port).close
+      connected = true
+      break
+    rescue Errno::ECONNREFUSED
+      sleep 1
+    end
+  end
+  abort "SSH 터널 연결 실패" unless connected
+end
+
+# DB 연결 (URL 직접 치환 - URI 파싱의 encoding 문제 방지)
+db_connect_url = db_url.sub("@#{uri.host}:", "@#{connect_host}:")
+DB = Sequel.connect(db_connect_url)
+
+# prod는 기본 읽기 전용 (--write로 해제)
+is_prod = ssh_target.to_s.match?(/prod/i)
+readonly = is_prod && !write_mode
+READONLY = readonly  # import 함수에서 참조
+
+if readonly
+  DB.run("SET default_transaction_read_only = on")
+end
+
+# 테이블별 Model 클래스 자동 생성
+DB.tables.each do |table_name|
+  begin
+    class_name = table_name.to_s.split('_').map(&:capitalize).join
+    Object.const_set(class_name, Class.new(Sequel::Model(table_name))) unless Object.const_defined?(class_name)
+  rescue
+    # schema_migrations 등 모델화 불가능한 테이블 무시
+  end
+end
+
+# Export 함수들
+def to_csv(dataset, path = nil)
+  require 'csv'
+  data = dataset.is_a?(Array) ? dataset : dataset.all
+  return puts "No data" if data.empty?
+
+  csv = CSV.generate do |c|
+    c << data.first.keys
+    data.each { |row| c << row.values }
+  end
+
+  if path
+    File.write(File.expand_path(path), csv)
+    puts "Saved to #{path} (#{data.size} rows)"
+  else
+    puts csv
+  end
+end
+
+def to_json(dataset, path = nil)
+  require 'json'
+  data = dataset.is_a?(Array) ? dataset : dataset.all
+  json = JSON.pretty_generate(data)
+
+  if path
+    File.write(File.expand_path(path), json)
+    puts "Saved to #{path} (#{data.size} rows)"
+  else
+    puts json
+  end
+end
+
+def to_clip(dataset)
+  require 'json'
+  data = dataset.is_a?(Array) ? dataset : dataset.all
+  IO.popen('pbcopy', 'w') { |io| io.puts JSON.pretty_generate(data) }
+  puts "Copied to clipboard (#{data.size} rows)"
+end
+
+# Import 함수들 (readonly 체크는 READONLY 상수 사용)
+def from_csv(table, path, run: false)
+  if defined?(READONLY) && READONLY
+    puts "\e[31mRead-only mode. Restart with --write\e[0m"
+    return
+  end
+  require 'csv'
+
+  data = CSV.read(File.expand_path(path), headers: true).map(&:to_h)
+  return puts "Empty file" if data.empty?
+
+  # 컬럼 검증
+  table_cols = DB[table].columns.map(&:to_s)
+  file_cols = data.first.keys
+  missing = file_cols - table_cols
+  puts "\e[33mWarning: unknown columns #{missing}\e[0m" if missing.any?
+
+  # 미리보기
+  puts "#{data.size} rows to insert into :#{table}"
+  puts "Sample: #{data.first.inspect}"
+
+  unless run
+    puts "\e[36mDry-run. Add 'run: true' to execute\e[0m"
+    return
+  end
+
+  valid_data = data.map { |h| h.select { |k, _| table_cols.include?(k) } }
+  DB[table].multi_insert(valid_data.map { |h| h.transform_keys(&:to_sym) })
+  puts "\e[32mInserted #{data.size} rows\e[0m"
+end
+
+def from_json(table, path, run: false)
+  if defined?(READONLY) && READONLY
+    puts "\e[31mRead-only mode. Restart with --write\e[0m"
+    return
+  end
+  require 'json'
+
+  data = JSON.parse(File.read(File.expand_path(path)))
+  data = [data] unless data.is_a?(Array)
+  return puts "Empty file" if data.empty?
+
+  # 컬럼 검증
+  table_cols = DB[table].columns.map(&:to_s)
+  file_cols = data.first.keys
+  missing = file_cols - table_cols
+  puts "\e[33mWarning: unknown columns #{missing}\e[0m" if missing.any?
+
+  # 미리보기
+  puts "#{data.size} rows to insert into :#{table}"
+  puts "Sample: #{data.first.inspect}"
+
+  unless run
+    puts "\e[36mDry-run. Add 'run: true' to execute\e[0m"
+    return
+  end
+
+  valid_data = data.map { |h| h.select { |k, _| table_cols.include?(k) } }
+  DB[table].multi_insert(valid_data.map { |h| h.transform_keys(&:to_sym) })
+  puts "\e[32mInserted #{data.size} rows\e[0m"
+end
+
+# Schema helper - 보기 좋게 포맷팅
+def schema(table)
+  info = DB.schema(table)
+  max_name = info.map { |name, _| name.to_s.length }.max
+
+  puts "\e[36m:#{table}\e[0m"
+  info.each do |name, meta|
+    type = meta[:db_type]
+    nullable = meta[:allow_null] ? "" : " NOT NULL"
+    pk = meta[:primary_key] ? " \e[33mPK\e[0m" : ""
+    default = meta[:default] ? " default=#{meta[:default]}" : ""
+    puts "  %-#{max_name}s  \e[32m%-15s\e[0m%s%s%s" % [name, type, nullable, pk, default]
+  end
+  nil
+end
+
+# Foreign key helper
+def fk(table)
+  fks = DB.foreign_key_list(table)
+  if fks.empty?
+    puts "No foreign keys on :#{table}"
+    return
+  end
+
+  puts "\e[36m:#{table} foreign keys\e[0m"
+  fks.each do |f|
+    puts "  #{f[:columns].join(', ')} -> :#{f[:table]}(#{f[:key].join(', ')})"
+  end
+  nil
+end
+
+# Help 함수
+def help
+  puts <<~HELP
+    == Sequel Cheatsheet ==
+
+    [Query]
+    User.all / User.first / User[1]
+    User.where(active: true).all
+    User.where { age > 20 }.limit(10)
+    User.order(:created_at).reverse
+
+    [Create/Update/Delete]
+    User.create(name: "x")
+    user.update(name: "y")      # instance
+    User.where(...).update(...) # batch (즉시 실행!)
+    user.delete                 # callbacks 없음
+
+    [Batch 처리]
+    User.where(...).paged_each { |u| ... }  # 메모리 효율
+    DB.transaction { ... }                   # 트랜잭션
+
+    [Raw SQL]
+    DB["SELECT * FROM users WHERE id = ?", 1].all
+    DB.run("UPDATE users SET x = 1")
+
+    [Schema]
+    DB.tables              # 테이블 목록
+    schema :users          # 컬럼 상세 (타입, PK, nullable)
+    fk :orders             # 외래키 관계
+    User.columns           # 컬럼명 배열
+    User.where(...).explain # 쿼리 플랜
+
+    [Export]
+    to_csv  User.all              # 화면 출력
+    to_csv  User.all, "~/a.csv"   # 파일 저장
+    to_json User.limit(10)        # JSON 출력
+    to_clip User.first(5)         # 클립보드 복사
+
+    [Import] (--write 필요 for prod)
+    from_csv :users, "~/a.csv"              # dry-run
+    from_csv :users, "~/a.csv", run: true   # 실제 insert
+    from_json :users, "~/a.json", run: true
+  HELP
+end
+
+# 환경 감지 (dev/prod/local)
+env_name = case ssh_target.to_s
+           when /prod/ then "\e[31mPROD\e[0m"  # 빨강
+           when /stag/ then "\e[33mSTAG\e[0m"  # 노랑
+           when '' then "\e[36mLOCAL\e[0m"     # 시안
+           else "\e[32mDEV\e[0m"               # 초록
+           end
+
+db_name = uri.path&.sub('/', '') || 'unknown'
+readonly_msg = readonly ? " \e[33m[READ-ONLY]\e[0m" : ""
+
+puts "Connected to #{env_name} (#{db_name})#{readonly_msg}. Type 'help' for cheatsheet."
+
+# IRB 시작 (ARGV 비우기 - IRB가 파일로 인식하지 않도록)
+ARGV.clear
+require 'irb'
+
+# 커스텀 프롬프트 설정
+env_label = ssh_target&.match(/(prod|stag|dev)/i)&.[](1) || (ssh_target ? 'dev' : 'local')
+prompt_color = case env_label.downcase
+               when 'prod' then "\e[31m"   # 빨강
+               when 'stag' then "\e[33m"   # 노랑
+               when 'local' then "\e[36m"  # 시안
+               else "\e[32m"               # 초록
+               end
+ro_indicator = readonly ? "(ro)" : ""
+prompt_prefix = "#{prompt_color}[#{env_label}:#{db_name}#{ro_indicator}]\e[0m"
+
+# .irbrc 대신 환경변수로 프롬프트 설정
+ENV['IRB_USE_AUTOCOMPLETE'] = 'false'
+
+IRB.setup(nil)
+IRB.conf[:PROMPT][:SEQUEL] = {
+  PROMPT_I: "#{prompt_prefix} > ",
+  PROMPT_S: "#{prompt_prefix} %l> ",
+  PROMPT_C: "#{prompt_prefix} *> ",
+  RETURN: "=> %s\n"
+}
+IRB.conf[:PROMPT_MODE] = :SEQUEL
+
+# IRB 인스턴스 직접 생성
+irb = IRB::Irb.new
+IRB.conf[:MAIN_CONTEXT] = irb.context
+irb.context.prompt_mode = :SEQUEL
+
+catch(:IRB_EXIT) { irb.eval_input }

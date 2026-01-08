@@ -1,0 +1,2370 @@
+#!/usr/bin/env ruby
+#MISE description="AWS 리소스 IRB 세션 (ActiveRecord 스타일)"
+#MISE alias="aws:irb"
+
+require 'bundler/inline'
+gemfile do
+  source 'https://rubygems.org'
+  gem 'aws-sdk-ec2'
+  gem 'aws-sdk-s3'
+  gem 'aws-sdk-rds'
+  gem 'aws-sdk-costexplorer'
+  gem 'aws-sdk-cloudwatch'
+  gem 'aws-sdk-route53'
+  gem 'aws-sdk-ecs'
+  gem 'aws-sdk-elasticloadbalancingv2'
+  gem 'irb'
+end
+
+# Usage:
+#   mise run aws:irb                    # 기본 프로필
+#   mise run aws:irb production         # 특정 프로필
+#   mise run aws:irb --region us-west-2 # 특정 리전
+
+require 'json'
+
+# 인자 파싱
+profile = nil
+region = nil
+
+args = ARGV.dup
+while arg = args.shift
+  case arg
+  when '--region', '-r'
+    region = args.shift
+  when /^--profile=(.+)$/
+    profile = $1
+  when /^-/
+    # 무시
+  else
+    profile ||= arg
+  end
+end
+
+# AWS 설정
+Aws.config.update(profile: profile) if profile
+Aws.config.update(region: region) if region
+
+# 리전 별칭
+REGION_ALIASES = {
+  # 도시명
+  'seoul' => 'ap-northeast-2', 'tokyo' => 'ap-northeast-1', 'osaka' => 'ap-northeast-3',
+  'singapore' => 'ap-southeast-1', 'sydney' => 'ap-southeast-2', 'mumbai' => 'ap-south-1',
+  'virginia' => 'us-east-1', 'ohio' => 'us-east-2', 'california' => 'us-west-1', 'oregon' => 'us-west-2',
+  'ireland' => 'eu-west-1', 'london' => 'eu-west-2', 'paris' => 'eu-west-3',
+  'frankfurt' => 'eu-central-1', 'stockholm' => 'eu-north-1',
+  'saopaulo' => 'sa-east-1', 'canada' => 'ca-central-1',
+  # 짧은 코드
+  'apne1' => 'ap-northeast-1', 'apne2' => 'ap-northeast-2', 'apne3' => 'ap-northeast-3',
+  'apse1' => 'ap-southeast-1', 'apse2' => 'ap-southeast-2', 'aps1' => 'ap-south-1',
+  'use1' => 'us-east-1', 'use2' => 'us-east-2', 'usw1' => 'us-west-1', 'usw2' => 'us-west-2',
+  'euw1' => 'eu-west-1', 'euw2' => 'eu-west-2', 'euw3' => 'eu-west-3',
+  'euc1' => 'eu-central-1', 'eun1' => 'eu-north-1'
+}.freeze
+
+# 현재 설정 확인
+$aws_region = Aws.config[:region] || ENV['AWS_REGION'] || ENV['AWS_DEFAULT_REGION'] || 'ap-northeast-2'
+$aws_profile = profile || ENV['AWS_PROFILE'] || 'default'
+
+# SSO 설정 (자동 감지)
+def detect_sso_portal
+  config_file = File.expand_path('~/.aws/config')
+  return nil unless File.exist?(config_file)
+
+  content = File.read(config_file)
+  # sso_start_url = https://mycompany.awsapps.com/start 형태에서 추출
+  if content =~ /sso_start_url\s*=\s*https?:\/\/([^.]+)\.awsapps\.com/
+    $1
+  end
+end
+
+$aws_sso_portal = ENV['AWS_SSO_PORTAL'] || detect_sso_portal
+$aws_sso_role = ENV['AWS_SSO_ROLE'] || 'AdministratorAccess'
+
+def sso_portal(name = nil)
+  return $aws_sso_portal if name.nil?
+  $aws_sso_portal = name
+  puts "SSO portal: \e[36m#{name}.awsapps.com\e[0m"
+  name
+end
+
+def sso_role(name = nil)
+  return $aws_sso_role if name.nil?
+  $aws_sso_role = name
+  puts "SSO role: \e[33m#{name}\e[0m"
+  name
+end
+
+# 리전/프로필 스위칭
+def region(new_region = nil)
+  return $aws_region if new_region.nil?
+
+  # 별칭 해석
+  resolved = REGION_ALIASES[new_region.to_s.downcase] || new_region
+  $aws_region = resolved
+  Aws.config.update(region: resolved)
+
+  # 클라이언트 캐시 클리어
+  [EC2, VPC, SG, S3, RDS].each do |klass|
+    klass.instance_variable_set(:@client, nil)
+    klass.instance_variable_set(:@resource, nil)
+  end
+
+  puts "Switched to \e[36m#{resolved}\e[0m"
+  resolved
+end
+
+def use_profile(new_profile)
+  $aws_profile = new_profile
+  Aws.config.update(profile: new_profile)
+
+  # 클라이언트 캐시 클리어
+  [EC2, VPC, SG, S3, RDS].each do |klass|
+    klass.instance_variable_set(:@client, nil)
+    klass.instance_variable_set(:@resource, nil)
+  end
+
+  puts "Switched to profile \e[33m#{new_profile}\e[0m"
+  new_profile
+end
+
+# 리전 목록
+def regions
+  puts "Region Aliases:"
+  REGION_ALIASES.group_by { |_, v| v }.sort.each do |region, aliases|
+    puts "  \e[36m#{region}\e[0m: #{aliases.map(&:first).join(', ')}"
+  end
+  nil
+end
+
+#==============================================================================
+# ActiveRecord 스타일 베이스 클래스
+#==============================================================================
+class AwsRelation
+  include Enumerable
+
+  def initialize(model, records = nil, filters: {})
+    @model = model
+    @records = records
+    @filters = filters
+  end
+
+  def each(&block)
+    to_a.each(&block)
+  end
+
+  def to_a
+    @records ||= @model.fetch_all(@filters)
+  end
+  alias all to_a
+
+  def where(conditions)
+    AwsRelation.new(@model, nil, filters: @filters.merge(conditions))
+  end
+
+  def first(n = nil)
+    n ? to_a.first(n) : to_a.first
+  end
+
+  def last(n = nil)
+    n ? to_a.last(n) : to_a.last
+  end
+
+  def count
+    to_a.size
+  end
+  alias size count
+  alias length count
+
+  def limit(n)
+    AwsRelation.new(@model, to_a.first(n), filters: @filters)
+  end
+
+  def offset(n)
+    AwsRelation.new(@model, to_a.drop(n), filters: @filters)
+  end
+
+  def pluck(*keys)
+    to_a.map { |r| keys.size == 1 ? r.send(keys.first) : keys.map { |k| r.send(k) } }
+  end
+
+  def select(&block)
+    AwsRelation.new(@model, to_a.select(&block), filters: @filters)
+  end
+
+  def reject(&block)
+    AwsRelation.new(@model, to_a.reject(&block), filters: @filters)
+  end
+
+  def find_by(conditions)
+    where(conditions).first
+  end
+
+  def empty?
+    to_a.empty?
+  end
+
+  def any?(&block)
+    block ? to_a.any?(&block) : !empty?
+  end
+
+  def inspect
+    records = to_a
+    if records.empty?
+      "[]"
+    elsif records.size <= 10
+      "[#{records.map(&:inspect).join(",\n ")}]"
+    else
+      "[#{records.first(10).map(&:inspect).join(",\n ")},\n ... #{records.size - 10} more]"
+    end
+  end
+
+  # 합계 (블록으로 값 추출)
+  def sum_by(&block)
+    to_a.sum { |r| block.call(r) || 0 }
+  end
+
+  # 월 비용 합계 (편의 메서드)
+  def total_cost
+    sum_by(&:cost)
+  end
+
+  # 그룹별 합계
+  def group_sum_by(group_key, &block)
+    to_a.group_by { |r| r.send(group_key) }.transform_values do |records|
+      records.sum { |r| block.call(r) || 0 }
+    end.sort_by { |_, v| -v }.to_h
+  end
+end
+
+#==============================================================================
+# 속성 조회 헬퍼 (인스턴스 메서드로)
+#==============================================================================
+# 인스턴스 타입별 시간당 가격 (USD, ap-northeast-2 기준, On-Demand Linux)
+INSTANCE_PRICES = {
+  # t3 family
+  't3.nano' => 0.0052, 't3.micro' => 0.0104, 't3.small' => 0.0208,
+  't3.medium' => 0.0416, 't3.large' => 0.0832, 't3.xlarge' => 0.1664,
+  # t3a family
+  't3a.nano' => 0.0047, 't3a.micro' => 0.0094, 't3a.small' => 0.0188,
+  't3a.medium' => 0.0376, 't3a.large' => 0.0752, 't3a.xlarge' => 0.1504,
+  # t4g family (Graviton2/ARM)
+  't4g.nano' => 0.0042, 't4g.micro' => 0.0084, 't4g.small' => 0.0168,
+  't4g.medium' => 0.0336, 't4g.large' => 0.0672, 't4g.xlarge' => 0.1344,
+  # m5 family
+  'm5.large' => 0.096, 'm5.xlarge' => 0.192, 'm5.2xlarge' => 0.384,
+  # m6i family
+  'm6i.large' => 0.096, 'm6i.xlarge' => 0.192, 'm6i.2xlarge' => 0.384,
+  # m6g family (Graviton2/ARM)
+  'm6g.medium' => 0.0385, 'm6g.large' => 0.077, 'm6g.xlarge' => 0.154,
+  # m7g family (Graviton3/ARM)
+  'm7g.medium' => 0.0408, 'm7g.large' => 0.0816, 'm7g.xlarge' => 0.1632,
+  # r5 family
+  'r5.large' => 0.126, 'r5.xlarge' => 0.252, 'r5.2xlarge' => 0.504,
+  # r6i family
+  'r6i.large' => 0.126, 'r6i.xlarge' => 0.252, 'r6i.2xlarge' => 0.504,
+  # r6g family (Graviton2/ARM)
+  'r6g.medium' => 0.0504, 'r6g.large' => 0.1008, 'r6g.xlarge' => 0.2016,
+  # c5 family
+  'c5.large' => 0.085, 'c5.xlarge' => 0.17, 'c5.2xlarge' => 0.34,
+  # c6i family
+  'c6i.large' => 0.085, 'c6i.xlarge' => 0.17, 'c6i.2xlarge' => 0.34,
+  # c6g family (Graviton2/ARM)
+  'c6g.medium' => 0.034, 'c6g.large' => 0.068, 'c6g.xlarge' => 0.136,
+  # c7g family (Graviton3/ARM)
+  'c7g.medium' => 0.0363, 'c7g.large' => 0.0725, 'c7g.xlarge' => 0.145,
+}.freeze
+
+COLUMN_DEFS = {
+  'Aws::EC2::Instance' => %i[id instance_type state private_ip_address public_ip_address
+     launch_time placement tags security_groups subnet_id vpc_id
+     image_id key_name architecture platform_details],
+  'Aws::EC2::Vpc' => %i[id cidr_block state is_default owner_id tags],
+  'Aws::EC2::SecurityGroup' => %i[id group_name description vpc_id owner_id ip_permissions ip_permissions_egress tags],
+  'Aws::EC2::Subnet' => %i[id cidr_block availability_zone vpc_id state map_public_ip_on_launch tags],
+  'Aws::S3::Bucket' => %i[name creation_date],
+  'Aws::RDS::DBInstance' => %i[id db_instance_class engine engine_version db_instance_status
+     endpoint allocated_storage availability_zone multi_az
+     db_subnet_group_name vpc_security_groups]
+}
+
+module AwsInspectable
+  # 짧은 이름 → 실제 메서드 매핑
+  ALIASES = {
+    public_ip: :public_ip_address,
+    private_ip: :private_ip_address,
+    type: :instance_type,
+    class: :db_instance_class,
+    status: :db_instance_status,
+    cidr: :cidr_block
+  }.freeze
+
+  def columns
+    COLUMN_DEFS[self.class.name] || (respond_to?(:data) ? data.to_h.keys : [])
+  end
+
+  # Rails 스타일 method_missing
+  def method_missing(method, *args, &block)
+    # 1. 별칭 확인
+    if ALIASES.key?(method) && respond_to?(ALIASES[method])
+      return send(ALIASES[method], *args, &block)
+    end
+
+    # 2. 태그 접근 (name, env, team 등)
+    if respond_to?(:tags) && args.empty?
+      tag = tags.find { |t| t.key.downcase == method.to_s.downcase ||
+                            t.key == method.to_s.split('_').map(&:capitalize).join }
+      return tag.value if tag
+    end
+
+    # 3. 중첩 객체 언패킹 (state → state.name)
+    if respond_to?(method, true)
+      val = super
+      return val.name if val.respond_to?(:name) && !val.is_a?(String)
+      return val.availability_zone if val.respond_to?(:availability_zone)
+      return val
+    end
+
+    super
+  end
+
+  def respond_to_missing?(method, include_private = false)
+    ALIASES.key?(method) || super
+  end
+
+  # name은 태그에서 가져오므로 명시적으로 정의
+  def name
+    return group_name if respond_to?(:group_name)  # SG
+    tags.find { |t| t.key == 'Name' }&.value if respond_to?(:tags)
+  end
+
+  # 예상 월 비용 (인스턴스 타입 기준)
+  def cost
+    return nil unless respond_to?(:instance_type)
+    hourly = INSTANCE_PRICES[instance_type]
+    return nil unless hourly
+
+    # running 상태만 계산 (stopped는 0)
+    if respond_to?(:state) && state.name != 'running'
+      0.0
+    else
+      (hourly * 24 * 30).round(2)
+    end
+  end
+
+  # 실제 비용 (Cost Explorer, 최근 30일)
+  def actual_cost(days: 30)
+    return nil unless respond_to?(:id) && id.start_with?('i-')
+
+    end_date = Date.today
+    start_date = end_date - days
+
+    begin
+      client = Aws::CostExplorer::Client.new(region: 'us-east-1')
+      resp = client.get_cost_and_usage(
+        time_period: { start: start_date.to_s, end: end_date.to_s },
+        granularity: 'MONTHLY',
+        metrics: ['UnblendedCost'],
+        filter: {
+          dimensions: { key: 'RESOURCE_ID', values: [id] }
+        }
+      )
+
+      amount = 0.0
+      resp.results_by_time.each do |result|
+        amount += result.total['UnblendedCost'].amount.to_f
+      end
+      amount.round(2)
+    rescue => e
+      nil  # Cost Explorer 권한 없거나 리소스 ID 추적 안됨
+    end
+  end
+
+  def attrs
+    result = {}
+    columns.each do |col|
+      val = send(col) rescue nil
+      result[col] = case val
+                    when Aws::EC2::Types::InstanceState then val.name
+                    when Aws::EC2::Types::Placement then val.availability_zone
+                    when Array then val.size > 3 ? "[#{val.size} items]" : val.map { |x| x.respond_to?(:to_h) ? x.to_h : x }
+                    when Struct then val.to_h
+                    else val
+                    end
+    end
+    result[:name] = name if respond_to?(:tags)  # name 추가
+    result
+  end
+
+  def show
+    max_key = attrs.keys.map { |c| c.to_s.length }.max
+    attrs.each do |k, v|
+      val_str = case v
+                when nil then "\e[90mnil\e[0m"
+                when String then v.empty? ? "\e[90m(empty)\e[0m" : v
+                when Array then v.inspect
+                when Hash then v.inspect
+                else v.to_s
+                end
+      puts "  \e[36m%-#{max_key}s\e[0m  %s" % [k, val_str]
+    end
+    nil
+  end
+
+  def to_h
+    attrs
+  end
+
+  # AWS Console URL 생성
+  def url
+    region = $aws_region || 'ap-northeast-2'
+    base = "https://#{region}.console.aws.amazon.com"
+
+    case self.class.name
+    when 'Aws::EC2::Instance'
+      "#{base}/ec2/home?region=#{region}#InstanceDetails:instanceId=#{id}"
+    when 'Aws::EC2::Vpc'
+      "#{base}/vpc/home?region=#{region}#VpcDetails:VpcId=#{vpc_id}"
+    when 'Aws::EC2::SecurityGroup'
+      "#{base}/ec2/home?region=#{region}#SecurityGroup:groupId=#{group_id}"
+    when 'Aws::EC2::Subnet'
+      "#{base}/vpc/home?region=#{region}#SubnetDetails:subnetId=#{subnet_id}"
+    when 'Aws::RDS::DBInstance'
+      "#{base}/rds/home?region=#{region}#database:id=#{db_instance_identifier}"
+    when 'Aws::S3::Bucket'
+      "https://s3.console.aws.amazon.com/s3/buckets/#{name}?region=#{region}"
+    else
+      nil
+    end
+  end
+
+  # 브라우저에서 열기 (SSO 감지 시 자동 사용)
+  def open
+    # SSO 설정되어 있으면 SSO로 열기
+    if $aws_sso_portal && (link = sso_url)
+      puts "\e[36mOpening via SSO:\e[0m"
+      puts "  #{link[0..80]}..."
+      system('open', link)
+      return link
+    end
+
+    # 일반 URL로 열기
+    link = url
+    return puts "\e[31mURL not available for this resource\e[0m" unless link
+
+    puts "\e[36mOpening:\e[0m #{link}"
+    system('open', link)
+    link
+  end
+
+  # SSO shortcut URL 생성
+  def sso_url
+    return nil unless $aws_sso_portal && url
+
+    begin
+      account = Aws::STS::Client.new.get_caller_identity.account
+      dest = URI.encode_www_form_component(url)
+      "https://#{$aws_sso_portal}.awsapps.com/start/#/console?" \
+        "account_id=#{account}&role_name=#{$aws_sso_role}&destination=#{dest}"
+    rescue
+      nil
+    end
+  end
+
+  # SSO URL로 브라우저 열기
+  def sso_open
+    link = sso_url
+    unless link
+      if $aws_sso_portal.nil?
+        puts "\e[31mSSO portal not detected. Set with: sso_portal 'mycompany'\e[0m"
+      else
+        puts "\e[31mURL not available for this resource\e[0m"
+      end
+      return
+    end
+
+    puts "\e[36mOpening via SSO:\e[0m"
+    puts "  #{link[0..80]}..."
+    system('open', link)
+    link
+  end
+
+  # CloudWatch 메트릭 조회 (EC2, RDS)
+  def cpu(hours: 1)
+    metric_stat('CPUUtilization', hours: hours, unit: '%')
+  end
+
+  def network(hours: 1)
+    inn = metric_stat('NetworkIn', hours: hours, stat: 'Sum')
+    out = metric_stat('NetworkOut', hours: hours, stat: 'Sum')
+    return nil unless inn || out
+
+    puts "\e[36mNetwork (last #{hours}h):\e[0m"
+    puts "  In:  #{format_bytes(inn || 0)}"
+    puts "  Out: #{format_bytes(out || 0)}"
+    { in: inn, out: out }
+  end
+
+  def disk(hours: 1)
+    read = metric_stat('DiskReadBytes', hours: hours, stat: 'Sum')
+    write = metric_stat('DiskWriteBytes', hours: hours, stat: 'Sum')
+    return nil unless read || write
+
+    puts "\e[36mDisk I/O (last #{hours}h):\e[0m"
+    puts "  Read:  #{format_bytes(read || 0)}"
+    puts "  Write: #{format_bytes(write || 0)}"
+    { read: read, write: write }
+  end
+
+  def connections(hours: 1)
+    metric_stat('DatabaseConnections', hours: hours, stat: 'Average', unit: 'conn')
+  end
+
+  def status_checks(hours: 1)
+    failed = metric_stat('StatusCheckFailed', hours: hours, stat: 'Sum')
+    return nil if failed.nil?
+
+    if failed > 0
+      puts "\e[31mStatus checks failed: #{failed.to_i}\e[0m"
+    else
+      puts "\e[32mStatus checks: OK\e[0m"
+    end
+    failed
+  end
+
+  private
+
+  def cloudwatch_client
+    @cw_client ||= Aws::CloudWatch::Client.new
+  end
+
+  def metric_stat(metric_name, hours: 1, stat: 'Average', unit: nil)
+    namespace, dimensions = metric_dimensions
+    return nil unless namespace
+
+    end_time = Time.now
+    start_time = end_time - (hours * 3600)
+
+    begin
+      resp = cloudwatch_client.get_metric_statistics(
+        namespace: namespace,
+        metric_name: metric_name,
+        dimensions: dimensions,
+        start_time: start_time,
+        end_time: end_time,
+        period: [hours * 3600, 60].max,  # 최소 60초
+        statistics: [stat]
+      )
+
+      return nil if resp.datapoints.empty?
+
+      value = resp.datapoints.first.send(stat.downcase.to_sym)
+      if unit
+        puts "\e[36m#{metric_name} (last #{hours}h):\e[0m #{value.round(2)}#{unit}"
+      end
+      value
+    rescue => e
+      nil
+    end
+  end
+
+  def metric_dimensions
+    case self.class.name
+    when 'Aws::EC2::Instance'
+      ['AWS/EC2', [{ name: 'InstanceId', value: id }]]
+    when 'Aws::RDS::DBInstance'
+      ['AWS/RDS', [{ name: 'DBInstanceIdentifier', value: db_instance_identifier }]]
+    else
+      [nil, nil]
+    end
+  end
+
+  def format_bytes(bytes)
+    return '0 B' if bytes == 0
+    units = %w[B KB MB GB TB]
+    exp = (Math.log(bytes) / Math.log(1024)).to_i
+    exp = [exp, units.size - 1].min
+    "%.2f %s" % [bytes.to_f / (1024 ** exp), units[exp]]
+  end
+
+  public
+
+  # EC2: 연결된 SG 규칙 보기
+  def rules
+    return unless respond_to?(:security_groups)
+
+    security_groups.each do |sg_ref|
+      sg = SG.find(sg_ref.group_id)
+      puts "\e[36m#{sg.group_name}\e[0m (#{sg.group_id})"
+
+      puts "  \e[32mInbound:\e[0m"
+      sg.ip_permissions.each do |perm|
+        proto = perm.ip_protocol == '-1' ? 'ALL' : perm.ip_protocol.upcase
+        ports = perm.from_port == perm.to_port ? perm.from_port&.to_s || 'ALL' : "#{perm.from_port}-#{perm.to_port}"
+        sources = perm.ip_ranges.map(&:cidr_ip) + perm.user_id_group_pairs.map(&:group_id)
+        puts "    #{proto} #{ports} <- #{sources.join(', ')}"
+      end
+
+      puts "  \e[31mOutbound:\e[0m"
+      sg.ip_permissions_egress.each do |perm|
+        proto = perm.ip_protocol == '-1' ? 'ALL' : perm.ip_protocol.upcase
+        ports = perm.from_port == perm.to_port ? perm.from_port&.to_s || 'ALL' : "#{perm.from_port}-#{perm.to_port}"
+        targets = perm.ip_ranges.map(&:cidr_ip) + perm.user_id_group_pairs.map(&:group_id)
+        puts "    #{proto} #{ports} -> #{targets.join(', ')}"
+      end
+      puts ""
+    end
+    nil
+  end
+
+  # RDS: 연결 문자열
+  def connection_string
+    return unless self.is_a?(Aws::RDS::DBInstance)
+    return "Instance not available" unless endpoint
+
+    port = endpoint.port || 5432
+    host = endpoint.address
+    db = db_name || db_instance_identifier
+
+    case engine
+    when /postgres/
+      "postgres://USER:PASS@#{host}:#{port}/#{db}"
+    when /mysql/, /mariadb/
+      "mysql://USER:PASS@#{host}:#{port}/#{db}"
+    else
+      "#{engine}://#{host}:#{port}/#{db}"
+    end
+  end
+
+  # 깔끔한 출력
+  def inspect
+    case self
+    when Aws::EC2::Instance
+      "#<EC2 #{id} #{name.inspect} #{state} #{type} #{private_ip}>"
+    when Aws::EC2::Vpc
+      "#<VPC #{id} #{cidr} #{name.inspect}>"
+    when Aws::EC2::SecurityGroup
+      "#<SG #{id} #{group_name.inspect} #{vpc_id}>"
+    when Aws::EC2::Subnet
+      "#<Subnet #{id} #{cidr} #{availability_zone}>"
+    when Aws::S3::Bucket
+      "#<S3::Bucket #{name.inspect}>"
+    when Aws::RDS::DBInstance
+      "#<RDS #{id} #{engine} #{status}>"
+    else
+      "#<#{self.class.name.split('::').last} #{respond_to?(:id) ? id : object_id}>"
+    end
+  end
+end
+
+# AWS 클래스에 믹스인
+[Aws::EC2::Instance, Aws::EC2::Vpc, Aws::EC2::SecurityGroup, Aws::EC2::Subnet,
+ Aws::S3::Bucket, Aws::RDS::DBInstance].each do |klass|
+  klass.include(AwsInspectable)
+end
+
+#==============================================================================
+# EC2 (ActiveRecord 스타일)
+#==============================================================================
+class EC2
+  class << self
+    def client
+      @client ||= Aws::EC2::Client.new
+    end
+
+    def resource
+      @resource ||= Aws::EC2::Resource.new(client: client)
+    end
+
+    # ActiveRecord 기본 메서드
+    def all
+      AwsRelation.new(self)
+    end
+
+    def where(conditions = {})
+      all.where(conditions)
+    end
+
+    def first(n = nil)
+      all.first(n)
+    end
+
+    def last(n = nil)
+      all.last(n)
+    end
+
+    def count
+      all.count
+    end
+
+    def find(id)
+      resource.instance(id)
+    end
+
+    def find_by(conditions)
+      where(conditions).first
+    end
+
+    # EC2 전용 스코프
+    def running
+      where('instance-state-name': 'running')
+    end
+
+    def stopped
+      where('instance-state-name': 'stopped')
+    end
+
+    def pending
+      where('instance-state-name': 'pending')
+    end
+
+    def terminated
+      where('instance-state-name': 'terminated')
+    end
+
+    # 태그 검색
+    def tagged(key, value = nil)
+      value ? where("tag:#{key}": value) : where("tag-key": key)
+    end
+
+    def named(name)
+      tagged('Name', name)
+    end
+
+    # 이름 패턴 검색 (정규식/문자열)
+    def grep(pattern)
+      all.select do |i|
+        name = i.tags.find { |t| t.key == 'Name' }&.value
+        name&.match?(pattern)
+      end
+    end
+
+    # 내부: 필터로 fetch
+    def fetch_all(filters = {})
+      return resource.instances.to_a if filters.empty?
+
+      aws_filters = filters.map do |k, v|
+        { name: k.to_s.tr('_', '-'), values: Array(v) }
+      end
+      resource.instances(filters: aws_filters).to_a
+    end
+
+    # Security Groups
+    def security_groups
+      resource.security_groups.to_a
+    end
+
+    # AMIs
+    def images(owners: ['self'])
+      resource.images(owners: owners).to_a
+    end
+    alias amis images
+
+    # 요약
+    def summary
+      instances = all.to_a
+      {
+        total: instances.size,
+        running: instances.count { |i| i.state.name == 'running' },
+        stopped: instances.count { |i| i.state.name == 'stopped' }
+      }
+    end
+
+    # 상세 통계
+    def stats
+      instances = all.to_a
+      puts "\e[36m== EC2 Stats (#{$aws_region}) ==\e[0m"
+      puts ""
+
+      # 상태별
+      puts "\e[33mBy State:\e[0m"
+      instances.group_by { |i| i.state.name }.sort.each do |state, list|
+        puts "  %-12s %d" % [state, list.size]
+      end
+      puts ""
+
+      # 타입별 (running만)
+      running = instances.select { |i| i.state.name == 'running' }
+      puts "\e[33mBy Type (running):\e[0m"
+      running.group_by(&:instance_type).sort_by { |_, v| -v.size }.each do |type, list|
+        puts "  %-12s %d" % [type, list.size]
+      end
+      puts ""
+
+      # AZ별
+      puts "\e[33mBy AZ:\e[0m"
+      running.group_by { |i| i.placement.availability_zone }.sort.each do |az, list|
+        puts "  %-20s %d" % [az, list.size]
+      end
+
+      nil
+    end
+  end
+end
+
+#==============================================================================
+# VPC (ActiveRecord 스타일)
+#==============================================================================
+class VPC
+  class << self
+    def client
+      @client ||= Aws::EC2::Client.new
+    end
+
+    def resource
+      @resource ||= Aws::EC2::Resource.new(client: client)
+    end
+
+    def all
+      AwsRelation.new(self)
+    end
+
+    def where(conditions = {})
+      all.where(conditions)
+    end
+
+    def first(n = nil)
+      all.first(n)
+    end
+
+    def count
+      all.count
+    end
+
+    def find(id)
+      resource.vpc(id)
+    end
+
+    def find_by(conditions)
+      where(conditions).first
+    end
+
+    # 기본 VPC
+    def default
+      all.find { _1.is_default }
+    end
+
+    # 태그로 검색
+    def named(name)
+      where('tag:Name': name)
+    end
+
+    def fetch_all(filters = {})
+      return resource.vpcs.to_a if filters.empty?
+
+      aws_filters = filters.map do |k, v|
+        { name: k.to_s.tr('_', '-'), values: Array(v) }
+      end
+      resource.vpcs(filters: aws_filters).to_a
+    end
+
+    # VPC 내 서브넷
+    def subnets(vpc_id = nil)
+      if vpc_id
+        resource.vpc(vpc_id).subnets.to_a
+      else
+        resource.subnets.to_a
+      end
+    end
+
+  end
+end
+
+# VPC 인스턴스 메서드 추가
+Aws::EC2::Vpc.class_eval do
+  def topology
+    puts "\e[36m#{id}\e[0m #{cidr_block} #{name}"
+    puts ""
+
+    subnets.sort_by(&:availability_zone).each do |subnet|
+      subnet_name = subnet.tags.find { |t| t.key == 'Name' }&.value
+      puts "  \e[33m#{subnet.id}\e[0m #{subnet.cidr_block} (#{subnet.availability_zone}) #{subnet_name}"
+
+      instances = EC2.where('subnet-id': subnet.id).to_a
+      if instances.empty?
+        puts "    \e[90m(no instances)\e[0m"
+      else
+        instances.each do |i|
+          sgs = i.security_groups.map(&:group_name).join(', ')
+          puts "    \e[32m#{i.id}\e[0m #{i.name || '(unnamed)'} [#{i.state}] #{i.private_ip}"
+          puts "      \e[90mSG: #{sgs}\e[0m" unless sgs.empty?
+        end
+      end
+      puts ""
+    end
+    nil
+  end
+end
+
+#==============================================================================
+# Security Group (ActiveRecord 스타일)
+#==============================================================================
+class SG
+  class << self
+    def client
+      @client ||= Aws::EC2::Client.new
+    end
+
+    def resource
+      @resource ||= Aws::EC2::Resource.new(client: client)
+    end
+
+    def all
+      AwsRelation.new(self)
+    end
+
+    def where(conditions = {})
+      all.where(conditions)
+    end
+
+    def first(n = nil)
+      all.first(n)
+    end
+
+    def count
+      all.count
+    end
+
+    def find(id)
+      resource.security_group(id)
+    end
+
+    def find_by(conditions)
+      where(conditions).first
+    end
+
+    # 이름으로 검색
+    def named(name)
+      where('group-name': name)
+    end
+
+    # VPC별
+    def in_vpc(vpc_id)
+      where('vpc-id': vpc_id)
+    end
+
+    def fetch_all(filters = {})
+      return resource.security_groups.to_a if filters.empty?
+
+      aws_filters = filters.map do |k, v|
+        { name: k.to_s.tr('_', '-'), values: Array(v) }
+      end
+      resource.security_groups(filters: aws_filters).to_a
+    end
+
+    # 인바운드 규칙 보기
+    def rules(sg_id)
+      sg = find(sg_id)
+      {
+        inbound: sg.ip_permissions.map { |p| format_rule(p, :in) },
+        outbound: sg.ip_permissions_egress.map { |p| format_rule(p, :out) }
+      }
+    end
+
+    private
+
+    def format_rule(perm, direction)
+      proto = perm.ip_protocol == '-1' ? 'ALL' : perm.ip_protocol.upcase
+      ports = if perm.from_port == perm.to_port
+                perm.from_port&.to_s || 'ALL'
+              else
+                "#{perm.from_port}-#{perm.to_port}"
+              end
+      sources = perm.ip_ranges.map(&:cidr_ip) + perm.user_id_group_pairs.map(&:group_id)
+      { proto: proto, ports: ports, sources: sources }
+    end
+  end
+end
+
+#==============================================================================
+# S3 (ActiveRecord 스타일)
+#==============================================================================
+class S3
+  class << self
+    def client
+      @client ||= Aws::S3::Client.new
+    end
+
+    def resource
+      @resource ||= Aws::S3::Resource.new(client: client)
+    end
+
+    # 버킷을 레코드처럼
+    def all
+      AwsRelation.new(self)
+    end
+
+    def where(conditions = {})
+      all.where(conditions)
+    end
+
+    def first(n = nil)
+      all.first(n)
+    end
+
+    def count
+      all.count
+    end
+
+    def find(name)
+      resource.bucket(name)
+    end
+
+    def find_by(conditions)
+      where(conditions).first
+    end
+
+    # 이름 패턴 검색
+    def named(pattern)
+      all.select { _1.name.match?(pattern) }
+    end
+
+    def fetch_all(filters = {})
+      buckets = resource.buckets.to_a
+      return buckets if filters.empty?
+
+      # S3는 서버사이드 필터가 없어서 클라이언트 필터링
+      buckets.select do |b|
+        filters.all? do |k, v|
+          case k.to_s
+          when 'name' then b.name.match?(v)
+          else true
+          end
+        end
+      end
+    end
+
+    # 버킷 내 객체 (서브 모델처럼)
+    def objects(bucket_name, prefix: nil, limit: nil)
+      objs = find(bucket_name).objects(prefix: prefix)
+      limit ? objs.take(limit) : objs.to_a
+    end
+  end
+
+  # 버킷 인스턴스용 헬퍼
+  class Bucket
+    def initialize(bucket)
+      @bucket = bucket
+    end
+
+    def objects(prefix: nil, limit: 100)
+      objs = @bucket.objects(prefix: prefix)
+      limit ? objs.take(limit) : objs.to_a
+    end
+
+    def download(key, local_path = nil)
+      local_path ||= File.basename(key)
+      @bucket.object(key).download_file(File.expand_path(local_path))
+      puts "Downloaded to #{local_path}"
+    end
+
+    def upload(local_path, key = nil)
+      key ||= File.basename(local_path)
+      @bucket.object(key).upload_file(File.expand_path(local_path))
+      puts "Uploaded -> s3://#{@bucket.name}/#{key}"
+    end
+  end
+end
+
+#==============================================================================
+# RDS (ActiveRecord 스타일)
+#==============================================================================
+class RDS
+  class << self
+    def client
+      @client ||= Aws::RDS::Client.new
+    end
+
+    def resource
+      @resource ||= Aws::RDS::Resource.new(client: client)
+    end
+
+    def all
+      AwsRelation.new(self)
+    end
+
+    def where(conditions = {})
+      all.where(conditions)
+    end
+
+    def first(n = nil)
+      all.first(n)
+    end
+
+    def count
+      all.count
+    end
+
+    def find(id)
+      resource.db_instance(id)
+    end
+
+    def find_by(conditions)
+      where(conditions).first
+    end
+
+    # 스코프
+    def available
+      all.select { _1.db_instance_status == 'available' }
+    end
+
+    def postgres
+      all.select { _1.engine.start_with?('postgres') }
+    end
+
+    def mysql
+      all.select { _1.engine.start_with?('mysql') }
+    end
+
+    def fetch_all(filters = {})
+      instances = resource.db_instances.to_a
+      return instances if filters.empty?
+
+      instances.select do |db|
+        filters.all? do |k, v|
+          val = db.send(k) rescue nil
+          val.to_s.match?(v.to_s)
+        end
+      end
+    end
+
+    # 클러스터 (Aurora)
+    def clusters
+      client.describe_db_clusters.db_clusters
+    end
+
+    # 스냅샷
+    def snapshots(db_instance_id = nil)
+      opts = db_instance_id ? { db_instance_identifier: db_instance_id } : {}
+      client.describe_db_snapshots(opts).db_snapshots
+    end
+
+    def summary
+      dbs = all.to_a
+      {
+        total: dbs.size,
+        available: dbs.count { _1.db_instance_status == 'available' },
+        engines: dbs.group_by(&:engine).transform_values(&:size)
+      }
+    end
+  end
+end
+
+#==============================================================================
+# Route53 (DNS)
+#==============================================================================
+class DnsZone
+  attr_reader :data
+
+  def initialize(zone)
+    @data = zone
+  end
+
+  def method_missing(m, *args, &block)
+    @data.send(m, *args, &block)
+  end
+
+  def respond_to_missing?(m, include_private = false)
+    @data.respond_to?(m) || super
+  end
+
+  def inspect
+    "#<DNS::Zone #{name} #{id.split('/').last} records=#{resource_record_set_count}>"
+  end
+
+  def to_s
+    name
+  end
+end
+
+class DNS
+  class << self
+    def client
+      @client ||= Aws::Route53::Client.new
+    end
+
+    # Hosted Zone 목록
+    def zones
+      client.list_hosted_zones.hosted_zones.map { |z| DnsZone.new(z) }
+    end
+
+    def all
+      zones
+    end
+
+    def count
+      zones.size
+    end
+
+    def first(n = nil)
+      n ? zones.first(n) : zones.first
+    end
+
+    def last(n = nil)
+      n ? zones.last(n) : zones.last
+    end
+
+    def find(zone_id)
+      # /hostedzone/ prefix 자동 추가
+      zone_id = "/hostedzone/#{zone_id}" unless zone_id.start_with?('/')
+      zone = client.get_hosted_zone(id: zone_id).hosted_zone
+      DnsZone.new(zone)
+    end
+
+    # 도메인 이름으로 찾기
+    def named(domain_pattern)
+      pattern = domain_pattern.is_a?(Regexp) ? domain_pattern : /#{domain_pattern}/i
+      zones.select { |z| z.name.match?(pattern) }
+    end
+
+    # 특정 존의 레코드 조회
+    def records(zone_id_or_name, type: nil)
+      zone = zone_id_or_name.is_a?(String) && !zone_id_or_name.start_with?('/') ?
+        named(zone_id_or_name).first : find(zone_id_or_name)
+
+      return [] unless zone
+
+      zone_id = zone.id
+      opts = { hosted_zone_id: zone_id }
+
+      all_records = []
+      loop do
+        resp = client.list_resource_record_sets(opts)
+        all_records.concat(resp.resource_record_sets)
+        break unless resp.is_truncated
+        opts[:start_record_name] = resp.next_record_name
+        opts[:start_record_type] = resp.next_record_type
+      end
+
+      all_records = all_records.select { |r| r.type == type.to_s.upcase } if type
+      all_records
+    end
+
+    # 레코드 검색 (모든 존에서)
+    def search(name_pattern, type: nil)
+      pattern = name_pattern.is_a?(Regexp) ? name_pattern : /#{name_pattern}/i
+      results = []
+
+      zones.each do |zone|
+        recs = records(zone.id, type: type)
+        matched = recs.select { |r| r.name.match?(pattern) }
+        matched.each do |r|
+          results << {
+            zone: zone.name,
+            name: r.name,
+            type: r.type,
+            ttl: r.ttl,
+            values: r.resource_records&.map(&:value) || [r.alias_target&.dns_name].compact
+          }
+        end
+      end
+
+      results
+    end
+
+    # 레코드 보기 좋게 출력
+    def show(zone_id_or_name, type: nil)
+      recs = records(zone_id_or_name, type: type)
+      return puts "No records found" if recs.empty?
+
+      # 이름 기준 정렬
+      recs.sort_by!(&:name)
+
+      max_name = recs.map { |r| r.name.length }.max
+      max_type = recs.map { |r| r.type.length }.max
+
+      recs.each do |r|
+        values = r.resource_records&.map(&:value) || [r.alias_target&.dns_name].compact
+        ttl = r.ttl || 'ALIAS'
+        puts "%-#{max_name}s  \e[33m%-#{max_type}s\e[0m  %6s  %s" % [r.name, r.type, ttl, values.join(', ')]
+      end
+      nil
+    end
+
+    # A 레코드만
+    def a_records(zone_id_or_name)
+      records(zone_id_or_name, type: 'A')
+    end
+
+    # CNAME 레코드만
+    def cname_records(zone_id_or_name)
+      records(zone_id_or_name, type: 'CNAME')
+    end
+
+    # ALB/ELB 연결된 레코드 찾기
+    def alb_records(zone_id_or_name = nil)
+      recs = zone_id_or_name ? records(zone_id_or_name) : zones.flat_map { |z| records(z.id) }
+
+      alb_recs = recs.select do |r|
+        alias_dns = r.alias_target&.dns_name
+        alias_dns && (alias_dns.include?('elb.') || alias_dns.include?('amazonaws.com'))
+      end
+
+      alb_recs.map do |r|
+        alb_dns = r.alias_target.dns_name.chomp('.')
+        alb = ALB.find_by_dns(alb_dns) rescue nil
+        {
+          name: r.name,
+          type: r.type,
+          alb_dns: alb_dns,
+          alb_name: alb&.load_balancer_name,
+          alb: alb
+        }
+      end
+    end
+
+    # ALB 레코드 보기 좋게 출력
+    def show_alb(zone_id_or_name = nil)
+      recs = alb_records(zone_id_or_name)
+      return puts "No ALB records found" if recs.empty?
+
+      max_name = recs.map { |r| r[:name].length }.max
+      recs.each do |r|
+        alb_info = r[:alb_name] ? "\e[32m#{r[:alb_name]}\e[0m" : "\e[90m#{r[:alb_dns]}\e[0m"
+        puts "%-#{max_name}s  -> %s" % [r[:name], alb_info]
+      end
+      nil
+    end
+  end
+end
+
+# 별칭
+Route53 = DNS
+
+#==============================================================================
+# ALB (Application Load Balancer)
+#==============================================================================
+class AlbInstance
+  attr_reader :data
+
+  def initialize(lb)
+    @data = lb
+  end
+
+  def method_missing(m, *args, &block)
+    @data.send(m, *args, &block)
+  end
+
+  def respond_to_missing?(m, include_private = false)
+    @data.respond_to?(m) || super
+  end
+
+  def inspect
+    "#<ALB #{load_balancer_name} #{type} #{state&.code}>"
+  end
+
+  def to_s
+    load_balancer_name
+  end
+
+  def url
+    region = $aws_region || 'ap-northeast-2'
+    arn_encoded = URI.encode_www_form_component(load_balancer_arn)
+    "https://#{region}.console.aws.amazon.com/ec2/home?region=#{region}#LoadBalancer:loadBalancerArn=#{arn_encoded}"
+  end
+
+  def open
+    if $aws_sso_portal
+      dest = URI.encode_www_form_component(url)
+      account = Aws::STS::Client.new.get_caller_identity.account rescue nil
+      if account
+        link = "https://#{$aws_sso_portal}.awsapps.com/start/#/console?account_id=#{account}&role_name=#{$aws_sso_role}&destination=#{dest}"
+        puts "\e[36mOpening via SSO:\e[0m"
+        puts "  #{link[0..80]}..."
+        system('open', link)
+        return link
+      end
+    end
+    puts "\e[36mOpening:\e[0m #{url}"
+    system('open', url)
+    url
+  end
+
+  def targets
+    ALB.client.describe_target_groups(load_balancer_arn: load_balancer_arn).target_groups
+  end
+
+  def target_health
+    tgs = targets
+    results = []
+    tgs.each do |tg|
+      health = ALB.client.describe_target_health(target_group_arn: tg.target_group_arn)
+      health.target_health_descriptions.each do |desc|
+        results << {
+          target_group: tg.target_group_name,
+          target: desc.target.id,
+          port: desc.target.port,
+          health: desc.target_health.state,
+          reason: desc.target_health.reason
+        }
+      end
+    end
+
+    results.each do |r|
+      color = r[:health] == 'healthy' ? "\e[32m" : "\e[31m"
+      puts "#{r[:target_group]}: #{r[:target]}:#{r[:port]} #{color}#{r[:health]}\e[0m #{r[:reason]}"
+    end
+    results
+  end
+
+  def listeners
+    ALB.client.describe_listeners(load_balancer_arn: load_balancer_arn).listeners
+  end
+
+  def rules(listener_arn = nil)
+    listener_arn ||= listeners.first&.listener_arn
+    return [] unless listener_arn
+    ALB.client.describe_rules(listener_arn: listener_arn).rules
+  end
+end
+
+class ALB
+  class << self
+    def client
+      @client ||= Aws::ElasticLoadBalancingV2::Client.new
+    end
+
+    def all
+      client.describe_load_balancers.load_balancers.map { |lb| AlbInstance.new(lb) }
+    end
+
+    def count
+      all.size
+    end
+
+    def first(n = nil)
+      n ? all.first(n) : all.first
+    end
+
+    def last(n = nil)
+      n ? all.last(n) : all.last
+    end
+
+    def find(name)
+      all.find { |l| l.load_balancer_name == name }
+    end
+
+    def find_by_arn(arn)
+      resp = client.describe_load_balancers(load_balancer_arns: [arn])
+      lb = resp.load_balancers.first
+      lb ? AlbInstance.new(lb) : nil
+    end
+
+    def find_by_dns(dns_name)
+      all.find { |lb| lb.dns_name == dns_name || dns_name.include?(lb.dns_name) }
+    end
+
+    def named(pattern)
+      pat = pattern.is_a?(Regexp) ? pattern : /#{pattern}/i
+      all.select { |lb| lb.load_balancer_name.match?(pat) }
+    end
+
+    # 타겟 그룹 전체 목록
+    def target_groups
+      client.describe_target_groups.target_groups
+    end
+
+    def target_group(name_or_arn)
+      tgs = target_groups
+      tgs.find { |tg| tg.target_group_name == name_or_arn || tg.target_group_arn == name_or_arn }
+    end
+  end
+end
+
+#==============================================================================
+# ECS (Elastic Container Service)
+#==============================================================================
+class EcsCluster
+  attr_reader :data
+
+  def initialize(cluster)
+    @data = cluster
+  end
+
+  def method_missing(m, *args, &block)
+    @data.send(m, *args, &block)
+  end
+
+  def respond_to_missing?(m, include_private = false)
+    @data.respond_to?(m) || super
+  end
+
+  def inspect
+    "#<ECS::Cluster #{cluster_name} services=#{active_services_count} tasks=#{running_tasks_count}>"
+  end
+
+  def to_s
+    cluster_name
+  end
+end
+
+class EcsService
+  attr_reader :data, :cluster_name
+
+  def initialize(svc, cluster_name)
+    @data = svc
+    @cluster_name = cluster_name
+  end
+
+  def method_missing(m, *args, &block)
+    @data.send(m, *args, &block)
+  end
+
+  def respond_to_missing?(m, include_private = false)
+    @data.respond_to?(m) || super
+  end
+
+  def inspect
+    status_str = running_count == desired_count ? "\e[32m#{running_count}/#{desired_count}\e[0m" : "\e[33m#{running_count}/#{desired_count}\e[0m"
+    "#<ECS::Service #{service_name} #{status_str}>"
+  end
+
+  def to_s
+    service_name
+  end
+
+  def desired
+    desired_count
+  end
+
+  def running
+    running_count
+  end
+
+  def pending
+    pending_count
+  end
+
+  def status_display
+    if running_count == desired_count
+      puts "\e[32m#{service_name}: #{running_count}/#{desired_count} running\e[0m"
+    else
+      puts "\e[33m#{service_name}: #{running_count}/#{desired_count} running (#{pending_count} pending)\e[0m"
+    end
+  end
+
+  def target_groups
+    load_balancers.map { |lb| ALB.target_group(lb.target_group_arn) }.compact
+  end
+
+  def alb
+    tg = target_groups.first
+    return nil unless tg
+    tg_arns = tg.load_balancer_arns
+    return nil if tg_arns.empty?
+    ALB.find_by_arn(tg_arns.first)
+  end
+
+  def target_health
+    tgs = target_groups
+    return [] if tgs.empty?
+
+    results = []
+    tgs.each do |tg|
+      health = ALB.client.describe_target_health(target_group_arn: tg.target_group_arn)
+      health.target_health_descriptions.each do |desc|
+        results << {
+          target_group: tg.target_group_name,
+          target: desc.target.id,
+          port: desc.target.port,
+          health: desc.target_health.state
+        }
+      end
+    end
+
+    results.each do |r|
+      color = r[:health] == 'healthy' ? "\e[32m" : "\e[31m"
+      puts "#{r[:target]}:#{r[:port]} #{color}#{r[:health]}\e[0m"
+    end
+    results
+  end
+
+  def recent_events(n = 5)
+    events.first(n).each do |e|
+      puts "#{e.created_at.strftime('%m/%d %H:%M')} #{e.message}"
+    end
+    nil
+  end
+
+  def url
+    region = $aws_region || 'ap-northeast-2'
+    cluster_encoded = URI.encode_www_form_component(@cluster_name)
+    service_encoded = URI.encode_www_form_component(service_name)
+    "https://#{region}.console.aws.amazon.com/ecs/v2/clusters/#{cluster_encoded}/services/#{service_encoded}?region=#{region}"
+  end
+
+  def open
+    if $aws_sso_portal
+      dest = URI.encode_www_form_component(url)
+      account = Aws::STS::Client.new.get_caller_identity.account rescue nil
+      if account
+        link = "https://#{$aws_sso_portal}.awsapps.com/start/#/console?account_id=#{account}&role_name=#{$aws_sso_role}&destination=#{dest}"
+        puts "\e[36mOpening via SSO:\e[0m"
+        puts "  #{link[0..80]}..."
+        system('open', link)
+        return link
+      end
+    end
+    puts "\e[36mOpening:\e[0m #{url}"
+    system('open', url)
+    url
+  end
+end
+
+class ECS
+  class << self
+    def client
+      @client ||= Aws::ECS::Client.new
+    end
+
+    # 클러스터
+    def clusters
+      arns = client.list_clusters.cluster_arns
+      return [] if arns.empty?
+      client.describe_clusters(clusters: arns).clusters.map { |c| EcsCluster.new(c) }
+    end
+
+    def all
+      clusters
+    end
+
+    def count
+      clusters.size
+    end
+
+    def first(n = nil)
+      n ? clusters.first(n) : clusters.first
+    end
+
+    def last(n = nil)
+      n ? clusters.last(n) : clusters.last
+    end
+
+    def cluster(name)
+      clusters.find { |c| c.cluster_name == name || c.cluster_arn.end_with?(name) }
+    end
+
+    def find(name)
+      cluster(name)
+    end
+
+    # 서비스
+    def services(cluster_name)
+      arns = client.list_services(cluster: cluster_name).service_arns
+      return [] if arns.empty?
+      client.describe_services(cluster: cluster_name, services: arns).services.map { |s| EcsService.new(s, cluster_name) }
+    end
+
+    def service(cluster_name, service_name)
+      svc = client.describe_services(cluster: cluster_name, services: [service_name]).services.first
+      return nil unless svc
+      EcsService.new(svc, cluster_name)
+    end
+
+    # 태스크
+    def tasks(cluster_name, service_name = nil)
+      opts = { cluster: cluster_name }
+      opts[:service_name] = service_name if service_name
+      arns = client.list_tasks(opts).task_arns
+      return [] if arns.empty?
+      client.describe_tasks(cluster: cluster_name, tasks: arns).tasks
+    end
+
+    # 태스크 정의
+    def task_def(family_or_arn)
+      client.describe_task_definition(task_definition: family_or_arn).task_definition
+    end
+
+    def task_defs(family = nil)
+      opts = family ? { family_prefix: family } : {}
+      client.list_task_definitions(opts).task_definition_arns
+    end
+
+    # 요약
+    def summary
+      cls = clusters
+      {
+        clusters: cls.size,
+        services: cls.sum { |c| c.active_services_count },
+        tasks: cls.sum { |c| c.running_tasks_count }
+      }
+    end
+  end
+end
+
+#==============================================================================
+# Cost Explorer (비용 분석)
+#==============================================================================
+class Cost
+  # 서비스 별칭
+  SERVICE_ALIASES = {
+    'ec2' => 'Amazon Elastic Compute Cloud - Compute',
+    'rds' => 'Amazon Relational Database Service',
+    's3' => 'Amazon Simple Storage Service',
+    'lambda' => 'AWS Lambda',
+    'cloudfront' => 'Amazon CloudFront',
+    'dynamodb' => 'Amazon DynamoDB',
+    'elb' => 'Amazon Elastic Load Balancing',
+    'ebs' => 'Amazon Elastic Block Store',
+    'vpc' => 'Amazon Virtual Private Cloud',
+    'nat' => 'EC2 - Other',  # NAT Gateway는 EC2 - Other에 포함
+    'route53' => 'Amazon Route 53',
+    'cloudwatch' => 'Amazon CloudWatch',
+    'sns' => 'Amazon Simple Notification Service',
+    'sqs' => 'Amazon Simple Queue Service',
+    'ecr' => 'Amazon EC2 Container Registry (ECR)',
+    'ecs' => 'Amazon Elastic Container Service',
+    'eks' => 'Amazon Elastic Kubernetes Service',
+    'secrets' => 'AWS Secrets Manager',
+    'kms' => 'AWS Key Management Service'
+  }.freeze
+
+  class << self
+    def client
+      # Cost Explorer는 us-east-1에서만 동작
+      @client ||= Aws::CostExplorer::Client.new(region: 'us-east-1')
+    end
+
+    def resolve_service(name)
+      SERVICE_ALIASES[name.to_s.downcase] || name
+    end
+
+    # 이번 달 총 비용
+    def mtd
+      today = Date.today
+      start_date = Date.new(today.year, today.month, 1).to_s
+      end_date = today.to_s
+
+      resp = client.get_cost_and_usage(
+        time_period: { start: start_date, end: end_date },
+        granularity: 'MONTHLY',
+        metrics: ['UnblendedCost']
+      )
+
+      amount = resp.results_by_time.first&.total&.dig('UnblendedCost', 'Amount')&.to_f || 0
+      puts "\e[36mMonth to Date:\e[0m $#{'%.2f' % amount}"
+      amount
+    end
+
+    # 지난 달 총 비용
+    def last_month
+      today = Date.today
+      prev = today.prev_month
+      start_date = Date.new(prev.year, prev.month, 1)
+      end_date = Date.new(today.year, today.month, 1)
+
+      resp = client.get_cost_and_usage(
+        time_period: { start: start_date.to_s, end: end_date.to_s },
+        granularity: 'MONTHLY',
+        metrics: ['UnblendedCost']
+      )
+
+      amount = resp.results_by_time.first&.total&.dig('UnblendedCost', 'Amount')&.to_f || 0
+      puts "\e[36mLast Month:\e[0m $#{'%.2f' % amount}"
+      amount
+    end
+
+    # 서비스별 비용 breakdown
+    def by_service(days: 30)
+      end_date = Date.today
+      start_date = end_date - days
+
+      resp = client.get_cost_and_usage(
+        time_period: { start: start_date.to_s, end: end_date.to_s },
+        granularity: 'MONTHLY',
+        metrics: ['UnblendedCost'],
+        group_by: [{ type: 'DIMENSION', key: 'SERVICE' }]
+      )
+
+      services = []
+      resp.results_by_time.each do |result|
+        result.groups.each do |group|
+          name = group.keys.first
+          amount = group.metrics['UnblendedCost'].amount.to_f
+          services << { name: name, amount: amount } if amount > 0.01
+        end
+      end
+
+      total = services.sum { |s| s[:amount] }
+      services.sort_by! { |s| -s[:amount] }
+
+      puts "\e[36m== Cost by Service (last #{days} days) ==\e[0m"
+      puts "Total: $#{'%.2f' % total}"
+      puts ""
+
+      services.each do |s|
+        pct = total > 0 ? (s[:amount] / total * 100) : 0
+        bar = '█' * (pct / 5).to_i
+        puts "  %-40s $%8.2f (%5.1f%%) %s" % [s[:name][0..39], s[:amount], pct, bar]
+      end
+      nil
+    end
+
+    # 일별 추이
+    def daily(days: 14)
+      end_date = Date.today
+      start_date = end_date - days
+
+      resp = client.get_cost_and_usage(
+        time_period: { start: start_date.to_s, end: end_date.to_s },
+        granularity: 'DAILY',
+        metrics: ['UnblendedCost']
+      )
+
+      puts "\e[36m== Daily Cost (last #{days} days) ==\e[0m"
+      puts ""
+
+      max_amount = resp.results_by_time.map { |r| r.total['UnblendedCost'].amount.to_f }.max
+      resp.results_by_time.each do |result|
+        date = result.time_period.start
+        amount = result.total['UnblendedCost'].amount.to_f
+        bar_len = max_amount > 0 ? (amount / max_amount * 30).to_i : 0
+        bar = '█' * bar_len
+        puts "  %s  $%7.2f  %s" % [date, amount, bar]
+      end
+      nil
+    end
+
+    # 전월 대비
+    def compare
+      today = Date.today
+
+      # 이번 달
+      this_start = Date.new(today.year, today.month, 1)
+      this_end = today
+      this_resp = client.get_cost_and_usage(
+        time_period: { start: this_start.to_s, end: this_end.to_s },
+        granularity: 'MONTHLY',
+        metrics: ['UnblendedCost']
+      )
+      this_amount = this_resp.results_by_time.first&.total&.dig('UnblendedCost', 'Amount')&.to_f || 0
+
+      # 지난 달 같은 기간
+      last_start = Date.new(today.year, today.month - 1, 1)
+      last_end = Date.new(today.year, today.month - 1, today.day)
+      last_resp = client.get_cost_and_usage(
+        time_period: { start: last_start.to_s, end: last_end.to_s },
+        granularity: 'MONTHLY',
+        metrics: ['UnblendedCost']
+      )
+      last_amount = last_resp.results_by_time.first&.total&.dig('UnblendedCost', 'Amount')&.to_f || 0
+
+      diff = this_amount - last_amount
+      pct = last_amount > 0 ? (diff / last_amount * 100) : 0
+
+      puts "\e[36m== Month Comparison (day 1-#{today.day}) ==\e[0m"
+      puts ""
+      puts "  This month: $#{'%.2f' % this_amount}"
+      puts "  Last month: $#{'%.2f' % last_amount}"
+
+      color = diff > 0 ? "\e[31m" : "\e[32m"
+      sign = diff > 0 ? '+' : ''
+      puts "  Change:     #{color}#{sign}$#{'%.2f' % diff} (#{sign}#{'%.1f' % pct}%)\e[0m"
+      nil
+    end
+
+    # 비용 상위 서비스
+    def top(n = 10, days: 30)
+      end_date = Date.today
+      start_date = end_date - days
+
+      resp = client.get_cost_and_usage(
+        time_period: { start: start_date.to_s, end: end_date.to_s },
+        granularity: 'MONTHLY',
+        metrics: ['UnblendedCost'],
+        group_by: [{ type: 'DIMENSION', key: 'SERVICE' }]
+      )
+
+      services = []
+      resp.results_by_time.each do |result|
+        result.groups.each do |group|
+          name = group.keys.first
+          amount = group.metrics['UnblendedCost'].amount.to_f
+          services << { name: name, amount: amount } if amount > 0
+        end
+      end
+
+      services.sort_by! { |s| -s[:amount] }
+      top_n = services.first(n)
+
+      puts "\e[36m== Top #{n} Services (last #{days} days) ==\e[0m"
+      puts ""
+      top_n.each_with_index do |s, i|
+        puts "  %2d. %-40s $%.2f" % [i + 1, s[:name][0..39], s[:amount]]
+      end
+      nil
+    end
+
+    # 서비스 세부 breakdown (USAGE_TYPE)
+    def drill(service, days: 30)
+      service_name = resolve_service(service)
+      end_date = Date.today
+      start_date = end_date - days
+
+      resp = client.get_cost_and_usage(
+        time_period: { start: start_date.to_s, end: end_date.to_s },
+        granularity: 'MONTHLY',
+        metrics: ['UnblendedCost'],
+        filter: { dimensions: { key: 'SERVICE', values: [service_name] } },
+        group_by: [{ type: 'DIMENSION', key: 'USAGE_TYPE' }]
+      )
+
+      items = []
+      resp.results_by_time.each do |result|
+        result.groups.each do |group|
+          usage_type = group.keys.first
+          amount = group.metrics['UnblendedCost'].amount.to_f
+          items << { type: usage_type, amount: amount } if amount > 0.01
+        end
+      end
+
+      total = items.sum { |i| i[:amount] }
+      items.sort_by! { |i| -i[:amount] }
+
+      puts "\e[36m== #{service_name} Breakdown (last #{days} days) ==\e[0m"
+      puts "Total: $#{'%.2f' % total}"
+      puts ""
+
+      items.first(15).each do |i|
+        pct = total > 0 ? (i[:amount] / total * 100) : 0
+        puts "  %-50s $%8.2f (%5.1f%%)" % [i[:type][0..49], i[:amount], pct]
+      end
+      puts "  ... and #{items.size - 15} more" if items.size > 15
+      nil
+    end
+
+    # 인스턴스 타입별 비용
+    def by_instance_type(days: 30)
+      end_date = Date.today
+      start_date = end_date - days
+
+      resp = client.get_cost_and_usage(
+        time_period: { start: start_date.to_s, end: end_date.to_s },
+        granularity: 'MONTHLY',
+        metrics: ['UnblendedCost'],
+        group_by: [{ type: 'DIMENSION', key: 'INSTANCE_TYPE' }]
+      )
+
+      items = []
+      resp.results_by_time.each do |result|
+        result.groups.each do |group|
+          instance_type = group.keys.first
+          amount = group.metrics['UnblendedCost'].amount.to_f
+          items << { type: instance_type, amount: amount } if amount > 0.01 && !instance_type.empty?
+        end
+      end
+
+      items.sort_by! { |i| -i[:amount] }
+
+      puts "\e[36m== Cost by Instance Type (last #{days} days) ==\e[0m"
+      puts ""
+
+      items.first(15).each do |i|
+        puts "  %-20s $%8.2f" % [i[:type], i[:amount]]
+      end
+      nil
+    end
+
+    # 리전별 비용
+    def by_region(days: 30)
+      end_date = Date.today
+      start_date = end_date - days
+
+      resp = client.get_cost_and_usage(
+        time_period: { start: start_date.to_s, end: end_date.to_s },
+        granularity: 'MONTHLY',
+        metrics: ['UnblendedCost'],
+        group_by: [{ type: 'DIMENSION', key: 'REGION' }]
+      )
+
+      items = []
+      resp.results_by_time.each do |result|
+        result.groups.each do |group|
+          region = group.keys.first
+          region = '(global)' if region.empty?
+          amount = group.metrics['UnblendedCost'].amount.to_f
+          items << { region: region, amount: amount } if amount > 0.01
+        end
+      end
+
+      total = items.sum { |i| i[:amount] }
+      items.sort_by! { |i| -i[:amount] }
+
+      puts "\e[36m== Cost by Region (last #{days} days) ==\e[0m"
+      puts "Total: $#{'%.2f' % total}"
+      puts ""
+
+      items.each do |i|
+        pct = total > 0 ? (i[:amount] / total * 100) : 0
+        bar = '█' * (pct / 5).to_i
+        puts "  %-20s $%8.2f (%5.1f%%) %s" % [i[:region], i[:amount], pct, bar]
+      end
+      nil
+    end
+
+    # 태그별 비용
+    def by_tag(tag_key, days: 30)
+      end_date = Date.today
+      start_date = end_date - days
+
+      resp = client.get_cost_and_usage(
+        time_period: { start: start_date.to_s, end: end_date.to_s },
+        granularity: 'MONTHLY',
+        metrics: ['UnblendedCost'],
+        group_by: [{ type: 'TAG', key: tag_key }]
+      )
+
+      items = []
+      resp.results_by_time.each do |result|
+        result.groups.each do |group|
+          tag_value = group.keys.first.sub("#{tag_key}$", '')
+          tag_value = '(untagged)' if tag_value.empty?
+          amount = group.metrics['UnblendedCost'].amount.to_f
+          items << { tag: tag_value, amount: amount } if amount > 0.01
+        end
+      end
+
+      total = items.sum { |i| i[:amount] }
+      items.sort_by! { |i| -i[:amount] }
+
+      puts "\e[36m== Cost by Tag:#{tag_key} (last #{days} days) ==\e[0m"
+      puts "Total: $#{'%.2f' % total}"
+      puts ""
+
+      items.first(20).each do |i|
+        pct = total > 0 ? (i[:amount] / total * 100) : 0
+        puts "  %-30s $%8.2f (%5.1f%%)" % [i[:tag][0..29], i[:amount], pct]
+      end
+      nil
+    end
+
+    # 서비스 + 리전 조합
+    def matrix(days: 30)
+      end_date = Date.today
+      start_date = end_date - days
+
+      resp = client.get_cost_and_usage(
+        time_period: { start: start_date.to_s, end: end_date.to_s },
+        granularity: 'MONTHLY',
+        metrics: ['UnblendedCost'],
+        group_by: [
+          { type: 'DIMENSION', key: 'SERVICE' },
+          { type: 'DIMENSION', key: 'REGION' }
+        ]
+      )
+
+      items = []
+      resp.results_by_time.each do |result|
+        result.groups.each do |group|
+          service = group.keys[0]
+          region = group.keys[1]
+          region = '(global)' if region.empty?
+          amount = group.metrics['UnblendedCost'].amount.to_f
+          items << { service: service, region: region, amount: amount } if amount > 0.5
+        end
+      end
+
+      items.sort_by! { |i| -i[:amount] }
+
+      puts "\e[36m== Cost Matrix: Service x Region (last #{days} days) ==\e[0m"
+      puts ""
+
+      items.first(20).each do |i|
+        puts "  %-35s %-15s $%8.2f" % [i[:service][0..34], i[:region], i[:amount]]
+      end
+      nil
+    end
+
+    # 급증 감지
+    def spike(threshold: 1.5)
+      end_date = Date.today
+      start_date = end_date - 14
+
+      resp = client.get_cost_and_usage(
+        time_period: { start: start_date.to_s, end: end_date.to_s },
+        granularity: 'DAILY',
+        metrics: ['UnblendedCost']
+      )
+
+      amounts = resp.results_by_time.map { |r| [r.time_period.start, r.total['UnblendedCost'].amount.to_f] }
+      avg = amounts.map(&:last).sum / amounts.size
+
+      puts "\e[36m== Cost Spikes (> #{threshold}x average) ==\e[0m"
+      puts "Average: $#{'%.2f' % avg}/day"
+      puts ""
+
+      spikes = amounts.select { |_, amt| amt > avg * threshold }
+      if spikes.empty?
+        puts "  \e[32mNo spikes detected\e[0m"
+      else
+        spikes.each do |date, amt|
+          ratio = amt / avg
+          puts "  \e[31m#{date}  $#{'%.2f' % amt}  (#{'%.1f' % ratio}x)\e[0m"
+        end
+      end
+      nil
+    end
+  end
+end
+
+#==============================================================================
+# 유틸리티 함수
+#==============================================================================
+
+# 테이블 형식 출력
+def table(data, columns: nil)
+  return puts "No data" if data.empty?
+
+  # 컬럼 자동 감지
+  sample = data.first
+  if sample.respond_to?(:to_h)
+    rows = data.map(&:to_h)
+  elsif sample.respond_to?(:members)
+    rows = data.map { _1.to_h }
+  else
+    # AWS Resource 객체면 주요 속성 추출
+    rows = data.map do |obj|
+      case obj
+      when Aws::EC2::Instance
+        { id: obj.id, type: obj.instance_type, state: obj.state.name,
+          name: obj.tags.find { _1.key == 'Name' }&.value, az: obj.placement.availability_zone }
+      when Aws::EC2::Vpc
+        { id: obj.id, cidr: obj.cidr_block, default: obj.is_default,
+          name: obj.tags.find { _1.key == 'Name' }&.value, state: obj.state }
+      when Aws::EC2::SecurityGroup
+        { id: obj.id, name: obj.group_name, vpc: obj.vpc_id,
+          desc: obj.description&.slice(0, 30) }
+      when Aws::EC2::Subnet
+        { id: obj.id, cidr: obj.cidr_block, az: obj.availability_zone,
+          name: obj.tags.find { _1.key == 'Name' }&.value }
+      when Aws::S3::Bucket
+        { name: obj.name, created: obj.creation_date&.strftime('%Y-%m-%d') }
+      when Aws::RDS::DBInstance
+        { id: obj.id, engine: obj.engine, class: obj.db_instance_class,
+          status: obj.db_instance_status, endpoint: obj.endpoint&.address }
+      else
+        { value: obj.to_s }
+      end
+    end
+  end
+
+  columns ||= rows.first.keys
+  widths = columns.map do |col|
+    [col.to_s.length, rows.map { _1[col].to_s.length }.max || 0].max
+  end
+
+  # 헤더
+  header = columns.zip(widths).map { |col, w| col.to_s.ljust(w) }.join('  ')
+  puts "\e[36m#{header}\e[0m"
+  puts '-' * header.length
+
+  # 데이터
+  rows.each do |row|
+    line = columns.zip(widths).map { |col, w| row[col].to_s.ljust(w) }.join('  ')
+    puts line
+  end
+  nil
+end
+
+# JSON 출력
+def to_json(data, path = nil)
+  arr = data.respond_to?(:to_a) ? data.to_a : [data]
+
+  json_data = arr.map do |obj|
+    if obj.respond_to?(:to_h)
+      obj.to_h
+    elsif obj.respond_to?(:data)
+      obj.data.to_h
+    else
+      obj.to_s
+    end
+  end
+
+  json = JSON.pretty_generate(json_data)
+
+  if path
+    File.write(File.expand_path(path), json)
+    puts "Saved to #{path}"
+  else
+    puts json
+  end
+end
+
+# 클립보드
+def to_clip(data)
+  arr = data.respond_to?(:to_a) ? data.to_a : [data]
+  json_data = arr.map { _1.respond_to?(:to_h) ? _1.to_h : _1.to_s }
+  IO.popen('pbcopy', 'w') { |io| io.puts JSON.pretty_generate(json_data) }
+  puts "Copied to clipboard (#{arr.size} items)"
+end
+
+# Help (IRB 내장 help와 충돌 방지)
+def aws_help
+  puts <<~HELP
+    == AWS IRB Cheatsheet ==
+
+    [EC2]
+    EC2.all / EC2.running / EC2.stopped
+    EC2.where('instance-type': 't3.micro')
+    EC2.named('web-*')                   # Name 태그로 검색
+    EC2.find('i-xxx')                    # ID로 조회
+    EC2.first / EC2.last / EC2.count
+    EC2.summary
+
+    [VPC]
+    VPC.all / VPC.count
+    VPC.default                          # 기본 VPC
+    VPC.named('production')              # Name 태그로 검색
+    VPC.find('vpc-xxx')
+    VPC.subnets('vpc-xxx')               # 서브넷 목록
+
+    [SG] (Security Group)
+    SG.all / SG.count
+    SG.named('web-sg')                   # 이름으로 검색
+    SG.in_vpc('vpc-xxx')                 # VPC별 조회
+    SG.find('sg-xxx')
+    SG.rules('sg-xxx')                   # 인바운드/아웃바운드 규칙
+
+    [S3]
+    S3.all / S3.count
+    S3.named(/prod/)                     # 이름 패턴 검색
+    S3.find('bucket-name')               # 버킷 접근
+    S3.objects('bucket', prefix: 'logs/', limit: 20)
+
+    [RDS]
+    RDS.all / RDS.available
+    RDS.postgres / RDS.mysql             # 엔진별 필터
+    RDS.find('mydb')
+    RDS.clusters                         # Aurora 클러스터
+    RDS.snapshots / RDS.snapshots('mydb')
+    RDS.summary
+
+    [Route53] (DNS)
+    DNS.zones / DNS.count                # Hosted Zone 목록
+    DNS.named('example.com')             # 도메인으로 찾기
+    DNS.records('example.com')           # 레코드 전체
+    DNS.records('example.com', type: 'A') # 특정 타입만
+    DNS.show('example.com')              # 보기 좋게 출력
+    DNS.search('api')                    # 모든 존에서 검색
+    DNS.alb_records('example.com')       # ALB 연결된 레코드
+    DNS.show_alb('example.com')          # ALB 레코드 + ALB명 출력
+
+    [ALB] (Load Balancer)
+    ALB.all / ALB.count                  # 로드밸런서 목록
+    ALB.find('alb-name')                 # 이름으로 찾기
+    ALB.named(/prod/)                    # 패턴 검색
+    ALB.first.targets                    # 타겟 그룹 목록
+    ALB.first.target_health              # 타겟 헬스 상태
+    ALB.first.listeners                  # 리스너 목록
+    ALB.first.rules                      # 리스너 규칙
+    ALB.first.open                       # 콘솔 열기
+
+    [ECS]
+    ECS.clusters / ECS.summary           # 클러스터 목록/요약
+    ECS.services('cluster')              # 서비스 목록
+    ECS.service('cluster', 'svc')        # 특정 서비스
+    ECS.tasks('cluster', 'svc')          # 실행 중인 태스크
+    svc.desired / svc.running            # desired vs running count
+    svc.status_display                   # 상태 출력
+    svc.alb                              # 연결된 ALB
+    svc.target_health                    # 타겟 헬스 상태
+    svc.recent_events                    # 최근 이벤트
+    svc.open                             # 콘솔 열기
+
+    [공통 메서드] (ActiveRecord 스타일)
+    .all / .first / .last / .count
+    .where(key: 'value')                 # 필터
+    .find('id') / .find_by(key: 'value')
+    .limit(10) / .offset(5)
+    .select { ... } / .reject { ... }
+    .pluck(:id, :name)
+
+    [객체 조회]
+    columns EC2.first                    # 주요 속성 목록
+    attrs EC2.first                      # 속성값 해시로
+    show EC2.first                       # 보기 좋게 출력
+    EC2.first.url                        # AWS Console URL
+    EC2.first.open                       # 브라우저에서 열기
+
+    [CloudWatch 메트릭]
+    EC2.first.cpu                        # CPU 사용률 (1h)
+    EC2.first.cpu(hours: 24)             # 24시간 평균
+    EC2.first.network                    # 네트워크 In/Out
+    EC2.first.disk                       # 디스크 Read/Write
+    EC2.first.status_checks              # 상태 체크
+    RDS.first.cpu                        # RDS CPU
+    RDS.first.connections                # DB 연결 수
+
+    [SSO] (Identity Center)
+    sso_portal                           # 현재 SSO 포털 확인
+    sso_portal 'mycompany'               # SSO 포털 설정
+    sso_role 'Admin'                     # SSO role 설정
+    EC2.first.sso_url                    # SSO shortcut URL
+    EC2.first.sso_open                   # SSO로 브라우저 열기
+
+    [리소스 비용]
+    EC2.first.cost                       # 예상 월 비용 (인스턴스 타입 기준)
+    EC2.first.actual_cost                # 실제 비용 (Cost Explorer)
+    EC2.running.total_cost               # 전체 예상 월 비용
+    EC2.running.sum_by { |i| i.cost }    # 위와 동일
+    EC2.running.group_sum_by(:type) { |i| i.cost }  # 타입별 비용
+
+    [Cost] (비용 분석)
+    Cost.mtd                             # 이번 달 총 비용
+    Cost.last_month                      # 지난 달 총 비용
+    Cost.by_service                      # 서비스별 breakdown
+    Cost.daily                           # 일별 추이
+    Cost.compare                         # 전월 대비
+    Cost.top(5)                          # 상위 5개 서비스
+    Cost.spike                           # 비용 급증 감지
+
+    [Cost 세부 분석]
+    Cost.drill 'ec2'                     # EC2 세부 (별칭 지원)
+    Cost.drill 'rds', days: 7            # RDS 최근 7일
+    Cost.by_instance_type                # 인스턴스 타입별
+    Cost.by_region                       # 리전별
+    Cost.by_tag 'Name'                   # 태그별 (Name, Team 등)
+    Cost.matrix                          # 서비스 x 리전 조합
+
+    [리전/프로필]
+    region                               # 현재 리전 확인
+    region 'us-west-2'                   # 리전 변경
+    regions                              # 리전 목록
+    use_profile 'production'             # 프로필 변경
+
+    [출력]
+    table EC2.running                    # 테이블 형식
+    to_json EC2.all                      # JSON 출력
+    to_json EC2.all, '~/ec2.json'        # 파일 저장
+    to_clip S3.all                       # 클립보드 복사
+  HELP
+end
+
+#==============================================================================
+# IRB 시작
+#==============================================================================
+ARGV.clear
+require 'irb'
+
+# 프롬프트 설정
+prompt_color = "\e[33m"  # 노랑
+prompt_prefix = "#{prompt_color}[aws:#{$aws_profile}@#{$aws_region}]\e[0m"
+
+ENV['IRB_USE_AUTOCOMPLETE'] = 'false'
+
+IRB.setup(nil)
+IRB.conf[:PROMPT][:AWS] = {
+  PROMPT_I: "#{prompt_prefix} > ",
+  PROMPT_S: "#{prompt_prefix} %l> ",
+  PROMPT_C: "#{prompt_prefix} *> ",
+  RETURN: "=> %s\n"
+}
+IRB.conf[:PROMPT_MODE] = :AWS
+
+puts "Connected to \e[33m#{$aws_profile}\e[0m @ \e[36m#{$aws_region}\e[0m. Type 'aws_help' for cheatsheet."
+
+irb = IRB::Irb.new
+IRB.conf[:MAIN_CONTEXT] = irb.context
+irb.context.prompt_mode = :AWS
+
+catch(:IRB_EXIT) { irb.eval_input }
