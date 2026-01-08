@@ -138,15 +138,22 @@ augroup MyMarkdown
   autocmd!
   autocmd FileType markdown silent! TableModeEnable
   autocmd FileType markdown setlocal comments=b:-,b:*,b:+,n:>
-  autocmd FileType markdown setlocal tabstop=2 shiftwidth=2 expandtab
+  autocmd FileType markdown setlocal tabstop=2 shiftwidth=2 softtabstop=-1 expandtab
   autocmd FileType markdown setlocal nowrap linebreak breakindent breakindentopt=shift:2
   autocmd FileType markdown setlocal foldmethod=expr foldexpr=MarkdownFoldExpr() foldenable
   autocmd FileType markdown setlocal foldtext=getline(v:foldstart).'...'
   autocmd FileType markdown nnoremap <buffer> <tab> za
   autocmd FileType markdown setlocal formatoptions+=ro
-  autocmd FileType markdown inoremap <buffer><expr> <tab> getline('.') =~ '^\s*-\s' ? '<C-t>' : '<tab>'
-  autocmd FileType markdown inoremap <buffer><expr> <s-tab> getline('.') =~ '^\s*-\s' ? '<C-d>' : '<s-tab>'
-  autocmd FileType markdown inoremap <buffer><expr> <CR> getline('.') =~# '^\s*[-*+]\s*$' ? '<Esc>S<CR>' : '<CR>'
+  autocmd FileType markdown inoremap <buffer><expr> <tab>
+        \ copilot#GetDisplayedSuggestion().text != '' ? copilot#Accept() :
+        \ getline('.') =~ '^\s*|' ? '<C-o>:call tablemode#spreadsheet#MoveCell("l")<CR>' :
+        \ '<tab>'
+  autocmd FileType markdown inoremap <buffer><expr> <s-tab>
+        \ getline('.') =~ '^\s*|' ? '<C-o>:call tablemode#spreadsheet#MoveCell("h")<CR>' :
+        \ '<s-tab>'
+  autocmd FileType markdown inoremap <buffer><expr> <CR>
+        \ getline('.') =~ '^\s*|' ? '<C-o>:call tablemode#spreadsheet#MoveCell("j")<CR>' :
+        \ getline('.') =~# '^\s*[-*+]\s*$' ? '<Esc>S<CR>' : '<CR>'
   " Copilot accept: <C-]> (Tab은 리스트 indent용)
   autocmd FileType markdown imap <buffer><silent><script><expr> <C-]> copilot#Accept("\<CR>")
   autocmd FileType markdown nnoremap <buffer> <cr> :call OpenWiki()<cr>
@@ -194,6 +201,7 @@ augroup MyMarkdown
     hi MyDone guifg=#000000 guibg=#98FB98 gui=bold
     hi link markdownWikiLink markdownLinkText
     hi link markdownRefLinkText markdownLinkText
+    hi link markdownRefDef Identifier
     hi Conceal guifg=#bc6ec5 guibg=#292b2e
     hi markdownDataviewField guifg=#888888 gui=italic
 

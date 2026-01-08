@@ -1,5 +1,26 @@
 " Link handling for markdown notes
 
+" ============================================================
+" Helper functions
+" ============================================================
+
+function! s:ReplaceLink(start, end, new_link) abort
+  let line = getline('.')
+  call setline('.', line[0:a:start-1] . a:new_link . line[a:end:])
+endfunction
+
+function! s:BuildWikiLink(target, alias) abort
+  return empty(a:alias) ? '[[' . a:target . ']]' : '[[' . a:target . '|' . a:alias . ']]'
+endfunction
+
+function! s:BuildMarkdownLink(title, url) abort
+  return '[' . a:title . '](' . a:url . ')'
+endfunction
+
+" ============================================================
+" Link parsing
+" ============================================================
+
 function! ParseWikiLink(link)
   if a:link =~# '^id:'
     return {'type': 'anchor', 'id': substitute(a:link, '^id:', '', '')}
@@ -16,21 +37,6 @@ function! ParseWikiLink(link)
   else
     return {'type': 'local', 'path': a:link}
   endif
-endfunction
-
-function! ExtractMarkdownLinkUrl()
-  let line = getline('.')
-  let col = col('.') - 1
-  let start = match(line, '\[.\{-}\](', 0)
-  while start >= 0 && start <= col
-    let end = match(line, ')', start)
-    if end > col
-      let url_start = match(line, '(', start) + 1
-      return line[url_start : end-1]
-    endif
-    let start = match(line, '\[.\{-}\](', end)
-  endwhile
-  return ''
 endfunction
 
 function! s:ExtractWikilinkFull()
@@ -68,44 +74,18 @@ function! s:ExtractMarkdownLinkFull()
   return {'found': 0}
 endfunction
 
-function! ExtractRefLinkUrl() abort
-  let line = getline('.')
-  let col = col('.') - 1
-  let pattern = '\[\([^\]]\+\)\]\[\([^\]]\+\)\]'
-  let start = 0
-  while 1
-    let ms = match(line, pattern, start)
-    if ms == -1 | break | endif
-    let me = matchend(line, pattern, start)
-    if col >= ms && col < me
-      let match = matchlist(line, pattern, start)
-      let id = match[2]
-      let save_pos = getpos('.')
-      call cursor(1, 1)
-      let def_line = search('^\s*\[' . escape(id, '[]') . '\]:\s*', 'nW')
-      call setpos('.', save_pos)
-      if def_line
-        let def = getline(def_line)
-        return substitute(def, '^\s*\[[^\]]\+\]:\s*', '', '')
-      endif
-    endif
-    let start = me
-  endwhile
-  return ''
-endfunction
-
 function! InsertWikilink() abort
   let target = input('Target: ')
   if empty(target) | return | endif
   let alias = input('Alias: ')
-  exe 'normal! a' . (empty(alias) ? '[['.target.']]' : '[['.target.'|'.alias.']]')
+  exe 'normal! a' . s:BuildWikiLink(target, alias)
 endfunction
 
 function! InsertMarkdownLink() abort
   let url = input('URL: ')
   if empty(url) | return | endif
   let title = input('Title: ', url)
-  exe 'normal! a[' . title . '](' . url . ')'
+  exe 'normal! a' . s:BuildMarkdownLink(title, url)
 endfunction
 
 function! EditLinkAtCursor() abort
@@ -115,8 +95,7 @@ function! EditLinkAtCursor() abort
     if empty(t) | return | endif
     let a = input('Alias: ', w.alias)
     if empty(a) && !empty(w.alias) | return | endif
-    let link = empty(a) ? '[['.t.']]' : '[['.t.'|'.a.']]'
-    call setline('.', getline('.')[0:w.start-1] . link . getline('.')[w.end:])
+    call s:ReplaceLink(w.start, w.end, s:BuildWikiLink(t, a))
     return
   endif
 
@@ -126,8 +105,7 @@ function! EditLinkAtCursor() abort
     if empty(u) | return | endif
     let t = input('Title: ', m.title)
     if empty(t) | return | endif
-    let link = '[' . t . '](' . u . ')'
-    call setline('.', getline('.')[0:m.start-1] . link . getline('.')[m.end:])
+    call s:ReplaceLink(m.start, m.end, s:BuildMarkdownLink(t, u))
     return
   endif
 
@@ -148,12 +126,33 @@ function! SmartLink() abort
   let ref = s:ExtractRefLinkFull()
 
   if wiki.found
-    call EditLinkAtCursor()
+    call s:WikiLinkMenu(wiki)
   elseif md.found || ref.found
     call s:LinkActionMenu(md, ref)
   else
     call SmartLinkFzf()
   endif
+endfunction
+
+function! s:WikiLinkMenu(wiki) abort
+  echo 'Wiki: [e]dit [m]arkdown'
+  let c = nr2char(getchar()) | redraw
+
+  if c ==# 'e'
+    call EditLinkAtCursor()
+  elseif c ==# 'm'
+    call s:WikiToMarkdown(a:wiki)
+  endif
+endfunction
+
+function! s:WikiToMarkdown(wiki) abort
+  let title = !empty(a:wiki.alias) ? a:wiki.alias : a:wiki.target
+  let url = a:wiki.target
+  if url !~# '^\(https\?\|file\)://' && url !~# '\.[^./]\+$'
+    let url .= '.md'
+  endif
+  call s:ReplaceLink(a:wiki.start, a:wiki.end, s:BuildMarkdownLink(title, url))
+  echo 'Wiki → Markdown'
 endfunction
 
 function! s:ExtractRefLinkFull() abort
@@ -186,20 +185,13 @@ function! s:ExtractRefLinkFull() abort
 endfunction
 
 function! s:LinkActionMenu(md, ref) abort
-  let actions = ['Edit']
-  if a:md.found
-    call add(actions, 'To Reference')
-  endif
-  if a:ref.found
-    call add(actions, 'To Inline')
-  endif
-  call add(actions, 'Open in Browser')
-
-  echo 'Link: [e]dit [r]ef [i]nline [o]pen'
+  echo 'Link: [e]dit [w]iki [r]ef [i]nline [o]pen'
   let c = nr2char(getchar()) | redraw
 
   if c ==# 'e'
     call EditLinkAtCursor()
+  elseif c ==# 'w'
+    call s:MarkdownToWiki(a:md.found ? a:md : a:ref)
   elseif c ==# 'r' && a:md.found
     call s:ConvertToRefLink(a:md)
   elseif c ==# 'i' && a:ref.found
@@ -210,11 +202,16 @@ function! s:LinkActionMenu(md, ref) abort
   endif
 endfunction
 
+function! s:MarkdownToWiki(link) abort
+  let target = substitute(a:link.url, '\.md$', '', '')
+  let alias = (a:link.title == a:link.url || a:link.title == target) ? '' : a:link.title
+  call s:ReplaceLink(a:link.start, a:link.end, s:BuildWikiLink(target, alias))
+  echo 'Markdown → Wiki'
+endfunction
+
 function! s:ConvertToRefLink(md) abort
   let id = sha256(a:md.url)[:7]
-  let new_link = '[' . a:md.title . '][' . id . ']'
-  let line = getline('.')
-  call setline('.', line[0:a:md.start-1] . new_link . line[a:md.end:])
+  call s:ReplaceLink(a:md.start, a:md.end, '[' . a:md.title . '][' . id . ']')
   if !s:RefDefExists(id)
     call s:AppendRefDef(id, a:md.url)
   endif
@@ -226,30 +223,27 @@ function! s:ConvertToInlineLink(ref) abort
     echo 'Reference definition not found'
     return
   endif
-  let new_link = '[' . a:ref.title . '](' . a:ref.url . ')'
-  let line = getline('.')
-  call setline('.', line[0:a:ref.start-1] . new_link . line[a:ref.end:])
+  call s:ReplaceLink(a:ref.start, a:ref.end, s:BuildMarkdownLink(a:ref.title, a:ref.url))
   echo 'Converted to inline link'
 endfunction
 
 function! GetMarkdownPagePath()
-  let syn_name = synIDattr(synID(line('.'), col('.'), 1), 'name')
-
-  if syn_name ==# 'markdownWikiLink'
-    let link = substitute(expand('<cWORD>'), '^\[\[\([^]|]\+\).*$', '\1', '')
-    return ParseWikiLink(link)
+  " Wiki link [[target]] or [[target|alias]]
+  let wiki = s:ExtractWikilinkFull()
+  if wiki.found
+    return ParseWikiLink(wiki.target)
   endif
 
-  " 마크다운 링크 [text](url) 추출 시도
-  let url = ExtractMarkdownLinkUrl()
-  if !empty(url)
-    return ParseWikiLink(url)
+  " Markdown link [text](url)
+  let md = s:ExtractMarkdownLinkFull()
+  if md.found
+    return ParseWikiLink(md.url)
   endif
 
-  " reference 링크 [text][id] 추출 시도
-  let ref_url = ExtractRefLinkUrl()
-  if !empty(ref_url)
-    return ParseWikiLink(ref_url)
+  " Reference link [text][id]
+  let ref = s:ExtractRefLinkFull()
+  if ref.found && !empty(ref.url)
+    return ParseWikiLink(ref.url)
   endif
 
   " 순수 URL (markdownUrl) - WORD로 직접 추출
