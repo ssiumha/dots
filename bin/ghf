@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# ghf - GitHub Fuzzy CLI
+# k9s-style GitHub interface with fzf
+
+# Check dependencies
+command -v gh >/dev/null 2>&1 || { echo "gh CLI required"; exit 1; }
+command -v fzf >/dev/null 2>&1 || { echo "fzf required"; exit 1; }
+
+# State
+STATE="open"
+HEADER="[ghf] enter:view  ^o:open  ^c:checkout  ^d:diff  tab:filter  q:quit"
+
+# Get my PRs
+list_prs() {
+  local state="$1"
+  gh search prs --author @me --state "$state" --limit 50 \
+    --json repository,number,title,state,updatedAt,author 2>/dev/null \
+    | jq -r '.[] | "\(.repository.nameWithOwner)\t#\(.number)\t\(.author.login)\t\(.state)\t\(.updatedAt | split("T")[0])\t\(.title[0:40])"' \
+    | column -t -s $'\t'
+}
+
+# Main
+main() {
+  local selected
+  selected=$(list_prs "$STATE" | fzf --ansi --tmux 90%,80% \
+    --header "$HEADER | state:$STATE" \
+    --preview 'repo=$(echo {} | awk "{print \$1}"); num=$(echo {} | awk "{print \$2}" | tr -d "#"); gh pr view "$num" --repo "$repo" 2>/dev/null' \
+    --preview-window 'up:60%:wrap' \
+    --bind 'q:abort' \
+    --bind 'enter:execute(
+      repo=$(echo {} | awk "{print \$1}")
+      num=$(echo {} | awk "{print \$2}" | tr -d "#")
+      gh pr view "$num" --repo "$repo"
+      read -p "Press enter to continue..."
+    )' \
+    --bind 'ctrl-o:execute-silent(
+      repo=$(echo {} | awk "{print \$1}")
+      num=$(echo {} | awk "{print \$2}" | tr -d "#")
+      gh pr view "$num" --repo "$repo" --web
+    )' \
+    --bind 'ctrl-c:execute(
+      repo=$(echo {} | awk "{print \$1}")
+      num=$(echo {} | awk "{print \$2}" | tr -d "#")
+      gh pr checkout "$num" --repo "$repo"
+    )+abort' \
+    --bind 'ctrl-d:execute(
+      repo=$(echo {} | awk "{print \$1}")
+      num=$(echo {} | awk "{print \$2}" | tr -d "#")
+      gh pr diff "$num" --repo "$repo" | less
+    )')
+}
+
+main "$@"
