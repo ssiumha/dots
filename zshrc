@@ -8,11 +8,6 @@
 ################################
 # Common
 ################################
-set meta-flag on
-set input-meta on
-set convert-meta off
-set output-meta on
-
 setopt multios            # multi redirection
 setopt prompt_subst       # $(), ``
 setopt long_list_jobs     # show jobs
@@ -30,7 +25,6 @@ setopt no_nomatch         # no error when 'app/(router)/...'
 case $OSTYPE in
   darwin*)
     export path=(
-      # <- mise shims
       "$HOME/dots/bin"
       "$HOME/.local/bin"
       "$HOME/.local/share/krew/bin"
@@ -43,6 +37,7 @@ case $OSTYPE in
       "/sbin"
       "/Library/Apple/usr/bin"
       "$HOME/.orbstack/bin"
+      "$HOME/.local/share/mise/shims"  # fallback for mise tools
     )
     ;;
   *)
@@ -56,8 +51,6 @@ esac
 ################################
 export TIME_STYLE=long-iso
 
-# export ZDOTDIR="$HOME/.local/zsh" # Not Working?
-
 export XDG_DATA_HOME="$HOME/.local/share"
 export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_STATE_HOME="$HOME/.local/state"
@@ -69,7 +62,6 @@ export SAVEHIST=500000
 
 export ZSH_CACHE_DIR="$XDG_CACHE_HOME/zsh/.zcompcache"
 
-export ASDF_CONFIG_FILE="$XDG_CONFIG_HOME/asdf/asdfrc"
 export RIPGREP_CONFIG_PATH="$XDG_CONFIG_HOME/ripgrep/ripgreprc"
 export K9SCONFIG="$XDG_CONFIG_HOME/k9s"
 
@@ -77,8 +69,6 @@ export DENO_INSTALL_ROOT="$XDG_CACHE_HOME/deno"
 export KREW_ROOT="$XDG_DATA_HOME/krew"
 
 export HOMEBREW_NO_AUTO_UPDATE=1
-
-export CLADUE_SWARM_HOME="$XDG_DATA_HOME/cladue-swarm"
 
 [[ "$TERM_PROGRAM" = "vscode" ]] && export EDITOR="code --wait"
 
@@ -120,7 +110,11 @@ ksw() {
 alias j="just"
 alias jl="JUST_JUSTFILE=justfile.local just"
 
+alias ghw="gh pr view --web"
+
 alias vdb="v +DBUI"
+
+alias rb="ruby --disable-gems"
 
 alias mux="tmuxinator"
 
@@ -133,9 +127,9 @@ function cdr() {
 }
 _fzf_complete_cdr() {
   local git_root=$(git rev-parse --show-toplevel)
-  _fzf_complete --min-height 15 -- "$@" < <(
+  _fzf_complete --query "${@##* }" --min-height 15 -- "$@" < <(
     fd --color never -td . "$git_root" \
-      | ruby -ne "BEGIN {puts '.'}; puts \$_.sub('$git_root/', '').chomp"
+      | rb -ne "BEGIN {puts '.'}; puts \$_.sub('$git_root/', '').chomp"
   )
 }
 
@@ -145,7 +139,7 @@ function zp() {
   local git_root=$(git rev-parse --show-toplevel)
   local cd_path=$(
     fd --color never -td . "$git_root" \
-      | ruby -ne "BEGIN {puts '.'}; puts \$_.sub('$git_root/', '').chomp" \
+      | rb -ne "BEGIN {puts '.'}; puts \$_.sub('$git_root/', '').chomp" \
       | fzf \
           --scheme=path \
           --preview "lsd --color always --tree --depth 2 $git_root/{+}" \
@@ -170,19 +164,30 @@ alias laws="AWS_PROFILE=localstack aws"
 # Prompt
 ################################
 
-mkdir -p /tmp/zsh_prompt/
 git_repo_info() {
-  if ! git rev-parse --is-inside-work-tree &>/dev/null; then
+  local git_status=$(git status --porcelain -b 2>/dev/null) || return
+  [[ -z "$git_status" ]] && return
+
+  local lines=("${(@f)git_status}")
+  local header="${lines[1]}"
+
+  if [[ "$header" == *"No commits yet"* ]]; then
+    echo "(init)"
     return
   fi
 
-  local output_path="/tmp/zsh_prompt/${$}_"
-  (git rev-parse --abbrev-ref HEAD) > "${output_path}_branch" &
-  (git diff-index --quiet HEAD && echo '' || echo '!') > "${output_path}_changes" &
-  (git diff-index --cached --diff-filter=A --quiet HEAD && echo '' || echo '+') > "${output_path}_added" &
-  wait
+  local branch="${header#\#\# }"
+  branch="${branch%%...*}"
+  branch="${branch%% *}"
 
-  cat "${output_path}_branch" "${output_path}_changes" "${output_path}_added" 2>/dev/null | tr -d "\n"
+  local changes="" staged=""
+  local line
+  for line in "${lines[@]:1}"; do
+    [[ "${line[2]}" != " " ]] && changes="!"
+    [[ "${line[1]}" != " " && "${line[1]}" != "?" ]] && staged="+"
+  done
+
+  echo "${branch}${changes}${staged}"
 }
 
 precmd() {
@@ -200,27 +205,37 @@ precmd() {
 }
 
 
-# echo -ne "\033]10;#FFFFFF\007" # default text color
-
 PROMPT='%(?.%F{13}.%F{1})>%f '
-PS1=$PROMPT
 
 
 ################################
 # Import
 ################################
 
-# TODO: curl https://mise.jdx.dev/install.sh | sh
+_zsh_cache_dir="$HOME/.cache/zsh"
+[[ -d "$_zsh_cache_dir" ]] || mkdir -p "$_zsh_cache_dir"
+
+_cache_eval() {
+  local cache="$_zsh_cache_dir/$1.zsh"
+  local dep="$2"
+  shift 2
+  if [[ ! -f "$cache" || "$cache" -ot "$dep" ]]; then
+    "$@" > "$cache" 2>/dev/null
+  fi
+  source "$cache"
+}
+
 if [ -d "$HOME/.local/share/mise" ]; then
-  eval "$($HOME/.local/bin/mise activate zsh)"
+  _cache_eval "mise-activate" "$HOME/.local/bin/mise" "$HOME/.local/bin/mise" activate zsh
   alias m="mise run"
+  alias mx="mise exec"
 elif [ -d "$HOME/.asdf" ]; then
   source "$HOME/.asdf/asdf.sh"
 fi
 
-if mise ls zoxide &>/dev/null; then
+if [[ -x "$HOME/.local/share/mise/shims/zoxide" ]]; then
   export _ZO_DATA_DIR="$HOME/.local/zsh/zoxide"
-  eval "$(mise x -- zoxide init zsh --no-cmd)"
+  _cache_eval "zoxide-init" "$HOME/.local/share/mise/shims/zoxide" mise x -- zoxide init zsh --no-cmd
   alias z=__zoxide_z
   alias zz=__zoxide_zi
 fi
@@ -243,13 +258,6 @@ if command -v lsd &>/dev/null || mise ls lsd &>/dev/null; then
   alias ll="lsd -Alh"
   alias lla="lsd -lAh"
   alias lt="l -Ah --tree"
-elif command -v exa &>/dev/null; then
-  alias l="exa -s type"
-  alias la="exa -s type -a"
-  alias ll="exa -s type -l"
-  alias llg="exa -s type -l --git"
-  alias lla="exa -s type -la"
-  alias lt="exa -s type --tree -l"
 else
   alias l="ls -Ah"
   alias la="ls -Ah"
@@ -277,27 +285,16 @@ then
     (( ${+_comps} )) && _comps[zinit]=_zinit
   fi
 
-  # https://github.com/ohmyzsh/ohmyzsh/blob/master/lib
   zinit snippet OMZ::lib/clipboard.zsh
   zinit snippet OMZ::lib/completion.zsh
   zinit snippet OMZ::lib/history.zsh
   zinit snippet OMZ::lib/key-bindings.zsh
 
-  zinit light zsh-users/zsh-autosuggestions
-  zinit light zsh-users/zsh-completions
-
-  zinit ice wait"0" silent
-  zinit light zsh-users/zsh-syntax-highlighting
-
-  zinit ice wait"2" silent
-  zinit light chitoku-k/fzf-zsh-completions
-
-  zinit ice from"gh" as"program" pick"bin/*"
-  zinit light reegnz/jq-zsh-plugin
-
-  # zinit snippet 'https://github.com/asdf-vm/asdf/blob/master/completions/_asdf'
-  # zinit snippet 'https://github.com/junegunn/fzf/blob/master/shell/completion.zsh'
-  zinit snippet 'https://github.com/git/git/blob/master/contrib/completion/git-prompt.sh'
+  zinit ice wait"0" silent; zinit light zsh-users/zsh-autosuggestions
+  zinit ice wait"0" silent; zinit light zsh-users/zsh-completions
+  zinit ice wait"0" silent; zinit light zsh-users/zsh-syntax-highlighting
+  zinit ice wait"2" silent; zinit light chitoku-k/fzf-zsh-completions
+  zinit ice wait"0" silent from"gh" as"program" pick"bin/*"; zinit light reegnz/jq-zsh-plugin
 else
   command -v git &>/dev/null \
     && git clone --depth=5 https://github.com/zdharma-continuum/zinit "${zinit_home}/bin"
@@ -320,6 +317,9 @@ if [[ "$_ZSH_INIT_MINIMAL" != true ]]; then
     echo 'compinit!'
     rm -f "$ZSH_COMPDUMP"
 
+    # cleanup broken symlinks in zinit completions
+    find ~/.local/zsh/zinit/completions/ -type l ! -exec test -e {} \; -delete 2>/dev/null
+
     compinit
 
     mise which aws_completer &>/dev/null && complete -C $(mise which aws_completer) aws
@@ -327,9 +327,15 @@ if [[ "$_ZSH_INIT_MINIMAL" != true ]]; then
 
   compinit -C -d "$ZSH_COMPDUMP"
 
-  command -v mise &>/dev/null && eval "$(mise completion zsh)"
-  mise which just &>/dev/null && eval "$(mise x -- just --completions zsh)"
-  mise which fzf &>/dev/null && eval "$(mise x -- fzf --zsh)"
+  _mise() { eval "$(mise completion zsh)"; _mise "$@" }
+  compdef _mise mise
+
+  _just() { eval "$(just --completions zsh)"; _just "$@" }
+  compdef _just just
+
+  if [[ -x "$HOME/.local/share/mise/shims/fzf" ]]; then
+    _cache_eval "fzf-init" "$HOME/.local/share/mise/shims/fzf" fzf --zsh
+  fi
 fi
 
 bindkey '^I' expand-or-complete
@@ -382,7 +388,7 @@ _fzf_compgen_dir() {
 }
 
 _fzf_complete_make() {
-  _fzf_complete -m -- "$@" < <(
+  _fzf_complete --query "${@##* }" -m -- "$@" < <(
     make help
   )
 }
@@ -391,7 +397,7 @@ _fzf_complete_make_post() {
 }
 
 _fzf_complete_m() {
-  _fzf_complete --min-height 15 -- "$@" < <(
+  _fzf_complete --query "${@##* }" --min-height 15 -- "$@" < <(
     mise tasks ls --no-header
   )
 }
@@ -522,6 +528,14 @@ _fzf_my_completion_hook() {
   local prefix lbuf
   prefix=$1
   lbuf=$2
+
+  # 명령어 기반 completion 체크 (파이프라인 고려)
+  local last_cmd="${lbuf##*|}"
+  local cmd_word="${${last_cmd## }%% *}"
+  if type "_fzf_complete_${cmd_word}" &>/dev/null; then
+    prefix="$prefix" eval "_fzf_complete_${cmd_word}" ${(q)lbuf}
+    return 0
+  fi
 
   case $prefix in
     "|"   ) prefix="" eval _fzf_pipe_complete ${(q)lbuf} ;;
