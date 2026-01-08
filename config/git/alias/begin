@@ -1,14 +1,28 @@
 #!/bin/bash
 # Start a new work branch from upstream
 # Usage:
-#   git begin          # Creates branch: 241210-1430
-#   git begin feature  # Creates branch: 241210-1430-feature
+#   git begin              # Creates branch: 241210-1430
+#   git begin feature      # Creates branch: 241210-1430-feature
+#   git begin --rescue     # Rescue orphaned commits from current branch
+#   git begin -r feature   # Rescue with topic name
 #
 # Uses GIT_UPSTREAM env var (default: origin/main)
 
 set -e
 
 git rev-parse --git-dir > /dev/null 2>&1 || { echo "Not a git repository"; exit 1; }
+
+# Parse arguments
+rescue_mode=false
+topic=""
+
+for arg in "$@"; do
+  case "$arg" in
+    -r|--rescue) rescue_mode=true ;;
+    -*) echo "Unknown option: $arg"; exit 1 ;;
+    *) topic="$arg" ;;
+  esac
+done
 
 # Check for uncommitted changes
 if ! git diff-index --quiet HEAD -- 2>/dev/null; then
@@ -22,6 +36,22 @@ upstream="${GIT_UPSTREAM:-origin/main}"
 remote="${upstream%%/*}"
 branch="${upstream#*/}"
 
+# Rescue mode: save current branch info before switching
+if [ "$rescue_mode" = true ]; then
+  old_branch=$(git branch --show-current)
+  if [ -z "$old_branch" ]; then
+    echo "Error: Not on a branch (detached HEAD)"
+    exit 1
+  fi
+  orphaned_range="$upstream..$old_branch"
+  orphaned_count=$(git rev-list --count "$orphaned_range" 2>/dev/null || echo "0")
+  if [ "$orphaned_count" = "0" ]; then
+    echo "Error: No commits to rescue (branch is up to date with $upstream)"
+    exit 1
+  fi
+  echo "Rescuing $orphaned_count commit(s) from $old_branch"
+fi
+
 # Fetch latest from upstream
 echo "Fetching from $remote..."
 if ! git fetch "$remote" "$branch" 2>&1; then
@@ -34,7 +64,6 @@ fi
 
 # Generate branch name: YYMMDD-HHMM[-topic]
 timestamp=$(date +%y%m%d-%H%M)
-topic="${1:-}"
 
 if [ -n "$topic" ]; then
   new_branch="${timestamp}-${topic}"
@@ -45,5 +74,13 @@ fi
 # Create and switch to new branch
 echo "Creating branch: $new_branch (from $upstream)"
 git switch -c "$new_branch" "$upstream"
+
+# Rescue mode: cherry-pick orphaned commits
+if [ "$rescue_mode" = true ]; then
+  echo "Cherry-picking commits from $old_branch..."
+  git cherry-pick "$orphaned_range"
+  echo ""
+  echo "Rescued $orphaned_count commit(s) to $new_branch"
+fi
 
 echo "Ready to work on: $new_branch"

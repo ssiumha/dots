@@ -97,3 +97,5 @@
   begin = !$HOME/.config/git/alias/begin
   sync = !$HOME/.config/git/alias/sync
   submit = !$HOME/.config/git/alias/submit
+  ci = !$HOME/.config/git/alias/ci
+  land = !$HOME/.config/git/alias/land

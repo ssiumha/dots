@@ -1,9 +1,13 @@
 #!/bin/bash
 # Submit current branch: sync + push + create PR
 # Usage:
-#   git submit         # Interactive PR creation
+#   git submit         # PR creation + CI watch
 #   git submit -d      # Draft PR
+#   git submit -n      # Skip pre-push hooks
+#   git submit --no-wait  # Skip CI watch
 #   git submit --dry   # Show what would happen (no push/PR)
+#   git submit --diff  # Show diff against upstream
+#   git submit --help  # Show this help
 #
 # Uses GIT_UPSTREAM env var (default: origin/main)
 
@@ -20,11 +24,21 @@ git rev-parse --git-dir > /dev/null 2>&1 || { echo "Not a git repository"; exit 
 # Parse arguments
 draft_flag=""
 dry_run=false
+show_diff=false
+no_verify=""
+no_wait=false
 
 for arg in "$@"; do
   case "$arg" in
     -d|--draft) draft_flag="--draft" ;;
+    -n|--no-verify) no_verify="--no-verify" ;;
+    --no-wait) no_wait=true ;;
     --dry) dry_run=true ;;
+    --diff) show_diff=true ;;
+    -h|--help)
+      sed -n '2,11p' "$0" | sed 's/^# //' | sed 's/^#//'
+      exit 0
+      ;;
   esac
 done
 
@@ -60,6 +74,11 @@ fi
 
 echo "=== Submitting: $current ($commits commit(s)) ==="
 
+if [ "$show_diff" = true ]; then
+  git diff "$upstream"..HEAD
+  exit 0
+fi
+
 if [ "$dry_run" = true ]; then
   echo "[dry-run] Would sync with $upstream"
   echo "[dry-run] Would push to origin/$current"
@@ -70,9 +89,24 @@ if [ "$dry_run" = true ]; then
   exit 0
 fi
 
-# Check if PR already exists
+# Check if PR already exists and its state
+pr_state=$(gh pr view --json state -q '.state' 2>/dev/null || echo "")
+if [ "$pr_state" = "MERGED" ]; then
+  # Check for orphaned commits (commits added after merge)
+  orphaned=$(git rev-list --count "$upstream".."$current" 2>/dev/null || echo "0")
+  if [ "$orphaned" -gt 0 ]; then
+    echo "Error: PR was merged, but you have $orphaned new commit(s)"
+    echo ""
+    echo "To rescue these commits to a new branch:"
+    echo "  git begin --rescue"
+  else
+    echo "Error: PR for this branch has already been merged"
+    echo "Start a new branch with: git begin"
+  fi
+  exit 1
+fi
 pr_exists=false
-if gh pr view --json number &>/dev/null; then
+if [ -n "$pr_state" ]; then
   pr_exists=true
 fi
 
@@ -91,13 +125,7 @@ git rebase "$upstream"
 # Step 2: Push to origin
 echo ""
 echo -e "${CYAN}==> Step 2/3: Pushing to origin...${NC}"
-if [ "$pr_exists" = true ]; then
-  # rebase 후 히스토리 변경 → force push 필요
-  git push --force-with-lease origin HEAD
-else
-  # 새 브랜치 → 일반 push
-  git push -u origin HEAD
-fi
+git push -u --force-with-lease $no_verify origin HEAD
 
 # Step 3: Create or update PR
 echo ""
@@ -116,3 +144,28 @@ fi
 
 echo ""
 echo -e "${GREEN}Submitted: $current${NC}"
+
+# Wait for CI (unless --no-wait)
+if [ "$no_wait" = false ]; then
+  echo ""
+  echo -e "${CYAN}Waiting for CI...${NC} (Ctrl+C to skip)"
+  echo ""
+
+  # Wait a moment for CI to start
+  sleep 3
+
+  gh pr checks --watch --fail-fast
+  exit_code=$?
+
+  if [ $exit_code -ne 0 ]; then
+    echo ""
+    echo -e "${YELLOW}CI failed${NC}"
+    echo ""
+    echo "Options:"
+    echo "  git ci          # Interactive CI status"
+    echo "  git ci --rerun  # Rerun failed jobs"
+  else
+    echo ""
+    echo -e "${GREEN}CI passed${NC}"
+  fi
+fi

@@ -1,0 +1,120 @@
+#!/bin/bash
+# Land current PR: merge + cleanup
+# Usage:
+#   git land          # Squash merge (default)
+#   git land --merge  # Merge commit
+#   git land --rebase # Rebase merge
+#
+# Uses GIT_UPSTREAM env var (default: origin/main)
+
+set -e
+
+# Colors
+CYAN='\033[1;36m'
+GREEN='\033[1;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+git rev-parse --git-dir > /dev/null 2>&1 || { echo "Not a git repository"; exit 1; }
+
+# Parse arguments
+merge_method="squash"
+
+for arg in "$@"; do
+  case "$arg" in
+    --merge) merge_method="merge" ;;
+    --rebase) merge_method="rebase" ;;
+    --squash) merge_method="squash" ;;
+    -*) echo "Unknown option: $arg"; exit 1 ;;
+  esac
+done
+
+upstream="${GIT_UPSTREAM:-origin/main}"
+remote="${upstream%%/*}"
+branch="${upstream#*/}"
+current=$(git branch --show-current)
+
+if [ -z "$current" ]; then
+  echo "Error: Not on a branch (detached HEAD)"
+  exit 1
+fi
+
+if [ "$current" = "$branch" ] || [ "$current" = "main" ] || [ "$current" = "master" ]; then
+  echo "Error: Cannot land from $current branch"
+  exit 1
+fi
+
+# Check for uncommitted changes
+if ! git diff-index --quiet HEAD -- 2>/dev/null; then
+  echo "Error: You have uncommitted changes"
+  git status --short
+  exit 1
+fi
+
+# Check if PR exists
+pr_state=$(gh pr view --json state -q '.state' 2>/dev/null || echo "")
+if [ -z "$pr_state" ]; then
+  echo "Error: No PR found for branch $current"
+  echo "Create one with: git submit"
+  exit 1
+fi
+
+if [ "$pr_state" = "MERGED" ]; then
+  echo "PR already merged. Cleaning up..."
+elif [ "$pr_state" = "CLOSED" ]; then
+  echo "Error: PR was closed without merge"
+  exit 1
+else
+  # PR is OPEN - merge it
+  echo "=== Landing: $current ==="
+  echo ""
+
+  # Check CI status
+  echo -e "${CYAN}==> Step 1/4: Checking CI status...${NC}"
+  check_status=$(gh pr checks --json state -q '.[].state' 2>/dev/null | sort -u)
+
+  if echo "$check_status" | grep -q "FAILURE"; then
+    echo -e "${YELLOW}Error: CI checks failed${NC}"
+    echo ""
+    gh pr checks
+    echo ""
+    echo "Options:"
+    echo "  git ci          # Interactive CI status"
+    echo "  git ci --rerun  # Rerun failed jobs"
+    echo "  git ci --web    # View in browser"
+    exit 1
+  elif echo "$check_status" | grep -q "PENDING"; then
+    echo -e "${YELLOW}CI is running. Waiting for completion...${NC}"
+    echo "(Press Ctrl+C to cancel)"
+    echo ""
+    gh pr checks --watch --fail-fast
+    if [ $? -ne 0 ]; then
+      echo ""
+      echo -e "${YELLOW}Error: CI checks failed${NC}"
+      echo ""
+      echo "Options:"
+      echo "  git ci          # Interactive CI status"
+      echo "  git ci --rerun  # Rerun failed jobs"
+      echo "  git ci --web    # View in browser"
+      exit 1
+    fi
+  fi
+
+  echo -e "${GREEN}CI checks passed${NC}"
+  echo ""
+
+  echo -e "${CYAN}==> Step 2/4: Merging PR ($merge_method)...${NC}"
+  gh pr merge --$merge_method --delete-branch
+fi
+
+# Switch to main and pull
+echo ""
+echo -e "${CYAN}==> Step 3/4: Switching to $branch...${NC}"
+git switch "$branch"
+
+echo ""
+echo -e "${CYAN}==> Step 4/4: Pulling latest...${NC}"
+git pull "$remote" "$branch"
+
+echo ""
+echo -e "${GREEN}Landed: $current -> $branch${NC}"

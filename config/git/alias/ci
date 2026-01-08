@@ -1,0 +1,135 @@
+#!/bin/bash
+# Check CI status for current PR
+# Usage:
+#   git ci           # Show CI status (fzf if multiple)
+#   git ci -w        # Watch until complete
+#   git ci --rerun   # Rerun failed jobs
+#   git ci --web     # Open in browser
+#   git ci --log     # View logs (fzf select)
+
+set -e
+
+# Colors
+CYAN='\033[1;36m'
+GREEN='\033[1;32m'
+YELLOW='\033[1;33m'
+RED='\033[1;31m'
+NC='\033[0m'
+
+git rev-parse --git-dir > /dev/null 2>&1 || { echo "Not a git repository"; exit 1; }
+
+# Parse arguments
+watch_mode=false
+rerun_mode=false
+web_mode=false
+log_mode=false
+
+for arg in "$@"; do
+  case "$arg" in
+    -w|--watch) watch_mode=true ;;
+    --rerun) rerun_mode=true ;;
+    --web) web_mode=true ;;
+    --log) log_mode=true ;;
+    -*) echo "Unknown option: $arg"; exit 1 ;;
+  esac
+done
+
+# Check if PR exists
+pr_url=$(gh pr view --json url -q '.url' 2>/dev/null || echo "")
+if [ -z "$pr_url" ]; then
+  echo "Error: No PR found for current branch"
+  exit 1
+fi
+
+# Open in browser
+if [ "$web_mode" = true ]; then
+  gh pr checks --web
+  exit 0
+fi
+
+# View logs with fzf
+if [ "$log_mode" = true ]; then
+  selected=$(gh pr checks --json name,state,link -q '.[] | "\(.state)\t\(.name)\t\(.link)"' 2>/dev/null \
+    | awk -F'\t' '{printf "%-10s\t%s\t%s\n", $1, $2, $3}' \
+    | fzf --tmux 80%,60% \
+        --delimiter='\t' \
+        --with-nth=1,2 \
+        --header "Select workflow to view logs" \
+        --preview 'run_id=$(echo {3} | grep -oE "/runs/[0-9]+" | grep -oE "[0-9]+"); gh run view $run_id 2>/dev/null | head -30' \
+        --preview-window 'down:60%')
+
+  if [ -n "$selected" ]; then
+    run_id=$(echo "$selected" | cut -f3 | grep -oE '/runs/[0-9]+' | grep -oE '[0-9]+')
+    gh run view "$run_id" --log-failed 2>/dev/null || gh run view "$run_id" --log
+  fi
+  exit 0
+fi
+
+# Rerun failed jobs
+if [ "$rerun_mode" = true ]; then
+  echo -e "${CYAN}Rerunning failed jobs...${NC}"
+  failed_runs=$(gh pr checks --json name,state,link -q '.[] | select(.state == "FAILURE") | .link' 2>/dev/null | grep -oE '/runs/[0-9]+' | grep -oE '[0-9]+' | sort -u)
+
+  if [ -z "$failed_runs" ]; then
+    echo "No failed jobs to rerun"
+    exit 0
+  fi
+
+  for run_id in $failed_runs; do
+    echo "Rerunning run $run_id..."
+    gh run rerun "$run_id" --failed 2>/dev/null || gh run rerun "$run_id" 2>/dev/null || true
+  done
+  echo -e "${GREEN}Rerun triggered${NC}"
+  exit 0
+fi
+
+# Watch mode
+if [ "$watch_mode" = true ]; then
+  echo -e "${CYAN}Watching CI status...${NC}"
+  echo "(Press Ctrl+C to cancel)"
+  echo ""
+  gh pr checks --watch --fail-fast
+  exit_code=$?
+
+  if [ $exit_code -ne 0 ]; then
+    echo ""
+    echo -e "${RED}CI failed${NC}"
+    echo ""
+    echo "Options:"
+    echo "  git ci --log    # View failed logs"
+    echo "  git ci --rerun  # Rerun failed jobs"
+    echo "  git ci --web    # View in browser"
+    exit 1
+  fi
+
+  echo ""
+  echo -e "${GREEN}CI passed${NC}"
+  exit 0
+fi
+
+# Default: fzf interactive UI
+checks=$(gh pr checks --json name,state,link 2>/dev/null)
+check_count=$(echo "$checks" | jq length)
+
+if [ "$check_count" -eq 0 ]; then
+  echo "No CI checks found"
+  exit 0
+fi
+
+selected=$(echo "$checks" | jq -r '.[] | "\(.state)\t\(.name)\t\(.link)"' \
+  | awk -F'\t' '{printf "%-10s\t%s\t%s\n", $1, $2, $3}' \
+  | fzf --tmux 80%,60% \
+      --delimiter='\t' \
+      --with-nth=1,2 \
+      --header "Enter:logs  Ctrl-R:rerun  Ctrl-W:web  Ctrl-A:rerun-all" \
+      --bind "ctrl-r:execute(run_id=\$(echo {3} | grep -oE '/runs/[0-9]+' | grep -oE '[0-9]+'); gh run rerun \$run_id --failed 2>/dev/null || gh run rerun \$run_id)+abort" \
+      --bind "ctrl-w:execute(run_id=\$(echo {3} | grep -oE '/runs/[0-9]+' | grep -oE '[0-9]+'); gh run view \$run_id --web)+abort" \
+      --bind "ctrl-a:execute(echo 'Rerunning all failed...'; gh pr checks --json link,state -q '.[] | select(.state==\"FAILURE\") | .link' | grep -oE '/runs/[0-9]+' | grep -oE '[0-9]+' | xargs -I{} gh run rerun {} --failed)+abort" \
+      --preview 'run_id=$(echo {3} | grep -oE "/runs/[0-9]+" | grep -oE "[0-9]+"); gh run view $run_id 2>/dev/null | head -40' \
+      --preview-window 'down:60%' \
+  || true)
+
+if [ -n "$selected" ]; then
+  run_id=$(echo "$selected" | cut -f3 | grep -oE '/runs/[0-9]+' | grep -oE '[0-9]+')
+  gh run view "$run_id" --log-failed 2>/dev/null || gh run view "$run_id" --log
+fi
