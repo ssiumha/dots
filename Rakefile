@@ -8,6 +8,7 @@ DOT_VIMRC = "#{Dir.home}/.vimrc"
 DOT_CONFIG = "#{Dir.home}/.config"
 DOT_CACHE = "#{Dir.home}/.cache"
 DOT_MISE = "#{Dir.home}/.local/share/mise"
+DOT_CLAUDE = "#{Dir.home}/.claude"
 
 # defaults write -g ApplePressAndHoldEnabled -bool false
 # defaults -currentHost write -g AppleFontSmoothing -int 1
@@ -28,7 +29,7 @@ task :console do
 end
 
 desc 'install all process'
-task 'install:all' => ['install:base', 'install:config', 'install:brew', 'install:mise'] do
+task 'install:all' => ['install:base', 'install:config', 'install:claude', 'install:brew', 'install:mise'] do
 end
 
 desc 'install zshrc, vimrc'
@@ -123,4 +124,47 @@ task 'install:vscode' do
   #   vscodevim.vim
   #   github.copilot
   #   github.copilot-chat
+end
+
+desc 'install claude code settings'
+task 'install:claude' do
+  FileUtils.mkdir_p DOT_CLAUDE
+
+  symlinks = {
+    'prompts/agents' => 'agents',
+    'prompts/AGENTS.md' => 'CLAUDE.md',
+    'prompts/commands' => 'commands',
+    'prompts/hooks' => 'hooks',
+    'prompts/skills' => 'skills',
+  }
+
+  symlinks.each do |src, dest|
+    src_path = File.join(DOT_DIR, src)
+    dest_path = File.join(DOT_CLAUDE, dest)
+    pname = dest.ljust(15)
+
+    if File.symlink?(dest_path)
+      puts "#{pname} : already linked"
+    elsif File.exist?(dest_path)
+      puts "#{pname} : link failed. already exists"
+    else
+      FileUtils.ln_s src_path, dest_path
+      puts "#{pname} : now linked"
+    end
+  end
+
+  # settings.json에 statusLine 설정 추가
+  settings_path = File.join(DOT_CLAUDE, 'settings.json')
+  statusline_path = File.join(DOT_DIR, 'prompts/statusline.sh')
+
+  if File.exist?(settings_path)
+    sh <<~SH
+      jq '. + {"statusLine": {"type": "command", "command": "#{statusline_path}"}}' \
+        "#{settings_path}" > "#{settings_path}.tmp" && \
+        mv "#{settings_path}.tmp" "#{settings_path}"
+    SH
+    puts "settings.json  : statusLine updated"
+  else
+    puts "settings.json  : not found, skipping"
+  end
 end
