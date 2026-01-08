@@ -1,0 +1,103 @@
+snippet fzf_actions "key bind, events"
+example:
+  --bind='ctrl-r:reload(date; ps -ef)'
+
+  --bind 'ctrl-d:change-prompt(Dir> )+reload(find * -type d)' \
+  --bind 'ctrl-f:change-prompt(Files> )+reload(find * -type f)'
+
+  RG_PREFIX="rg --column --line-number --no-heading --color=always --smart-case "
+  --bind 'start:reload:$RG_PREFIX {q}' \
+  --bind 'change:reload:sleep 0.1; $RG_PREFIX {q} || true' \
+  --bind 'enter:become(vim {1} +{2}' \
+  --bind 'alt-enter:unbind(change,alt-enter)+change-prompt(2. fzf> )+enable-search+clear-query'
+
+  --bind "ctrl-f:unbind(change,ctrl-f)+change-prompt(2. fzf> )+enable-search+rebind(ctrl-r)+transform-query(echo {q} > /tmp/rg-fzf-r; cat /tmp/rg-fzf-f)" \
+  --bind "ctrl-r:unbind(ctrl-r)+change-prompt(1. ripgrep> )+disable-search+reload($RG_PREFIX {q} || true)+rebind(change,ctrl-f)+transform-query(echo {q} > /tmp/rg-fzf-f; cat /tmp/rg-fzf-r)"
+
+  command='kubectl get pods' fzf \
+    --bind 'start:reload:$command' \
+    --bind 'enter:execute:kubectl exec -it --namespace {1} {2} -- bash'
+
+# actions: https://github.com/junegunn/fzf/blob/master/src/terminal.go
+ignore
+beginning-of-line
+abort
+accept
+accept-non-empty
+accept-or-print-query
+print-query
+refresh-preview
+replace-query
+backward-char
+backward-delete-char
+backward-delete-char/eof
+backward-word
+clear-screen
+delete-char
+delete-char/eof
+deselect
+end-of-line
+cancel
+clear-query
+clear-selection
+forward-char
+forward-word
+jump
+jump-accept
+kill-line
+kill-word
+unix-line-discard, line-discard
+unix-word-rubout, word-rubout
+yank
+backward-kill-word
+toggle-down
+toggle-up
+toggle-in
+toggle-out
+toggle-all
+toggle-search
+toggle-track
+toggle-track-current
+toggle-header
+toggle-wrap
+show-header
+hide-header
+track, track-current
+untrack-current
+select
+select-all
+deselect-all
+close
+toggle
+down
+up
+first, top
+last
+page-up
+page-down
+half-page-up
+half-page-down
+prev-history, previous-history
+next-history
+prev-selected
+next-selected
+show-preview
+hide-preview
+toggle-preview
+toggle-preview-wrap
+toggle-sort
+offset-up
+offset-down
+offset-middle
+preview-top
+preview-bottom
+preview-up
+preview-down
+preview-page-up
+preview-page-down
+preview-half-page-up
+preview-half-page-down
+enable-search
+disable-search
+put
+endsnippet

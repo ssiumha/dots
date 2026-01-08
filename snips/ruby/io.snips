@@ -1,0 +1,156 @@
+snippet option_parser "template"
+require 'optparse'
+
+options = {}
+option_parser = OptionParser.new do |opts|
+  opts.banner = 'Usage: cmd [--help]'
+
+  opts.on('-sTAG', '--search=TAG', 'search option description') { options[:search] = _1 }
+
+  opts.on_tail('-h', '--help', 'show help') { puts opts; exit 0 }
+end.tap(&:parse!)
+
+order_arg = ARGV.pop
+
+puts option_parser.help
+endsnippet
+
+snippet option_parser_into ""
+options = {}
+option_parser = OptionParser.new do |opts|
+end.tap { _1.parse! into: options }
+endsnippet
+
+snippet chdir ""
+Dir.chdir(path) do
+end
+endsnippet
+
+snippet popen ""
+selected = IO.popen(cmd, 'w+') do |p|
+  p.puts snip_headers
+  p.close_write
+  p.read
+end
+endsnippet
+
+snippet glob ""
+Dir.glob('*.rb').each do |f|
+end
+endsnippet
+
+snippet glob_short ""
+Dir['*.rb']
+endsnippet
+
+snippet fzf ""
+open("|fzf", "w+") do
+  _1.puts items
+  return _1.read.chomp
+end
+endsnippet
+
+snippet fzf_with_filter ""
+def with_filter(command)
+  io = IO.popen(command, 'r+')
+  begin
+    stdout, $stdout = $stdout, io
+    yield rescue nil
+  ensure
+    $stdout = stdout
+  end
+  io.close_write
+  io.readlines.map(&:chomp)
+end
+
+result = with_filter('fzf -m') do
+  1000.times do |n|
+    puts n
+    sleep 0.005
+  end
+end
+
+pp result
+endsnippet
+
+snippet net_http_get ""
+require 'net/http'
+
+Net::HTTP.get(URI('https://example.com/api/v1/tasks'), { 'Authorization':  "Bearer #{token}" })
+endsnippet
+
+snippet net_http_post ""
+Net::HTTP.post(_uri, data, headers).body
+endsnippet
+
+snippet csv ""
+require 'csv'
+
+file = CSV.generate do |csv|
+  csv << ['name', 'email']
+  csv << ['kim', 'kim@example.com']
+end
+
+File.write('/tmp/result.csv', file)
+endsnippet
+
+snippet csv_append ""
+CSV.open('users.csv', 'a') do |csv|
+  csv << ['name', 'age'] if File.zero?('users.csv')
+
+  csv << ['kim', 20]
+end
+endsnippet
+
+snippet csv_read ""
+require 'csv'
+
+csv = CSV.read('users.csv', headers: true)
+
+# OR
+CSV.foreach('users.csv', headers: true, headers_converter: proc { _1.downcase }) do |row|
+  row['id']
+end
+endsnippet
+
+snippet awk ""
+ls | ruby -lane 'puts $F[1]'
+endsnippet
+
+snippet pipe "stdin"
+ls | ruby -e 'ARGF.each_line.map { ... }'
+endsnippet
+
+snippet erb "template"
+require 'erb'
+require 'ostruct'
+
+require 'bundler/inline'
+
+gemfile do
+  source 'https://rubygems.org'
+  gem 'erubi'
+end
+
+template = <<-EOF
+function <%= name %>() {
+  <% if true %>
+    <%= name %>
+  <% end %>
+  <% if false %>
+    console.log(false)
+  <% end %>
+}
+EOF
+
+name = 'asdf'
+context = OpenStruct.new(name: name)
+context.define_singleton_method(:if) do |condition, &block|
+  block.call if condition
+end
+
+puts ERB.new(template, trim_mode: '-').result(context.instance_eval { binding })
+
+erubi = Erubi::Engine.new(template, trim: true)
+puts eval(erubi.src)
+endsnippet

@@ -1,0 +1,184 @@
+snippet services_template "services"
+version: '3.9'
+
+services:
+  node:
+    image: ubuntu:latest
+    restart: always
+    environment:
+      - NAME=test
+    ports:
+      - 3000:3000
+    volumes:
+      - ./app:/app
+    command:
+      - --option
+    depends_on:
+      - another_node
+endsnippet
+
+snippet args "services.<service>.args"
+    args:
+      - NAME=test
+endsnippet
+
+snippet command "services.<service>.command"
+    command:
+      - NAME=test
+endsnippet
+
+snippet environment "services.<service>.environment"
+    environment:
+      - NAME=test
+endsnippet
+
+snippet depends_on "services.<service>.depends_on"
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true  # when db updated, restart this service
+      redis:
+        condition: service_started
+      init:
+        condition: service_completed_successfully
+endsnippet
+
+snippet ports "services.<service>.ports"
+    ports:
+      - 3000:3000/tcp
+endsnippet
+
+snippet volumes "services.<service>.volumes"
+    volumes:
+      - ./app:/app
+endsnippet
+
+snippet privileged "services.<service>.privileged"
+    privileged: true
+endsnippet
+
+snippet deploy_replicas "services.<service>.deploy"
+    deploy:
+      mode: replicated
+      replicas: 2
+endsnippet
+
+snippet networks_alloc_ip "services.<service>.networks. require network subnet"
+    networks:
+      main:
+        ipv4_address: 10.0.100.1
+endsnippet
+
+snippet networks_subnet ".networks"
+networks:
+  main:
+    name: main
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.100.0/16
+endsnippet
+
+snippet build ".services.<service>; context based on dockerfile path. dockerfile is optional"
+    build:
+      context: ./src
+      dockerfile: ../service.Dockerfile
+      platforms:
+        - amd64
+        - arm64
+      args:
+        - VAULT=TEST
+      tags:
+        - "myimage:mytag"
+        - "registry/username/myrepos:my-other-tag"
+endsnippet
+
+snippet build_inline ".services.<service>"
+    build:
+      context: ./src
+      dockerfile_inline: |
+        FROM baseimage
+        RUN command
+endsnippet
+
+snippet inline_entrypoint ".services.<service>; no command"
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        sleep infinity
+endsnippet
+
+snippet x_environment ""
+x-environment:
+  &environment
+  - DATABASE_URL=postgres://localhost:5432
+
+#  service_name:
+#    environment: *environment
+endsnippet
+
+snippet x_environment_merge ""
+x-environment: &environment
+  - DATABASE_URL=postgres://localhost:5432
+
+#  service_name:
+#    environment:
+#      <<: *environment
+endsnippet
+
+snippet x_logging ""
+x-logging:
+  &default-logging
+  options:
+    max-size: '10m'
+    max-file: '10'
+  driver: json-file
+
+#  service_name:
+#    logging: *default-logging
+endsnippet
+
+snippet x_entrypoint ""
+x-entrypoint:
+  &entrypoint
+  - /bin/sh
+  - -c
+  - |
+    echo 123
+
+#  service_name:
+#    entrypoint:
+#      *entrypoint
+endsnippet
+
+snippet x_common ""
+x-common: &common
+  restart: always
+  logging:
+    driver: json-file
+    options:
+      max-size: '10m'
+      max-file: '10'
+
+# service_name:
+#   <<: *common
+endsnippet
+
+snippet include "."
+include:
+  - file: ./services.yml
+endsnippet
+
+snippet logging_journald "journald"
+x-logging: &logging
+  driver: journald
+  options:
+    tag: "{{.Name}}_{{.ID}}"
+    # ImageName, Host, Labels, CreatedAt, Port, Hostname etc..
+
+services:
+  app:
+    logging: *logging
+endsnippet

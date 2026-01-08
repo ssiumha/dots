@@ -1,0 +1,59 @@
+snippet base_output "outputs.tf"
+output "private_subnets" {
+  description = "private subnets of the VPC"
+  value       = module.vpc.private_subnets
+}
+endsnippet
+
+snippet base_variable "variables.tf"
+# can use var.region
+variable "region" {
+  default = "ap-northeast-2"
+}
+endsnippet
+
+snippet base_providers "providers.tf"
+terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+      version = "~> 5"
+    }
+
+    azurerm = {
+      source = "hashicorp/azurerm"
+      version = "~> 4"
+    }
+  }
+}
+
+provider "aws" {
+  region  = var.region
+  allowed_account_ids = ["000000000000"]
+  forbidden_account_ids = ["000000000000"]
+}
+
+provider "azurerm" {
+  features {}
+  subscription_id = var.subscription_id
+}
+
+# multi account
+# usage:
+#  resource ... {
+#    provider = aws.account1
+#  }
+#  module ... {
+#    providers = { aws = aws.account1 }
+#  }
+provider "aws" {
+  alias   = "account1"
+  profile = "account1"
+}
+endsnippet
+
+snippet ignore_changes "can ignore specific attribute changes"
+  lifecycle {
+    ignore_changes = [desired_count]
+  }
+endsnippet

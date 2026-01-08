@@ -1,0 +1,145 @@
+snippet node_affinity_to_instance_type "spec.template.spec.affinity"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node.kubernetes.io/instance-type
+                    operator: In
+                    values:
+                      - c7i.2xlarge
+endsnippet
+
+snippet topologySpreadConstraints "basic option"
+      topologySpreadConstraints:
+        - labelSelector:
+            matchLabels:
+              app: app-name
+          maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: DoNotSchedule
+endsnippet
+
+snippet base_deployment "template"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: dev
+spec:
+  replicas: 2
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: api
+      containers:
+        - name: api
+          image: 000000000000.dkr.ecr.ap-northeast-2.amazonaws.com/app:latest
+          imagePullPolicy: Always
+          env:
+            - name: DATABASE_URL
+              value: 'postgres://user:password@postgresql/dev'
+          ports:
+            - containerPort: 8080
+              name: http
+          resources:
+            limits:
+              memory: "1Gi"
+              ephemeral-storage: "4Gi"
+            requests:
+              cpu: "100m"
+              memory: "1Gi"
+              ephemeral-storage: "4Gi"
+endsnippet
+
+snippet base_sts "template statefulset"
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  ports:
+  - port: 80
+    name: web
+  clusterIP: None
+  selector:
+    app: nginx
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: web
+spec:
+  serviceName: "nginx"
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: registry.k8s.io/nginx-slim:0.8
+        ports:
+        - containerPort: 80
+          name: web
+        volumeMounts:
+        - name: www
+          mountPath: /usr/share/nginx/html
+  volumeClaimTemplates:
+  - metadata:
+      name: www
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+endsnippet
+
+snippet graceful_terminate "spec.terminationGracePeriodSeconds"
+    spec:
+      terminationGracePeriodSeconds: 120
+endsnippet
+
+snippet startupProbe ""
+          startupProbe:
+            exec:
+              command:
+                - "/bin/bash"
+                - "-c"
+                - "..."
+            failureThreshold: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+endsnippet
+
+snippet labels ".metadata"
+metadata:
+  labels:
+    app.kubernetes.io/name: my-app
+    app.kubernetes.io/instance: my-app-1234
+    app.kubernetes.io/version: "1.0"
+    app.kubernetes.io/component: front-end
+    app.kubernetes.io/part-of: my-app-suite
+    app.kubernetes.io/managed-by: helm
+    app.kubernetes.io/created-by: my-team
+endsnippet

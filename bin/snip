@@ -30,9 +30,10 @@ case $ft in
   typescript) snips+=("javascript.snips") ;;
   javascript)
     case $fp in
-      */javascript/controllers/* ) snips+=("rails_stimulus.snips") ;;
+      */javascript/controllers/* ) snips+=("rails/stimulus.snips") ;;
     esac ;;
-  zsh) snips+=("sh.snips") ;;
+  zsh|bash) snips+=("sh.snips") ;;
+  terraform|hcl) snips+=("terraform.snips") ;;
   toml)
     case $fp in
       *mise.toml       ) snips+=("mise.snips") ;;
@@ -42,43 +43,69 @@ case $ft in
   yaml)
     case $fp in
       *deployment/*      ) snips+=("kube.snips") ;;
+      *k8s/*             ) snips+=("kube.snips") ;;
+      *kubernetes/*      ) snips+=("kube.snips") ;;
+      *manifests/*       ) snips+=("kube.snips") ;;
       *values.yaml       ) snips+=("helm.snips") ;;
       *docker-compose.y* ) snips+=("docker_compose.snips") ;;
       *compose.y*        ) snips+=("docker_compose.snips") ;;
-      *compose*/*        ) snips+=("docker_compose.snips") ;;
       *.github/workflows*) snips+=("github_workflow.snips") ;;
       *.github/actions*  ) snips+=("github_action.snips") ;;
       *helmfile.d/*      ) snips+=("helmfile.snips") ;;
       */templates/*      ) snips+=("helm_chart.snips") ;;
-      */fixtures/*       ) snips+=("rails_fixture.snips") ;;
-      *)
-        snips+=("docker_compose.snips") ;;
+      */fixtures/*       ) snips+=("rails/fixture.snips") ;;
     esac ;;
   ruby)
-    [[ $fp = *app* ]] && snips+=("rails.snips")
     case $fp in
-      *app/admin/*      ) snips+=("rails_amdin.snips") ;;
-      *app/controllers/*) snips+=("rails_controller.snips") ;;
-      *app/models/*     ) snips+=("rails_model.snips") ;;
-      *app/helpers/*    ) snips+=("rails_helper.snips") ;;
-      *config/*         ) snips+=("rails_config.snips") ;;
-      *db/migrate/*     ) snips+=("rails_migrate.snips") ;;
-      *test/*           ) snips+=("rails_minitest.snips") ;;
+      *app/admin/*      ) snips+=("rails/admin.snips") ;;
+      *app/*            ) snips+=("rails/app.snips") ;;
+      *config/*         ) snips+=("rails/config.snips") ;;
+      *db/migrate/*     ) snips+=("rails/migrate.snips") ;;
+      *test/*           ) snips+=("rails/minitest.snips") ;;
+      *spec/*           ) snips+=("rails/minitest.snips") ;;
       *Rakefile         ) snips+=("rake.snips") ;;
       *Vagrantfile      ) snips+=("vagrant.snips") ;;
     esac ;;
   eruby.yaml)
     case $fp in
-      *test/fixtures/*) snips+=("rails_fixture.snips") ;;
-      *spec/fixtures/*) snips+=("rails_fixture.snips") ;;
+      *test/fixtures/*) snips+=("rails/fixture.snips") ;;
+      *spec/fixtures/*) snips+=("rails/fixture.snips") ;;
     esac ;;
   eruby)
     case $fp in
-      *app/views/*) snips+=("rails_view.snips") ;;
+      *app/views/*) snips+=("rails/app.snips") ;;
     esac ;;
 esac
 
+# resolve_imports: snips 배열의 파일들에서 extends 해석
+resolve_imports() {
+  local visited=""
+  local queue=("${snips[@]}")
+  local result=()
+  local file import imported
+
+  while [ ${#queue[@]} -gt 0 ]; do
+    file="${queue[0]}"
+    queue=("${queue[@]:1}")
+
+    [[ "$visited" == *"|$file|"* ]] && continue
+    visited+="|$file|"
+    result+=("$file")
+
+    # extends 라인 파싱 (첫 snippet 정의 전까지만)
+    while IFS= read -r import; do
+      imported="${import}.snips"
+      [ -r "$imported" ] && queue+=("$imported")
+    done < <(perl -ne 'last if /^snippet /; print "$1\n" if /^extends\s+(.+)/' "$file" 2>/dev/null)
+  done
+
+  snips=("${result[@]}")
+}
+
+resolve_imports
+
 tmpfile=$(mktemp)
+trap "rm -f $tmpfile" EXIT
 
 rg --with-filename --color=never '^snippet ' ${snips[@]} \
   | perl -ne 's/^(?<f>.+?):snippet (?<n>.+?) "(?<c>.*)"//; printf qq{%-30s\t\033[33m%-20s\033[0m\t%s\n}, $+{n}, $+{c}, $+{f}' \

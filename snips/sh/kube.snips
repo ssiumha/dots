@@ -1,0 +1,15 @@
+snippet check_kube_context ""
+if [ 'arn:aws:eks:ap-northeast-2:000000000000:cluster/tmp' != $(kubectl config current-context) ]; then
+  echo "denied context"
+  exit 1
+fi
+endsnippet
+
+snippet check_kube_rollout_complete "can using -f deploy.yaml"
+kubectl rollout status -n app-dev deploy/some-app
+endsnippet
+
+snippet kubectl_with_perl "run heredoc"
+kubectl exec -i -n ns deploy/app -- perl - <<-'EOF'
+EOF
+endsnippet

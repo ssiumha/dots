@@ -1,0 +1,99 @@
+snippet docker_entrypoint "docker entrypoint"
+#!/bin/bash
+
+case "$1" in
+  app)
+    exec ./app
+    ;;
+  *)
+    exec "$@"
+    ;;
+esac
+endsnippet
+
+snippet run_docker_compose "run heredoc"
+cat <<-EOF | docker compose --file - --project-name ${COMPOSE_NAME} up --detach --force-recreate --wait
+  version: "3.9"
+
+  services:
+    postgres:
+      image: postgres:11-alpine
+      container_name: \${COMPOSE_PROJECT_NAME}-postgres
+      healthcheck:
+        test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER']
+      environment:
+        POSTGRES_DB: test_db
+        POSTGRES_USER: user
+        POSTGRES_PASSWORD: password
+      expose:
+        - "5432"
+      networks:
+        - docker-compose-default
+
+    redis:
+      image: redis
+      container_name: \${COMPOSE_PROJECT_NAME}-redis
+      healthcheck:
+        test: ['CMD', 'redis-cli', 'ping']
+        interval: 10s
+        timeout: 5s
+        retries: 5
+      expose:
+        - "6379"
+      networks:
+        - docker-compose-default
+
+    mysql:
+      image: mysql:8.0
+      container_name: \${COMPOSE_PROJECT_NAME}-mysql
+      healthcheck:
+        test: ['CMD', 'mysqladmin' ,'ping', '-h', 'localhost']
+        timeout: 20s
+        retries: 10
+      environment:
+        MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+        MYSQL_USER: "user"
+        MYSQL_PASSWORD: "password"
+        MYSQL_DATABASE: "database"
+      expose:
+        - "3306"
+      networks:
+        - docker-compose-default
+
+  networks:
+    docker-compose-default:
+      external: true
+EOF
+endsnippet
+
+snippet docker_run_httpbin "testing connect"
+docker run --rm -d -p 8000:80 kennethreitz/httpbin
+endsnippet
+
+snippet docker_run_whoami "testing connect"
+docker run --rm -d -p 8000:80 traefik/whoami
+endsnippet
+
+snippet docker_run_json_server "testing connect"
+docker run --rm -d -p 3000:3000 typicode/json-server --watch db.json
+endsnippet
+
+snippet docker_ruby ""
+#!/usr/bin/bash
+
+docker run --rm -v $(pwd):/app -w /app \
+  -e "BUNDLE_APP_CONFIG=/app/.bundle" \
+  docker.io/ruby:3.4.2 bundle "$@"
+endsnippet
+
+snippet docker_ansible ""
+#!/bin/bash
+
+docker run --rm -it \
+  -v "$(pwd)":/ansible \
+  -v ~/.ssh:/root/.ssh \
+  -w /ansible \
+  -e ANSIBLE_CONFIG=/ansible/ansible.cfg \
+  alpine/ansible:2.18.1 \
+  ansible-playbook -i inventory.ini "$@"
+endsnippet

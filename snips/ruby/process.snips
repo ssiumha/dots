@@ -1,0 +1,72 @@
+snippet popen3 "call popen with env"
+env_vars = { 'VAR1' => 'value1' }
+command = ['echo', '$VAR1']
+Open3.popen3(env_vars, *command) do |stdin, stdout, stderr, with_thr|
+  puts stdout.read
+end
+endsnippet
+
+snippet ractor_take_all "take all"
+5.times.map { Ractor.new(_1) { |i| sleep(5-i); puts i; i } }.map(&:take)
+# [0, 1, 2, 3, 4]
+endsnippet
+
+snippet thread_join_all "take all"
+5.times.map { |i| Thread.new { sleep(5 - i); puts i; i } }.map(&:join).map(&:value)
+# [0, 1, 2, 3, 4]
+endsnippet
+
+snippet process_with_thread ""
+thread = Thread.new do
+ensure
+  puts 'killed'
+end
+
+at_exit do
+  Thread.kill(thread)
+end
+
+loop do
+  sleep 1
+end
+endsnippet
+
+snippet signal_trap "Signal.trap"
+trap(:INT) do # 2, ^C
+  exit
+end
+
+trap(:TERM) do # 9, kill
+  exit
+end
+endsnippet
+
+snippet watch_process "with listen"
+require 'listen'
+
+pid = nil
+
+trap(:INT) do
+  Process.kill(:INT, pid)
+  exit
+end
+
+Listen.to('./app') do |modified, added, removed|
+  Process.kill(:INT, pid) if (modified.count + added.count + removed.count).positive?
+end.start
+
+loop do
+  pid = Process.spawn('')
+
+  Process.wait(pid)
+  pid = nil
+
+  sleep 1
+end
+endsnippet
+
+snippet open3 ""
+require 'open3'
+stdout_str, stderr, status = Open3.capture3(%Q[cmd])
+stdout_str => String
+endsnippet

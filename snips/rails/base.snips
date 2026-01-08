@@ -1,0 +1,149 @@
+snippet config_database_url "postgres:// or mysql2://"
+development:
+  url: '<%= ENV.fetch('DATABASE_URL', 'mysql2://root:password@127.0.0.1:3306') %>'
+endsnippet
+
+snippet turbo_stream_broadcast ""
+# with <%= turbo_stream_from @post, :comments %>
+Turbo::StreamsChannel.broadcast_update_to(Post.last, :comments,
+  target: 'comments',
+  partial: 'post/comments',
+  locals: {}
+)
+endsnippet
+
+snippet devise_timeout "config/initializers/devise.rb"
+config.timeout_in = 3.hours
+endsnippet
+
+snippet url_helpers ""
+Rails.application.routes.url_helpers.root_path
+endsnippet
+
+snippet validator_date ""
+class DateValidator < ActiveModel::EachValidator
+  def validate_each(record, attribute, value)
+    begin
+      DateTime.parse(value)
+    rescue ArgumentError, TypeError
+      record.errors.add(attribute, (options[:message] || "Invalid date format'"), value:)
+    end
+  end
+end
+endsnippet
+
+snippet reset_pk_sequence "in psql?"
+ActiveRecord::Base.connection.tables.each do |t|
+  ActiveRecord::Base.connection.reset_pk_sequence!(t)
+end
+endsnippet
+
+snippet sub_path_component ""
+  # https://github.com/rails/rails/blob/v7.1.3.4/actionview/lib/action_view/view_paths.rb#L73-L77
+  #
+  # class ApplicationController
+  #  `<%= render 'icon', name: 'code' %>`
+  #
+  # scan:
+  #  - views/users/components/_icon.html.erb
+  #  - views/users/_icon.html.erb
+  #  - views/_icon.html.erb
+  #
+  def self.inherited(subclass)
+    super
+
+    subclass.define_singleton_method(:local_prefixes) do
+      [File.join(controller_path, 'components'), controller_path, 'components']
+    end
+  end
+endsnippet
+
+snippet config_for "get config/some.yml"
+SOME_CONFIG = Rails.application.config_for(:some)
+SOME_CONFIG['key']
+endsnippet
+
+snippet db_dump "rails way"
+bin/rails db < path_to_your_dump_file.sql
+endsnippet
+
+snippet propshaft_assets_content "inline asset"
+raw Rails.application.assets.load_path.find('logo.svg').content
+# OR
+Rails.application.assets.load_path.find('logo.svg').content.html_safe
+endsnippet
+
+snippet load_server ">= rails 6.1. config/application.rb"
+# Rails.application.load_server
+
+    server do
+      Dir.chdir(File.expand_path("..", __dir__)) do
+        ...
+      end
+    end
+endsnippet
+
+snippet check_run_point ""
+if defined?(Rails::Console)
+  # called rails console
+elsif defined?(Rails::Generateors)
+  # called rails generate
+elsif defined?(Rake.application)
+  # called task
+else
+end
+endsnippet
+
+snippet base_script "script/base"
+#!/usr/bin/env ruby
+require File.expand_path('../config/environment', File.dirname(__FILE__))
+
+abort "Usage: #{$0} <arg1> <arg2>" unless ARGV.length == 2
+
+arg1, arg2 = ARGV
+
+if process
+else
+  puts "Failed"
+  exit -1
+end
+endsnippet
+
+snippet current_set_block ""
+  Current.set(user: @user) do
+  end
+endsnippet
+
+snippet template_with_console "rails/generators"
+# ref: https://guides.rubyonrails.org/rails_application_templates.html#template-api
+
+require 'rails/generators'
+
+g = Rails::Generators::Base.new
+
+g.route "root to: 'people#index'"
+g.gem 'config'
+g.gem 'hashid-rails'
+g.gem 'marginalia'
+g.gem 'annotate'
+endsnippet
+
+snippet pattern_poros "Plain Old Ruby Objects"
+# app/poros
+# independent object from farmework, libraries
+endsnippet
+
+snippet warden_force_login ""
+# https://github.com/wardencommunity/warden/wiki/Authenticated-session-data
+warden.authenticated?(:user) && warden.logout(:user)
+warden.set_user(resource, scope: :user)
+warden.set_user(warden.user(:admin_user), scope: :remote_login) # cleanup when any logout
+
+redirect_to home_path
+endsnippet
+
+snippet find_each "batch processing"
+User.find_each(batch_size: 500, order: :desc) do |user|
+  user.do_something
+end
+endsnippet

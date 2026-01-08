@@ -1,0 +1,34 @@
+snippet ssh_proxy_command "jump"
+ssh -o ProxyCommand="ssh -i ~/.ssh/a.pem -W %h:%p a@999.999.999.999" -i ~/.ssh/b.pem b@10.0.1.10
+endsnippet
+
+snippet ssh_tunnel_mysql "access 23306"
+ssh -L 23306:localhost:3306 user@host -N
+endsnippet
+
+snippet ssh_all_logs ""
+#!/bin/bash
+
+SERVERS=(
+  "10.0.0.1"
+  "10.0.0.2"
+)
+PIDS=()
+
+for SERVER in "${SERVERS[@]}"; do
+  echo "Connecting to $SERVER..."
+  ssh -n "$SERVER" "journalctl -u docker -f -n 10" | sed "s/^/[$SERVER] /" &
+  PIDS+=($!)
+done
+
+trap 'echo -e "\nStopping..."; for PID in "${PIDS[@]}"; do kill $PID 2>/dev/null; done; wait; exit 0' SIGINT
+
+wait
+endsnippet
+
+snippet send_dev_tcp "with file descriptor"
+exec 3<>/dev/tcp/example.com/80
+echo -e "GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n" >&3
+cat <&3
+exec 3>&-
+endsnippet

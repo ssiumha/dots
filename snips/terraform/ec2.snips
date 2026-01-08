@@ -1,0 +1,179 @@
+snippet base_ec2 ""
+resource "aws_key_pair" "bastion_keypair" {
+  key_name   = "bastion_keypair"
+  public_key = file("~/.ssh/id_ed25519.pub")
+}
+
+data "aws_ami" "amazon_linux_arm" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["al2023-ami-*-arm64"]
+  }
+}
+
+data "aws_ami" "amazon_linux_x86" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["al2023-ami-*-x86_64"]
+  }
+}
+
+# instance type: AMI랑 호환되는 타입을 선택해야 함
+# - t4g.micro: 2 vCPU, 1 GiB RAM, ARM64
+# - m5.large: 2 vCPU, 8 GiB RAM, x86_64
+resource "aws_instance" "bastion" {
+  ami             = data.aws_ami.amazon_linux_arm.id
+  instance_type   = "t4g.micro"
+  subnet_id       = module.vpc.public_subnets[0]
+  key_name        = aws_key_pair.bastion_keypair.key_name
+
+  vpc_security_group_ids = [aws_security_group.bastion.id]
+
+  associate_public_ip_address = true
+
+  private_ip = "999.999.999.999" # 필요 시 고정 IP 할당
+
+  root_block_device {
+    volume_size = 32
+    volume_type = "gp3"
+  }
+
+  tags = {
+    Name = "bastion"
+  }
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes = [ami, instance_type] # ami 갱신 등으로 인한 교체 방지
+  }
+}
+endsnippet
+
+snippet fullset_simple_ec2 ""
+data "aws_availability_zones" "available" {
+}
+
+locals {
+  terraform_env = "app-dev"
+
+  # use ap-northeast-2a, ap-northeast-2b
+  availability_zone_names = slice(data.aws_availability_zones.available.names, 0, 2)
+}
+
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "5.13.0"
+
+  name = "app-dev"
+  cidr = "10.0.0.0/16"
+
+  azs             = local.availability_zone_names
+  private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
+  public_subnets  = ["10.0.101.0/24", "10.0.102.0/24"]
+
+  enable_nat_gateway = true
+
+  manage_default_network_acl    = false
+  manage_default_route_table    = false
+  manage_default_security_group = false
+
+  tags = {
+    Terraform = "true"
+    Environment = local.terraform_env
+  }
+}
+
+resource "aws_key_pair" "app_dev_keypair" {
+  key_name   = "app_dev_keypair"
+  public_key = file("~/.ssh/id_ed25519.pub")
+}
+
+resource "aws_instance" "app_dev" {
+  ami             = "ami-0e18fe6ecdad223e5"  # AmazonLinux2
+  instance_type   = "m5.xlarge"
+  subnet_id       = module.vpc.public_subnets[0]
+  key_name        = aws_key_pair.app_dev_keypair.key_name
+
+  vpc_security_group_ids = [aws_security_group.app_sg.id]
+
+  associate_public_ip_address = true
+
+  root_block_device {
+    volume_size = 32
+    volume_type = "gp3"
+  }
+
+  tags = {
+    Name = "app-dev"
+  }
+
+  user_data = <<-EOF
+    #!/bin/bash
+    sudo yum update -y
+    sudo yum install docker -y
+    sudo service docker start
+    sudo usermod -aG docker ec2-user
+    sudo mkdir -p /usr/local/lib/docker/cli-plugins/
+    sudo curl -SL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$(uname -m)" -o /usr/local/lib/docker/cli-plugins/docker-compose
+    sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+  EOF
+}
+
+resource "aws_eip" "app_dev" {
+  instance = aws_instance.app_dev.id
+}
+
+resource "aws_security_group" "app_sg" {
+  vpc_id = module.vpc.vpc_id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [
+      "999.999.999.999/32"
+    ]
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "app-dev"
+  }
+}
+
+output "eip_public_ip" {
+  description = "The Elastic IP of the EC2 instance"
+  value       = aws_eip.app_dev.public_ip
+}
+
+output "instance_public_ip" {
+  description = "The public IP of the EC2 instance"
+  value       = aws_instance.app_dev.public_ip
+}
+endsnippet

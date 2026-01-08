@@ -2,6 +2,13 @@ snippet link "add link name->url"
 [${0}](${1})
 endsnippet
 
+snippet yaml_formatter ""
+---
+tags: [note]
+remind: 2025-12-11
+---
+endsnippet
+
 snippet table "empty table"
 |  |  |  |
 |--|--|--|

@@ -1,0 +1,112 @@
+snippet wildcard_record ""
+resource "aws_route53_zone" "dev" {
+  name = "example.com"
+}
+
+resource "aws_route53_record" "wildcard_dev" {
+  zone_id = aws_route53_zone.dev.zone_id
+  name    = "*.dev.example.com"
+  type    = "A"
+  ttl     = "60"
+  records = ['999.999.999.999']
+}
+endsnippet
+
+snippet route53_a_record ""
+resource "aws_route53_record" "root" {
+  zone_id = data.aws_route53_zone.example_com.zone_id
+  name    = ""
+  type    = "A"
+
+  alias {
+    name                   = data.aws_lb.alb.dns_name
+    zone_id                = data.aws_lb.alb.zone_id
+    evaluate_target_health = true
+  }
+}
+endsnippet
+
+snippet route53_wildcard_with_acm "require 10~30 min"
+data "aws_route53_zone" "example_com" {
+  name         = "example.com."
+  private_zone = false
+}
+
+resource "aws_acm_certificate" "wildcard" {
+  domain_name       = "example.com"
+  validation_method = "DNS"
+
+  subject_alternative_names = [
+    "*.example.com",
+  ]
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_route53_record" "wildcard_validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.wildcard.domain_validation_options :
+    dvo.domain_name => {
+      name   = dvo.resource_record_name
+      type   = dvo.resource_record_type
+      record = dvo.resource_record_value
+    }
+  }
+
+  zone_id = data.aws_route53_zone.example.com.zone_id
+  name    = each.value.name
+  type    = each.value.type
+  ttl     = 60
+  records = [each.value.record]
+}
+
+resource "aws_acm_certificate_validation" "wildcard" {
+  certificate_arn         = aws_acm_certificate.wildcard.arn
+  validation_record_fqdns = [for r in aws_route53_record.wildcard_validation : r.fqdn]
+}
+
+
+## ALB Listener - add extra cert and rule
+data "aws_lb" "alb" {
+  tags = {
+    "copilot-application" = "app"
+    "copilot-environment" = "prod"
+  }
+}
+
+data "aws_lb_listener" "https_443" {
+  load_balancer_arn = data.aws_lb.alb.arn
+  port              = 443
+}
+
+data "aws_alb_target_group" "web_tg" {
+  tags = {
+    "copilot-application" = "app"
+    "copilot-environment" = "prod"
+    "copilot-service"     = "web"
+  }
+}
+
+resource "aws_lb_listener_certificate" "extra" {
+  listener_arn    = data.aws_lb_listener.https_443.arn
+  certificate_arn = aws_acm_certificate.wildcard.arn
+}
+
+resource "aws_lb_listener_rule" "redirect_to_web" {
+  listener_arn = data.aws_lb_listener.https_443.arn
+  priority     = 1000
+
+  action {
+    type             = "forward"
+    target_group_arn = data.aws_alb_target_group.web_tg.arn
+  }
+
+  condition {
+    host_header {
+      values = ["example.com"]
+    }
+  }
+}
+endsnippet

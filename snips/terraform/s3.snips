@@ -1,0 +1,111 @@
+snippet module_s3 "not tested"
+module "s3_bucket" {
+  source  = "terraform-aws-modules/s3-bucket/aws"
+  version = "4.2.0"
+
+  bucket = "app" # global unique
+  acl    = "public-read"
+
+  control_object_ownership = true
+  object_ownership         = "BucketOwnerPreferred"
+
+  versioning = {
+    enabled = true
+  }
+}
+endsnippet
+
+snippet fullset_s3 "with user"
+resource "aws_s3_bucket" "bucket" {
+  bucket = "app-dev"
+
+  tags = {
+    Name = "app-dev"
+  }
+}
+
+resource "aws_s3_bucket_ownership_controls" "bucket_ownership_controls" {
+  bucket = aws_s3_bucket.bucket.id
+
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+resource "aws_s3_bucket_cors_configuration" "cors_configuration" {
+  bucket = aws_s3_bucket.bucket.id
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["GET", "PUT", "HEAD"]
+    allowed_origins = ["*"]
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "public_access_block" {
+  bucket = aws_s3_bucket.bucket.id
+
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
+}
+
+resource "aws_s3_bucket_acl" "bucket_acl" {
+  depends_on = [
+    aws_s3_bucket_ownership_controls.bucket_ownership_controls,
+    aws_s3_bucket_public_access_block.public_access_block
+  ]
+
+  bucket = aws_s3_bucket.bucket.id
+  acl    = "public-read"
+}
+
+resource "aws_s3_bucket_policy" "bucket_policy" {
+  bucket = aws_s3_bucket.bucket.id
+  policy = <<-POLICY
+  {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+            "Sid": "PublicReadGetObject",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": [
+              "s3:GetObject"
+            ],
+            "Resource": [
+              "arn:aws:s3:::${aws_s3_bucket.bucket.id}/*"
+            ]
+        }
+      ]
+  }
+  POLICY
+}
+
+resource "aws_s3_bucket_versioning" "bucket_versioning" {
+  bucket = aws_s3_bucket.bucket.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_iam_user_policy" "s3_user_policy" {
+  name = "appDevS3UserPolicy"
+  user = aws_iam_user.app_dev_user.name
+
+  policy = jsonencode({
+    Version   = "2012-10-17",
+    Statement = [
+      {
+        Effect   = "Allow",
+        Action   = "*",
+        Resource = ["${aws_s3_bucket.bucket.arn}/*"]
+      }
+    ]
+  })
+}
+endsnippet

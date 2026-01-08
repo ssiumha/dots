@@ -1,0 +1,110 @@
+snippet replicas_trick "conditional use"
+services:
+  service_a:
+    deploy:
+      replicas: ${COMPOSE_USE_SERVICE_A:-0}
+endsnippet
+
+snippet use_environment_variable ""
+# `docker compose run -e DEBUG=true up`
+services:
+  backend:
+    environment:
+      - DEBUG=${DEBUG:-false}
+endsnippet
+
+snippet use_environment_file ""
+# ref: https://docs.docker.com/compose/environment-variables/envvars-precedence/
+# `docker-compose --env-file default.env up`
+# defulat: use `.env`
+services:
+  backend:
+    # env_file: "default.env"
+    # env_file:
+    #   - default.env
+    env_file:
+      - path: ./default.env
+        required: true
+      - path: ./override.env
+        required: false
+endsnippet
+
+snippet compose_cli_environments ""
+# https://docs.docker.com/compose/environment-variables/envvars/
+COMPOSE_CONVERT_WINDOWS_PATHS
+COMPOSE_FILE
+COMPOSE_PROFILES
+COMPOSE_PROJECT_NAME
+DOCKER_CERT_PATH
+COMPOSE_PARALLEL_LIMIT
+COMPOSE_IGNORE_ORPHANS
+COMPOSE_REMOVE_ORPHANS
+COMPOSE_PATH_SEPARATOR
+COMPOSE_ANSI
+COMPOSE_STATUS_STDOUT
+COMPOSE_ENV_FILES
+COMPOSE_MENU
+COMPOSE_EXPERIMENTAL
+endsnippet
+
+snippet profiles "multiple environment"
+# `docker-compose --profile dev --profile ... up`
+# `COMPOSE_PROFILES=debug,dev docker compose up`
+services:
+  service_a:
+    environment:
+      - ENV=dev
+    profiles:
+      - dev
+      - prod
+endsnippet
+
+snippet deploy_watch "use `docker compose up --watch`"
+services:
+  backend:
+    build: .  # require
+    develop:
+      watch:
+        - path: ./app/html
+          action: sync
+          target: /var/www
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: package.json
+        - action: sync+restart
+          path: ./nginx.conf
+          target: /etc/nginx/conf.d/default.conf
+endsnippet
+
+snippet docker_mysql_with_charset "command line"
+docker run --rm -it --network host \
+  mysql:8.0.21 \
+  mysql -h 127.0.0.1 -P 3306 -u user -p \
+  --default-character-set=utf8mb4
+endsnippet
+
+snippet use_service "services.<name>.deploy; using replicas"
+    deploy:
+      replicas: ${COMPOSE_USE_SERVICE:-0}
+endsnippet
+
+snippet orb_local "orb domain"
+    labels:
+      - dev.orbstack.domains=service.project.orb.local
+endsnippet
+
+snippet orb_local_multiple "orb domain"
+    labels:
+      - dev.orbstack.domains=foo.local,bar.local
+endsnippet
+
+snippet orb_local_wildcard "orb domain"
+    labels:
+      - dev.orbstack.domains=*.foo.local
+endsnippet
+
+snippet orb_local_port "default: auto detect"
+    labels:
+      - dev.orbstack.http-port=8080
+endsnippet

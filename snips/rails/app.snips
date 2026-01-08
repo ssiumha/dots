@@ -1,0 +1,4 @@
+extends rails/controller
+extends rails/model
+extends rails/helper
+extends rails/view

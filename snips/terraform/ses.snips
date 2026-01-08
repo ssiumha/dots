@@ -1,0 +1,59 @@
+snippet fullset_ses ""
+data "aws_route53_zone" "app_dev" {
+  name = "example.com"
+}
+
+resource "aws_iam_user" "app_dev_user" {
+  name = "app-dev-user"
+  path = "/"
+}
+
+resource "aws_iam_access_key" "app_dev_user_key" {
+  user = aws_iam_user.app_dev_user.name
+}
+
+resource "aws_iam_user_policy_attachment" "ses_full_access" {
+  user       = aws_iam_user.app_dev_user.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSESFullAccess"
+}
+
+resource "aws_ses_domain_identity" "domain_identity" {
+  domain   = data.aws_route53_zone.app_dev.name
+}
+
+resource "aws_ses_email_identity" "email_identity" {
+  email = "admin@${data.aws_route53_zone.app_dev.name}"
+}
+
+resource "aws_route53_record" "ses_verification" {
+  zone_id = data.aws_route53_zone.app_dev.id
+  name    = "_amazonses.${data.aws_route53_zone.app_dev.name}"
+  type    = "TXT"
+  records = [aws_ses_domain_identity.domain_identity.verification_token]
+  ttl     = 600
+}
+
+resource "aws_ses_domain_dkim" "dkim" {
+  domain = aws_ses_domain_identity.domain_identity.domain
+}
+
+resource "aws_route53_record" "dkim" {
+  for_each = toset(aws_ses_domain_dkim.dkim.dkim_tokens)
+  zone_id  = data.aws_route53_zone.app_dev.id
+  name     = "${each.key}._domainkey.${data.aws_route53_zone.app_dev.name}"
+  type     = "CNAME"
+  records  = ["${each.key}.dkim.amazonses.com"]
+  ttl      = 600
+}
+
+resource "aws_route53_record" "spf" {
+  zone_id = data.aws_route53_zone.app_dev.id
+  name    = data.aws_route53_zone.app_dev.name
+  type    = "TXT"
+  records = [
+    "v=spf1 include:amazonses.com ~all",
+    "forward-email-site-verification=${local.forward_email_verification_string}"
+  ]
+  ttl     = 600
+}
+endsnippet

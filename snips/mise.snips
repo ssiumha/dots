@@ -9,12 +9,32 @@ ruby = "latest"
 run = "bundle exec ruby app.rb"
 endsnippet
 
+snippet append_path ""
+[env]
+_.path = [
+  "~/Library/Android/sdk/cmdline-tools/latest/bin",
+  "~/Library/Android/sdk/platform-tools",
+]
+endsnippet
+
 snippet note_memo ""
 [_]
 hello = """
 """
 
 [_.memo]
+endsnippet
+
+snippet env ""
+TEST="{{ env.HOME }}/test"
+TEST2="{{ get_env(name='TEST', default='20') }}/test"
+TEST2="{{ cwd | basename }}/test"
+endsnippet
+
+snippet template_filter "using tera"
+# https://mise.jdx.dev/templates.html
+PROJECT_NAME="{{ cwd | basename | upper }}"
+SHORT="{{ 'TEXT' | lower | replace(find='t', replace='X') }}"
 endsnippet
 
 snippet use_python "with virtualenv"

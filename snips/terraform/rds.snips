@@ -1,0 +1,48 @@
+snippet base_aurora_pg ""
+# 계정 정보는 기본적으로 AWS Secrets Manager에 저장
+#  aws rds describe-db-clusters \
+#    --db-cluster-identifier dev-aurora \
+#    --query "DBClusters[0].MasterUserSecret.SecretArn" \
+#    --output text \
+#  | xargs aws secretsmanager get-secret-value \
+#    --query SecretString \
+#    --output text \
+#    --secret-id
+module "aurora" {
+  source  = "terraform-aws-modules/rds-aurora/aws"
+  version = "9.15.0"
+
+  name              = "${local.terraform_env}-aurora"
+  engine            = "aurora-postgresql"
+  engine_version    = "17.4"
+  instance_class    = "db.t4g.medium" # 2 vCPU, 4 GiB RAM
+  instances         = {
+    writer = {},
+    reader1 = {}
+  }  # 1 writer + 1 reader
+
+  vpc_id                  = module.vpc.vpc_id
+  db_subnet_group_name    = module.vpc.database_subnet_group
+  create_db_subnet_group  = false
+  security_group_rules    = {}     # 모듈 SG 쓰지 않고 직접 SG 관리할 경우
+
+  master_username         = "${local.terraform_env}admin"
+
+  # 초기화할 때, false 상태여도 true로 동작하는 문제가 있어서 옵션을 끄길 원한다면 생성 후 수동으로 변경 필요
+  manage_master_user_password_rotation = true
+  master_user_password_rotation_automatically_after_days = 30
+
+  backup_retention_period = 2      # 개발용은 짧게
+  deletion_protection     = true
+
+  create_db_parameter_group = true
+  db_parameter_group_family = "aurora-postgresql17"  # 엔진 버전에 맞춤
+
+  manage
+
+  tags = {
+    Terraform   = "true"
+    Environment = local.terraform_env
+  }
+}
+endsnippet

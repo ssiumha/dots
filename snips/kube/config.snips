@@ -1,0 +1,41 @@
+snippet env_from_configmap "spec.containers.envFrom"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  labels:
+    app.kubernetes.io/name: app-name
+data:
+  APP_LOGGING: "INFO"
+  APP_NETWORK: "dev"
+---
+          envFrom:
+            - configMapRef:
+                name: app-config
+endsnippet
+
+snippet base_configmap ""
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: default
+data:
+  config.yaml: |
+    key:
+      - value
+endsnippet
+
+snippet mount_configmap ""
+spec:
+  containers:
+    - volumeMounts:
+      - name: app-config-volume
+        mountPath: /app/config.yaml
+        subPath: config.yaml
+  volumes:
+    - name: app-config-volume
+      configMap:
+        name: app-config
+endsnippet

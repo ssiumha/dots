@@ -1,0 +1,183 @@
+snippet frozen "string literal"
+# frozen_string_literal: true
+endsnippet
+
+snippet task "rake task"
+task ##{1::task_name} do
+end
+endsnippet
+
+snippet call_rails_task "rake using from rails"
+require 'rake'
+##{1:AppName}::Application.load_tasks
+
+Rake::Task[##{2:task_name}].invoke
+endsnippet
+
+snippet instance_patch "extend monkey patch method"
+class << ##{1:@instance}
+  def ##{2:method_name}
+  end
+end
+endsnippet
+
+snippet color_hex_to_hsl "code template"
+class String
+  def to_hsl
+    # self -> #ffaaee
+    r, g, b = self.downcase
+                  .match(/#?(\h\h)(\h\h)(\h\h)/)
+                  .captures
+                  .map { |s| (s.hex / 255.0).round(2) }
+
+    cmin, cmax = [r,g,b].minmax
+    delta = cmax - cmin
+
+    h = if delta.zero? then 0
+        elsif cmax == r then ((g - b) / delta) % 6
+        elsif cmax == g then (b - r) / delta + 2
+        else (r - g) / delta + 4
+        end
+    h = (h * 60).round % 360
+
+    l = ((cmax + cmin) / 2.0).round(2) * 100
+    s = delta.zero? ? 0 : (delta / (1 - (cmax + cmin - 1).abs)).round(2) * 100
+
+    [h.to_i, s.to_i, l.to_i]
+  end
+end
+endsnippet
+
+snippet inline_gemfile "install without Gemfile"
+require 'bundler/inline'
+gemfile do
+  source 'https://rubygems.org'
+  gem 'listen', '3.8.0'
+end
+endsnippet
+
+snippet defined_variable "check"
+@foo = [] unless defined?(@foo)
+endsnippet
+
+snippet rows_to_table "2d array to html table format"
+def rows_to_html_table(rows)
+  html = '<table>'
+  rows.each_with_index do |row, i|
+    if i.zero?
+      html += '<thead>'
+    else
+      html += '<tbody>'
+    end
+
+    html += '<tr>'
+    row.each do |col|
+      if i.zero?
+        html += "<th>#{col}</th>"
+      else
+        html += "<td>#{col}</td>"
+      end
+    end
+    html += '</tr>'
+
+    if i.zero?
+      html += '</thead>'
+    else
+      html += '</tbody>'
+    end
+  end
+  html += '</table>'
+end
+endsnippet
+
+snippet elapsed_time "performance check"
+start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+run!
+finish = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+
+elapsed = finish - start
+endsnippet
+
+snippet run_script "like __main__"
+if __FILE__ == $0 # or $PROGRAM_NAME
+  main
+end
+endsnippet
+
+snippet argf "special variable"
+$<
+endsnippet
+
+snippet command_line_arguments "special variable"
+$*
+endsnippet
+
+snippet stdout "special variable"
+$>
+endsnippet
+
+snippet gets "special variable"
+$_
+endsnippet
+
+snippet current_pid "special variable"
+$$
+endsnippet
+
+snippet rspec_base "Arrange, Act, Assert"
+describe '어떤 클래스 등' do
+  describe '어떤 처리, #method...' do
+    let(:user) { create :user }
+
+    context 'XX인 경우' do
+      before do
+        travel_to '2000-01-01 09:00'.in_time_zone
+      end
+      after { travel_back }
+
+      it 'AAA 상태가 된다' do
+        expect { action! }.to \
+          change { user.count }.from(0).to(1)
+
+        expect(value).to eq 500
+      end
+    end
+  end
+end
+endsnippet
+
+snippet yard_return_example ""
+# @see http://example.com
+# @see SomeClass#method
+# @param name [String]
+# @param opts [Hash]
+# @option opts [String] :subject
+#
+# Method Descriptions
+# Default options are:
+#
+# @example
+#   {
+#     name: 'John',
+#     age: 20
+#   }
+#
+# @example Not found user
+#   nil
+#
+# @raise [ExceptionClass] description
+#
+# @return [Hash, nil] user info
+endsnippet
+
+snippet text_zip_with_base64 ""
+require 'zlib'
+require 'base64'
+Zlib::Deflate.deflate(text).then { Base64.encode64(_1) }
+endsnippet
+
+snippet text_unzip_with_base64 ""
+require 'zlib'
+require 'base64'
+Base64.decode64(text).then { Zlib::Inflate.inflate(_1) }
+endsnippet

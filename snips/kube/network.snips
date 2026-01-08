@@ -1,0 +1,72 @@
+snippet external_name "kind: service"
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: oauth2-proxy
+  namespace: app
+spec:
+  type: ExternalName
+  externalName: oauth2-proxy.helm.svc.cluster.local
+  ports:
+  - port: 80
+endsnippet
+
+snippet base_service ""
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-name
+  namespace: app
+spec:
+  # clusterIP: 172.20.100.1 # if need static ip
+  ports:
+    - port: 3000
+      protocol: TCP
+      targetPort: 3000
+      name: http
+    - port: 4000
+      protocol: UDP
+      targetPort: 4000
+      name: udp
+  selector:
+    app: app-name
+    instance: app-instance
+endsnippet
+
+snippet base_ingress "with basic-auth"
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app-ingress
+  namespace: app
+  annotations:
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: basic-auth
+spec:
+  ingressClassName: ingress-nginx
+  tls:
+    - { hosts: ["app.example.com"], secretName: "wildcard-tls" }
+  rules:
+    - host: app.example.com
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: app-service
+                port:
+                  number: 3000
+endsnippet
+
+snippet cluster_dns "cluster.local"
+<service>.<namespace>.svc.cluster.local
+<pod>.<namespace>.pod.cluster.local
+endsnippet
+
+snippet ingress_body_size "upload file size limit"
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+endsnippet

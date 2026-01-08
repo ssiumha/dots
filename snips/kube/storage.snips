@@ -1,0 +1,161 @@
+snippet base_pvc "template persistent volume clame"
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: volume-claim
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+endsnippet
+
+snippet attach_pvc_spec "to container"
+    spec:
+      containers:
+        - name: ubuntu
+          image: ubuntu
+          command:
+            - sleep
+            - "infinity"
+          volumeMounts:
+            - mountPath: /app/folder
+              name: volume
+      volumes:
+        - name: volume
+          persistentVolumeClaim:
+            claimName: volume-claim
+endsnippet
+
+snippet volume_from_pvc ""
+      volumes:
+        - name: app-volume
+          persistentVolumeClaim:
+            claimName: app-pvc
+endsnippet
+
+snippet pvc_clone ""
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: foo-data-clone
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ebs-sc
+  resources:
+    requests:
+      storage: 128Gi
+  dataSource:
+    kind: PersistentVolumeClaim
+    name: foo-data
+endsnippet
+
+snippet pvc_snapshot ""
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshot
+metadata:
+  name: foo-data-snapshot
+  namespace: default
+spec:
+  volumeSnapshotClassName: csi-aws-vsc
+  source:
+    persistentVolumeClaimName: foo-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: foo-data-pvc
+spec:
+  storageClassName: ebs-sc
+  dataSource:
+    name: foo-data-snapshot
+    kind: VolumeSnapshot
+    apiGroup: snapshot.storage.k8s.io
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 128Gi
+endsnippet
+
+snippet manual_pvc_clone ""
+# https://github.com/kubernetes-sigs/aws-ebs-csi-driver/blob/master/examples/kubernetes/static-provisioning/manifests/pv.yaml
+# 최초 스냅샷 생성시, gp2 128Gi 기준 100m 이상 소요
+# aws ec2 create-snapshot \
+#   --volume-id vol-00000000000000000 \
+#   --description "Snapshot of volume vol-00000000000000000"
+#
+# aws ec2 create-volume \
+#   --availability-zone ap-northeast-2a \
+#   --snapshot-id snap-00000000000000000 \
+#   --size 128 \
+#   --volume-type gp3
+#
+# copy alreay exits pv yaml
+#  - replace volumeHandle, nodeAffinity
+#  - replace persistentVolumeReclaimPolicy to Retain
+#  - remove claimRef
+# copy alreay exits pvc yaml
+#  - replace volumeName
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: cloned-pv
+spec:
+  capacity:
+    storage: 128Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  # remove clameRef
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: topology.ebs.csi.aws.com/zone
+          operator: In
+          values:
+          - ap-northeast-2a
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: ebs.csi.aws.com
+    volumeHandle: vol-00000000000000000
+  storageClassName: ebs-sc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cloned-pvc
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: ebs-sc
+  volumeMode: Filesystem
+  volumeName: cloned-pv
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: clone-test
+  namespace: default
+spec:
+  containers:
+    - name: clone-test
+      image: nginx
+      volumeMounts:
+      - mountPath: /data
+        name: cloned-pvc
+  volumes:
+    - name: cloned-pvc
+      persistentVolumeClaim:
+        claimName: cloned-pvc
+endsnippet
