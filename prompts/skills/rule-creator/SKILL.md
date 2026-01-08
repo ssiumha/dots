@@ -1,6 +1,6 @@
 ---
 name: rule-creator
-description: 특정 파일/상황에서 자동 적용될 규칙이 필요할 때 사용. 조건부 규칙, 파일별 규칙을 생성합니다. (user)
+description: .claude/rules/ 파일 생성/수정 시 사용. Claude Code rules 시스템으로 특정 파일/상황에 조건부 규칙을 적용합니다. (user)
 ---
 
 # Rule Creator
