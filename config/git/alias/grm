@@ -1,0 +1,500 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# grm - Git log viewer with pretty graph and fzf integration
+#
+# Usage:
+#   grm              # last 20 commits (interactive)
+#   grm --all        # all branches
+#   grm --no-fzf     # plain output (pipeable)
+#   grm -50          # last 50 commits
+#
+# Keys: enter:show ctrl-d:diff ctrl-s:stat ctrl-e:vim ctrl-w:switch
+#       ctrl-r:rebase ctrl-o:PR ctrl-y:yank ctrl-b:branch ctrl-f:fetch
+
+require 'open3'
+require 'shellwords'
+
+# ============================================================================
+# Constants
+# ============================================================================
+DEFAULT_COMMIT_COUNT = 20
+
+# Regex patterns (compiled once)
+HASH_PATTERN = /^[a-f0-9]{7,40}$/
+NUMSTAT_PATTERN = /^(\d+|-)\t(\d+|-)\t/
+
+NO_FZF = ARGV.delete('--no-fzf')
+FZF_MODE = $stdout.tty? && !NO_FZF
+
+CLIPBOARD_CMD = case RUBY_PLATFORM
+                when /darwin/ then 'pbcopy'
+                when /linux/
+                  if system('command -v xclip >/dev/null 2>&1')
+                    'xclip -selection clipboard'
+                  elsif system('command -v xsel >/dev/null 2>&1')
+                    'xsel --clipboard'
+                  else
+                    'sh -c "echo Clipboard unavailable >&2"'
+                  end
+                else 'sh -c "echo Clipboard unavailable >&2"'
+                end
+
+# ============================================================================
+# Colors
+# ============================================================================
+module Colors
+  RESET   = "\e[0m"
+  BOLD    = "\e[1m"
+  DIM     = "\e[2m"
+  RED     = "\e[31m"
+  GREEN   = "\e[32m"
+  YELLOW  = "\e[33m"
+  BLUE    = "\e[34m"
+  MAGENTA = "\e[35m"
+  CYAN    = "\e[36m"
+
+  class << self
+    # Dim colors for metadata (reduce visual noise)
+    def hash(s)     = "#{DIM}#{s}#{RESET}"
+    def author(s)   = "#{DIM}#{s}#{RESET}"
+    def date(s)     = "#{DIM}#{s}#{RESET}"
+    def graph(s, color: nil)
+      return "#{color}#{s}#{RESET}" if color
+      "#{DIM}#{s}#{RESET}"
+    end
+
+    # Determine graph color from refs
+    def graph_color_for(refs)
+      return nil if refs.empty?
+      # HEAD → cyan
+      return CYAN if refs.any? { |r| r[:type] == :head }
+      # main/master → green
+      return GREEN if refs.any? { |r| r[:name] =~ /\b(main|master)\b/ }
+      nil
+    end
+    def stat(add, del, files: 0, width: 0)
+      return ' ' * width if add == 0 && del == 0 && files == 0
+      parts = []
+      visible_parts = []
+      if add > 0
+        parts << "#{GREEN}+#{add}#{RESET}"
+        visible_parts << "+#{add}"
+      end
+      if del > 0
+        parts << "#{RED}-#{del}#{RESET}"
+        visible_parts << "-#{del}"
+      end
+      if files > 0
+        parts << "#{DIM}#{files}f#{RESET}"
+        visible_parts << "#{files}f"
+      end
+      result = parts.join(' ')
+      visible_width = visible_parts.join(' ').length
+      result + ' ' * [0, width - visible_width].max
+    end
+
+    # Refs keep colors (important info)
+    def head(s)     = "#{BOLD}#{CYAN}#{s}#{RESET}"
+    def branch(s)   = "#{GREEN}#{s}#{RESET}"
+    def remote(s)   = "#{RED}#{s}#{RESET}"
+    def tag(s)      = "#{YELLOW}#{s}#{RESET}"
+
+    # Merge commit marker (keep visible)
+    def merge_mark  = "#{MAGENTA}M#{RESET}"
+  end
+end
+
+# ============================================================================
+# Refs Parser
+# ============================================================================
+def parse_refs(refs_str)
+  return [] if refs_str.nil? || refs_str.strip.empty?
+
+  refs_str = refs_str.strip.gsub(/^\(|\)$/, '')
+  return [] if refs_str.empty?
+
+  refs_str.split(',').map(&:strip).map do |ref|
+    if ref.start_with?('HEAD')
+      { type: :head, name: ref }
+    elsif ref.start_with?('tag:')
+      { type: :tag, name: ref.sub('tag: ', '').strip }
+    elsif ref.include?('/')
+      { type: :remote, name: ref }
+    else
+      { type: :branch, name: ref }
+    end
+  end
+end
+
+def colorize_refs(refs)
+  return '' if refs.empty?
+
+  colored = refs.map do |ref|
+    case ref[:type]
+    when :head   then Colors.head(ref[:name])
+    when :branch then Colors.branch(ref[:name])
+    when :remote then Colors.remote(ref[:name])
+    when :tag    then Colors.tag(ref[:name])
+    end
+  end
+
+  "(#{colored.join(', ')})"
+end
+
+# ============================================================================
+# Stat Helpers
+# ============================================================================
+def parse_numstat(output)
+  return nil if output.strip.empty?
+
+  add, del, files = 0, 0, 0
+  output.each_line do |line|
+    parts = line.split("\t")
+    add += parts[0] == '-' ? 0 : parts[0].to_i
+    del += parts[1] == '-' ? 0 : parts[1].to_i
+    files += 1
+  end
+  { add: add, del: del, files: files }
+end
+
+def collect_worktree_status
+  result = {}
+
+  staged_out, stderr, status = Open3.capture3('git', 'diff', '--cached', '--numstat')
+  if status.success?
+    result[:staged] = parse_numstat(staged_out)
+  elsif !stderr.strip.empty?
+    warn "Warning: #{stderr.strip}"
+  end
+
+  unstaged_out, stderr, status = Open3.capture3('git', 'diff', '--numstat')
+  if status.success?
+    result[:unstaged] = parse_numstat(unstaged_out)
+  elsif !stderr.strip.empty?
+    warn "Warning: #{stderr.strip}"
+  end
+
+  result.compact
+end
+
+def collect_stats(args)
+  # Run git log with numstat to get per-commit stats
+  cmd = ['git', 'log', '--format=%h', '--numstat'] + args
+  stdout, status = Open3.capture2(*cmd)
+  return {} unless status.success?
+
+  stats = {}
+  current_hash = nil
+
+  stdout.each_line do |line|
+    line = line.chomp
+    if line.match?(HASH_PATTERN)
+      current_hash = line
+      stats[current_hash] = { add: 0, del: 0, files: 0 }
+    elsif current_hash && line.match?(NUMSTAT_PATTERN)
+      parts = line.split("\t")
+      add = parts[0] == '-' ? 0 : parts[0].to_i
+      del = parts[1] == '-' ? 0 : parts[1].to_i
+      stats[current_hash][:files] += 1
+      stats[current_hash][:add] += add
+      stats[current_hash][:del] += del
+    end
+  end
+
+  stats
+end
+
+def prettify_graph(graph, is_merge: false, line_type: :commit, color: nil)
+  result = graph.dup
+  g = ->(s) { Colors.graph(s, color: color) }
+
+  # Handle different line types
+  case line_type
+  when :commit
+    commit_char = is_merge ? Colors.merge_mark : g.call('●')
+    result.gsub!('*', commit_char)
+  when :fork
+    # |\ pattern → ├─┐
+    result.gsub!(/\|\\/, g.call('├─┐'))
+    result.gsub!(/\| /, g.call('│ '))
+  when :merge
+    # |/ pattern → └─┘
+    result.gsub!(/\|\//, g.call('├─┘'))
+    result.gsub!(/\/ /, g.call('└─'))
+  end
+
+  # Common replacements
+  result.gsub!('|', g.call('│'))
+  result.gsub!('\\', g.call('─'))
+  result.gsub!('/', g.call('─'))
+  result.gsub!('-', g.call('─'))
+
+  result
+end
+
+# ============================================================================
+# Block Renderer
+# ============================================================================
+def render_commit_block(data, stats, widths)
+  lines = []
+  graph_padded = data[:graph].ljust(widths[:graph])
+  graph_color = Colors.graph_color_for(data[:refs])
+  pretty_graph = prettify_graph(graph_padded, is_merge: data[:is_merge], color: graph_color)
+  cont_graph = prettify_graph(data[:graph].gsub('*', '|').ljust(widths[:graph]), color: graph_color)
+
+  # Line 1: hidden ID (unit separator) + graph + hash + subject
+  # Format: "ID\x1Fvisible content" - fzf --with-nth=2 hides the ID
+  lines << "#{data[:hash]}\x1F#{pretty_graph} #{Colors.hash(data[:hash])} #{data[:subject]}"
+
+  # Padding to align after hash
+  hash_pad = ' ' * (widths[:hash] + 1)
+
+  # Line 2: graph + date (relative) · stat · author (aligned columns)
+  relative_padded = "(#{data[:relative]})".ljust(widths[:relative] + 2)  # +2 for parentheses
+  stat_str = if (s = stats[data[:hash]])
+               Colors.stat(s[:add], s[:del], files: s[:files], width: widths[:stat])
+             else
+               ' ' * widths[:stat]
+             end
+  lines << "#{cont_graph} #{hash_pad}#{Colors.date(data[:date])} #{Colors::DIM}#{relative_padded}#{Colors::RESET} #{stat_str} #{Colors::DIM}·#{Colors::RESET} #{Colors.author(data[:author])}"
+
+  # Line 3: refs (if any)
+  unless data[:refs].empty?
+    lines << "#{cont_graph} #{hash_pad}#{colorize_refs(data[:refs])}"
+  end
+
+  lines
+end
+
+def render_graph_only(data, max_graph_width)
+  graph_padded = data[:graph].ljust(max_graph_width)
+  prettify_graph(graph_padded, line_type: data[:graph_type])
+end
+
+def render_worktree_block(type, stat, widths)
+  # type: :staged or :unstaged
+  marker = type == :staged ? 'index' : 'work'
+  label = type == :staged ? 'Staged changes' : 'Unstaged changes'
+  color = type == :staged ? Colors::GREEN : Colors::YELLOW
+
+  # Graph area: ◆ + padding to match commit graph width
+  # Commits use prettify_graph which replaces * with ● and pads
+  # We do the same: ◆ (1 char) + spaces to fill max_graph_width
+  graph_str = "#{color}◆#{Colors::RESET}" + ' ' * [0, widths[:graph] - 1].max
+  cont_pad = ' ' * widths[:graph]
+  hash_pad = ' ' * (widths[:hash] + 1)
+
+  stat_str = Colors.stat(stat[:add], stat[:del])
+  files_str = "#{Colors::DIM}#{stat[:files]} file#{'s' if stat[:files] != 1}#{Colors::RESET}"
+
+  lines = []
+  # Hidden ID format: "index" or "work" (unit separator)
+  # Align marker with hash width
+  marker_display = "[#{marker}]".ljust(widths[:hash])
+  lines << "#{marker}\x1F#{graph_str} #{Colors::DIM}#{marker_display}#{Colors::RESET} #{label}"
+  lines << "#{cont_pad} #{hash_pad}#{stat_str} #{Colors::DIM}·#{Colors::RESET} #{files_str}"
+  lines
+end
+
+# ============================================================================
+# fzf Integration
+# ============================================================================
+# Extract hidden ID from first field (tab-separated)
+# {1} gives first field which is either: commit hash, "index", or "work"
+GET_ID = '{1}'
+
+# DRY helper: generates shell command that routes to index/work/commit
+def diff_router(staged_cmd, unstaged_cmd, commit_cmd)
+  <<~SH.gsub("\n", ' ').strip
+    id=#{GET_ID};
+    if [ "$id" = "index" ]; then #{staged_cmd};
+    elif [ "$id" = "work" ]; then #{unstaged_cmd};
+    else [ -n "$id" ] && h=$id && #{commit_cmd}; fi
+  SH
+end
+
+# Preview format: header + body + stat (more informative than just stat)
+PREVIEW_FORMAT = '%C(yellow)%h%C(reset) %C(cyan)%ar%C(reset) %C(green)%an%C(reset)%n%n%C(bold)%s%C(reset)%n%n%b'
+COMMIT_PREVIEW = "git log -1 --color --format='#{PREVIEW_FORMAT}' $h && echo '─────────────────────────────────────' && git diff-tree --stat --no-commit-id -r $h"
+STAGED_PREVIEW = "echo 'Staged changes' && echo '─────────────────────────────────────' && git diff --cached --color --stat"
+UNSTAGED_PREVIEW = "echo 'Unstaged changes' && echo '─────────────────────────────────────' && git diff --color --stat"
+
+def run_fzf(blocks, git_args)
+  script_path = File.expand_path($0)
+  args_str = git_args.shelljoin  # Safe escaping
+
+  header = [
+    "#{Colors::DIM}enter#{Colors::RESET}:show  #{Colors::DIM}ctrl-d#{Colors::RESET}:diff  #{Colors::DIM}ctrl-s#{Colors::RESET}:stat  #{Colors::DIM}ctrl-e#{Colors::RESET}:vim  #{Colors::DIM}ctrl-y#{Colors::RESET}:yank",
+    "#{Colors::DIM}ctrl-w#{Colors::RESET}:switch  #{Colors::DIM}ctrl-b#{Colors::RESET}:branch  #{Colors::DIM}ctrl-r#{Colors::RESET}:rebase  #{Colors::DIM}ctrl-o#{Colors::RESET}:PR  #{Colors::DIM}ctrl-f#{Colors::RESET}:fetch  #{Colors::DIM}q#{Colors::RESET}:quit"
+  ].join("\n")
+
+  fzf_opts = [
+    '--read0', '--ansi', '--layout=reverse', '--highlight-line', '--gap', '--no-sort',
+    '--delimiter', "\x1F", '--with-nth', '2',  # Hide ID field (unit separator)
+    '--header', header,
+    '--preview', diff_router(STAGED_PREVIEW, UNSTAGED_PREVIEW, COMMIT_PREVIEW),
+    '--preview-window', 'up:50%',
+    '--bind', 'q:abort',
+    '--bind', "ctrl-d:change-preview(#{diff_router('git diff --cached --color', 'git diff --color', 'git show --color $h')})",
+    '--bind', "ctrl-s:change-preview(#{diff_router(STAGED_PREVIEW, UNSTAGED_PREVIEW, COMMIT_PREVIEW)})",
+    '--bind', "ctrl-y:execute-silent(echo -n #{GET_ID} | #{CLIPBOARD_CMD})+abort",
+    '--bind', "enter:execute(#{diff_router('git diff --cached --color | less -R', 'git diff --color | less -R', 'git show --color $h | less -R')})",
+    '--bind', "ctrl-f:execute-silent(git fetch --all --prune)+become(#{script_path} #{args_str})",
+    '--bind', "ctrl-b:execute(h=#{GET_ID}; [ \"$h\" = index ] || [ \"$h\" = work ] && exit 1; printf 'Branch name: '; read -r name; [ -n \"$name\" ] && git branch \"$name\" $h && echo \"Created: $name at $h\")+abort",
+    '--bind', "ctrl-e:execute(#{diff_router('git diff --cached > /tmp/git-staged.diff && nvim /tmp/git-staged.diff', 'git diff > /tmp/git-unstaged.diff && nvim /tmp/git-unstaged.diff', 'git show $h > /tmp/git-show-$h.diff && nvim /tmp/git-show-$h.diff')})",
+    '--bind', "ctrl-r:become(h=#{GET_ID}; [ \"$h\" != index ] && [ \"$h\" != work ] && git rebase -i $h^)",
+    '--bind', "ctrl-o:execute-silent(pr=$(echo {} | grep -oE '#[0-9]+' | head -1 | tr -d '#'); [ -n \"$pr\" ] && gh pr view $pr --web)",
+    '--bind', "ctrl-w:become(h=#{GET_ID}; [ \"$h\" = index ] || [ \"$h\" = work ] && exit 1; branch=$(git branch --points-at $h --format='%(refname:short)' | head -1); [ -n \"$branch\" ] && git switch \"$branch\" || git switch --detach $h)"
+  ]
+
+  # tmux popup requires fzf 0.48+
+  if ENV['TMUX']
+    fzf_ver = `fzf --version 2>/dev/null`.split.first.to_f rescue 0
+    fzf_opts += ['--tmux', '100%'] if fzf_ver >= 0.48
+  end
+
+  Open3.popen2('fzf', *fzf_opts) do |stdin, _stdout, wait_thr|
+    blocks.each { |block| stdin.print "#{block}\0" }
+    stdin.close
+    wait_thr.value
+  end
+end
+
+# ============================================================================
+# Main
+# ============================================================================
+def main(args)
+  # Apply default commit count if not specified
+  args = ["-#{DEFAULT_COMMIT_COUNT}"] + args if args.none? { |a| a.match?(/^-\d+$/) || a.start_with?('-n') }
+
+  # Collect stats first (separate command for simplicity)
+  stats = collect_stats(args)
+
+  # Format: graph NUL hash NUL parents NUL date NUL relative NUL author NUL subject NUL refs
+  format = '%x00%h%x00%P%x00%ad%x00%ar%x00%an%x00%s%x00%d'
+  cmd = ['git', 'log', '--graph', "--format=#{format}", '--date=format:%y-%m-%d %H:%M'] + args
+
+  stdout, stderr, status = Open3.capture3(*cmd)
+  unless status.success?
+    err = stderr&.strip
+    warn err&.empty? ? "Error: Not a git repository" : "Error: #{err}"
+    exit 1
+  end
+
+  max_graph_width = 0
+  max_hash_width = 7  # minimum
+  max_author_width = 0
+  max_relative_width = 0
+  max_stat_width = 0
+  lines_data = []
+
+  # First pass: parse and find max widths
+  stdout.each_line do |line|
+    line = line.chomp
+
+    if line.include?("\x00")
+      parts = line.split("\x00", 8)
+      graph = parts[0]
+      hash = parts[1]
+      parents = parts[2]
+      date = parts[3]
+      relative = parts[4]
+      author = parts[5]
+      subject = parts[6]
+      refs_str = parts[7]
+
+      is_merge = parents.split.size > 1
+      max_graph_width = [max_graph_width, graph.length].max
+      max_hash_width = [max_hash_width, hash.length].max
+      max_author_width = [max_author_width, author.length].max
+      max_relative_width = [max_relative_width, relative.length].max
+
+      # Calculate stat width (e.g., "+54 3f" = 6, "+71 -57 3f" = 11)
+      if (s = stats[hash])
+        stat_width = 0
+        stat_width += "+#{s[:add]}".length if s[:add] > 0
+        stat_width += " -#{s[:del]}".length if s[:del] > 0
+        stat_width += " #{s[:files]}f".length if s[:files] > 0
+        max_stat_width = [max_stat_width, stat_width].max
+      end
+
+      lines_data << {
+        type: :commit,
+        graph: graph,
+        hash: hash,
+        is_merge: is_merge,
+        date: date,
+        relative: relative,
+        author: author,
+        subject: subject,
+        refs: parse_refs(refs_str)
+      }
+    else
+      graph_width = line.length
+      max_graph_width = graph_width if graph_width > max_graph_width
+
+      graph_type = if line.include?('\\')
+                     :fork
+                   elsif line.include?('/')
+                     :merge
+                   else
+                     :pipe
+                   end
+
+      lines_data << {
+        type: :graph_only,
+        graph: line,
+        graph_type: graph_type
+      }
+    end
+  end
+
+  # Second pass: render blocks
+  blocks = []
+  current_block = []
+
+  widths = { graph: max_graph_width, hash: max_hash_width, author: max_author_width, relative: max_relative_width, stat: max_stat_width }
+
+  lines_data.each do |data|
+    if data[:type] == :commit
+      # Save previous block if exists
+      blocks << current_block.join("\n") unless current_block.empty?
+      current_block = render_commit_block(data, stats, widths)
+    else
+      # Graph-only lines attach to current block
+      current_block << render_graph_only(data, widths[:graph])
+    end
+  end
+  blocks << current_block.join("\n") unless current_block.empty?
+
+  # Add worktree status blocks at the beginning
+  worktree = collect_worktree_status
+  worktree_blocks = []
+  if worktree[:unstaged]
+    worktree_blocks << render_worktree_block(:unstaged, worktree[:unstaged], widths).join("\n")
+  end
+  if worktree[:staged]
+    worktree_blocks << render_worktree_block(:staged, worktree[:staged], widths).join("\n")
+  end
+  blocks = worktree_blocks + blocks
+
+  # Handle empty state
+  if blocks.empty?
+    warn "No commits found"
+    exit 0
+  end
+
+  # Output
+  if FZF_MODE
+    run_fzf(blocks, args)
+  else
+    # Strip ID prefix (used for fzf field extraction)
+    blocks.each do |block|
+      block.each_line { |line| puts line.sub(/^[^\x1F]*\x1F/, '') }
+      puts
+    end
+  end
+end
+
+main(ARGV)
