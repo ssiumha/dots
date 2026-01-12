@@ -1,11 +1,12 @@
 ---
 name: justfile-syntax
-description: Guides Justfile syntax and patterns. Use when writing or editing Justfiles, especially for indent rules and heredoc syntax.
+description: Justfile heredoc and indentation rules
+paths: "**/Justfile, **/justfile"
 ---
 
 # Justfile 문법 가이드
 
-Justfile 편집 시 인덴트 규칙과 heredoc 문법을 안내합니다.
+Justfile 편집 시 인덴트 규칙과 heredoc 문법을 준수하세요.
 
 ## 핵심 규칙
 
@@ -118,8 +119,3 @@ Justfile 수정 전 확인:
 - [ ] heredoc 내용: 인덴트 없음 (첫 칸 시작)
 - [ ] EOF 마커: 인덴트 없음 (첫 칸)
 - [ ] 변수 치환: 필요하면 `<< EOF`, 방지하면 `<< 'EOF'`
-
-## 참고
-
-- Just 공식 문서: https://github.com/casey/just
-- Bash heredoc: https://tldp.org/LDP/abs/html/here-docs.html

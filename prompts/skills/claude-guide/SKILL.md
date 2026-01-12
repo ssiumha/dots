@@ -1,6 +1,8 @@
 ---
 name: claude-guide
 description: Guides Claude Code setup and configuration. Use when setting up CLAUDE.md, rules, hooks, or skills structure for projects.
+invocable: true
+invocable_description: Reviews and refactors existing CLAUDE.md. Run to analyze memory structure and extract reusable patterns to skills.
 ---
 
 # Claude Guide
