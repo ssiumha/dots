@@ -124,12 +124,12 @@ related:
 
 1. **본문에서 참조**:
    ```bash
-   Grep "\[\[현재-문서-id\]\]" ~/docs/{project}/**/*.md
+   Grep "\[\[현재-문서-id\]\]" {docs}/**/*.md
    ```
 
 2. **Frontmatter에서 참조**:
    ```bash
-   Grep "- 현재-문서-id" ~/docs/{project}/**/*.md
+   Grep "- 현재-문서-id" {docs}/**/*.md
    ```
 
 ### 사용 시나리오
@@ -140,41 +140,39 @@ related:
 ## 디렉토리 구조 예시
 
 ```
-~/docs/
-├── myproject/
-│   ├── knowledge/
-│   │   ├── architecture/
-│   │   │   ├── database.md
-│   │   │   └── api-design.md
-│   │   ├── security/
-│   │   │   ├── ip-policy.md
-│   │   │   └── auth-policy.md
-│   │   └── requirements/
-│   │       └── user-features.md
-│   ├── decisions/
-│   │   ├── aws-region.md
-│   │   └── tech-stack.md
-│   ├── todos/
-│   │   ├── ip-update.md          # status: pending/in-progress
-│   │   ├── api-docs.md            # status: pending/in-progress
-│   │   └── completed/             # 완료된 TODO 보관
-│   │       ├── 2025-01/
-│   │       │   ├── auth-setup.md
-│   │       │   └── db-migration.md
-│   │       └── 2025-02/
-│   │           └── feature-x.md
-│   └── requirements/              # 요구사항 문서 (EARS 패턴)
-│       ├── functional/
-│       │   ├── user-login.md
-│       │   └── user-registration.md
-│       ├── non-functional/
-│       │   └── api-response-time.md
-│       ├── security/
-│       │   └── password-encryption.md
-│       └── interface/
-│           └── external-payment-api.md
-└── another-project/
-    └── ...
+{project-root}/
+└── docs/                          # {docs} 변수가 가리키는 위치
+    ├── knowledge/
+    │   ├── architecture/
+    │   │   ├── database.md
+    │   │   └── api-design.md
+    │   ├── security/
+    │   │   ├── ip-policy.md
+    │   │   └── auth-policy.md
+    │   └── requirements/
+    │       └── user-features.md
+    ├── decisions/
+    │   ├── aws-region.md
+    │   └── tech-stack.md
+    ├── todos/
+    │   ├── ip-update.md           # status: pending/in-progress
+    │   ├── api-docs.md            # status: pending/in-progress
+    │   └── completed/             # 완료된 TODO 보관
+    │       ├── 2025-01/
+    │       │   ├── auth-setup.md
+    │       │   └── db-migration.md
+    │       └── 2025-02/
+    │           └── feature-x.md
+    └── requirements/              # 요구사항 문서 (EARS 패턴)
+        ├── functional/
+        │   ├── user-login.md
+        │   └── user-registration.md
+        ├── non-functional/
+        │   └── api-response-time.md
+        ├── security/
+        │   └── password-encryption.md
+        └── interface/
+            └── external-payment-api.md
 ```
 
 ### TODO 상태별 위치
@@ -222,7 +220,7 @@ date +%Y-%m-%d
 
 ### 디렉토리 구조
 
-모든 문서는 `~/docs/{project}/` 아래에 저장됩니다:
+모든 문서는 `{docs}/` 아래에 저장됩니다:
 - `knowledge/{category}/`: 지식 문서 (아키텍처, 보안, 요구사항 등)
 - `decisions/`: 의사결정 기록
 - `todos/`: 할 일 목록
@@ -313,10 +311,10 @@ depends-on: []
 관련 TODO 찾기:
 ```bash
 # 파일명 패턴으로 검색
-Glob ~/docs/{project}/todos/resource-*.md
+Glob {docs}/todos/resource-*.md
 
 # 태그로 검색
-Grep "tags:.*resource" ~/docs/{project}/todos/*.md
+Grep "tags:.*resource" {docs}/todos/*.md
 ```
 
 ## Living Docs 커밋 메시지 포맷

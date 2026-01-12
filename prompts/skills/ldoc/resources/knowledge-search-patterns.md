@@ -8,10 +8,10 @@
 
 ```bash
 # 전체 구조 시각화
-Bash: lsd --tree ~/docs/{project}
+Bash: lsd --tree {docs}
 
 # 문서 통계 빠르게 파악
-Bash: find ~/docs/{project} -name "*.md" | wc -l
+Bash: find {docs} -name "*.md" | wc -l
 ```
 
 구조 파악 결과:
@@ -26,16 +26,16 @@ Bash: find ~/docs/{project} -name "*.md" | wc -l
 ```bash
 # 전략 A: Frontmatter에서 빠르게 스캔
 # - 문서 ID, 제목, 태그만 추출하여 인덱스처럼 활용
-Grep -A 10 "^---$" ~/docs/{project}/**/*.md | head -50
+Grep -A 10 "^---$" {docs}/**/*.md | head -50
 
 # 전략 B: 키워드 검색 (본문 포함)
-Grep -i "keyword" ~/docs/{project}/**/*.md
+Grep -i "keyword" {docs}/**/*.md
 
 # 전략 C: 태그 기반 필터링
-Grep "tags:.*security" ~/docs/{project}/**/*.md
+Grep "tags:.*security" {docs}/**/*.md
 
 # 전략 D: 문서 ID 패턴 검색
-Grep "^id: know-arch" ~/docs/{project}/**/*.md
+Grep "^id: know-arch" {docs}/**/*.md
 ```
 
 **핵심 원칙**:
@@ -53,10 +53,10 @@ Grep "^id: know-arch" ~/docs/{project}/**/*.md
 
 ```bash
 # 1단계: 인덱스 탐색으로 후보 파악
-Grep -i "api" ~/docs/{project}/**/*.md | head -20
+Grep -i "api" {docs}/**/*.md | head -20
 
 # 2단계: 필요한 문서만 Read
-Read ~/docs/{project}/knowledge/architecture/api-design.md
+Read {docs}/knowledge/architecture/api-design.md
 ```
 
 ### 전략 B: 특정 문서의 연결 탐색
@@ -71,10 +71,10 @@ Read ~/docs/{project}/knowledge/architecture/api-design.md
 
 ```bash
 # 본문에서 현재 문서를 참조하는 문서 찾기
-Grep "\[\[현재-문서-id\]\]" ~/docs/{project}/**/*.md
+Grep "\[\[현재-문서-id\]\]" {docs}/**/*.md
 
 # Frontmatter에서 현재 문서를 참조하는 문서 찾기
-Grep "- 현재-문서-id" ~/docs/{project}/**/*.md
+Grep "- 현재-문서-id" {docs}/**/*.md
 ```
 
 ### 전략 C: 태그 기반 탐색
@@ -82,7 +82,7 @@ Grep "- 현재-문서-id" ~/docs/{project}/**/*.md
 **사용 시나리오**: "security 태그 문서 모두 보여줘"
 
 ```bash
-Grep "tags:.*security" ~/docs/{project}/**/*.md
+Grep "tags:.*security" {docs}/**/*.md
 ```
 
 ### 전략 D: 상태 기반 필터링
@@ -91,16 +91,16 @@ Grep "tags:.*security" ~/docs/{project}/**/*.md
 
 ```bash
 # Active TODO만 (pending, in-progress)
-Grep "status: in-progress" ~/docs/{project}/todos/*.md
+Grep "status: in-progress" {docs}/todos/*.md
 
 # 우선순위별 필터링
-Grep "priority: high" ~/docs/{project}/todos/*.md
+Grep "priority: high" {docs}/todos/*.md
 
 # 완료된 TODO 검색 (completed 디렉토리)
-Grep "status: done" ~/docs/{project}/todos/completed/**/*.md
+Grep "status: done" {docs}/todos/completed/**/*.md
 
 # 특정 월 완료 작업
-Glob ~/docs/{project}/todos/completed/2025-01/*.md
+Glob {docs}/todos/completed/2025-01/*.md
 ```
 
 ## 3. 상세 분석 (필요한 것만)

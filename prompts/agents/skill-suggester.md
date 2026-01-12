@@ -62,7 +62,7 @@ model: haiku
 - 장점: {재사용성, 일관성 등}
 - 예상 분량: {워크플로우 N개, 약 X줄}
 
-[1] skill 생성 (skill-manager 호출)
+[1] skill 생성 → "skill 만들어줘" 또는 skill-creator 활용
 [2] 나중에
 [3] 무시
 ```

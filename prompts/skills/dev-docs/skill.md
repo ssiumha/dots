@@ -1,6 +1,6 @@
 ---
 name: dev-docs
-description: 대형 작업에서 진행 상황을 추적하고 세션 간 컨텍스트를 유지할 때 사용. 작업 재개, 상태 파악을 지원합니다. (user)
+description: Tracks progress and maintains context across sessions. Use when working on large tasks, resuming work, or checking task status.
 ---
 
 # Dev Docs

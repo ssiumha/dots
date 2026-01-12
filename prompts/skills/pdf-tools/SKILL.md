@@ -1,6 +1,6 @@
 ---
 name: pdf-tools
-description: PDF에서 정보를 추출하거나 내용을 분석할 때 사용. 텍스트 추출, Markdown 변환, 페이지 이미지 export를 지원합니다. (user)
+description: Extracts and analyzes PDF content. Use when extracting text, converting to Markdown, or exporting page images from PDFs.
 ---
 
 # PDF Tools

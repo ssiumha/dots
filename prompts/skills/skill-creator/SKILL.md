@@ -1,11 +1,37 @@
 ---
-name: skill-manager
-description: 작업 패턴을 재사용 가능한 skill로 만들 때 사용. 대화에서 반복된 패턴을 자동 감지하여 skill화합니다. (user)
+name: skill-creator
+description: Creates and manages Claude Code skills. Use when creating new skills, updating existing skills, or converting repeated prompts into reusable skill packages.
 ---
 
-# Skill Manager
+# Skill Creator
 
 Skill을 생성, 수정, 갱신하고 best practices를 검증합니다.
+
+## Description 작성법 (핵심)
+
+Description은 Claude가 skill 활성화를 결정하는 **유일한 기준**입니다.
+
+**필수 포함 요소**:
+1. **무엇을 하는지** (What): 구체적 기능
+2. **언제 사용하는지** (When): 트리거 조건
+
+**좋은 예시**:
+```yaml
+# 명확한 기능 + 트리거 조건
+description: Generates commit messages from git diffs. Use when writing commits or reviewing staged changes.
+
+# 구체적 키워드 포함
+description: Creates Docker configurations. Use when containerizing apps, writing compose.yaml, or building multi-stage images.
+```
+
+**나쁜 예시**:
+```yaml
+# 너무 모호함
+description: Helps with documents.
+
+# 트리거 조건 없음
+description: Code review tool.
+```
 
 ## Progressive Disclosure (토큰 효율)
 
@@ -191,13 +217,17 @@ Skill 생성 전 **구체적 사용 예시**를 수집하십시오. 예시가 �
 
 4. **SKILL.md 작성**
 
-   **Frontmatter**:
+   **Frontmatter** (Description이 가장 중요):
    ```yaml
    ---
    name: {skill-name}
-   description: {언제 사용하는지 명시}. {구체적 키워드 포함}.
+   description: {구체적 기능}. Use when {트리거 상황}, {사용 맥락}.
    ---
    ```
+
+   **예시**:
+   - `description: Generates API documentation. Use when documenting endpoints or creating OpenAPI specs.`
+   - `description: Resolves Git rebase conflicts. Use when encountering merge conflicts during rebase operations.`
 
    **핵심 철학** (선택, 여러 방법 중 선택 시):
    ```markdown
@@ -291,13 +321,81 @@ Skill 생성/갱신 후 **실제 사용 피드백**을 반영하십시오:
    - 3회 이상 사용 후 안정화 판단
    - 안정화 전까지 피드백 루프 유지
 
-## 중요 원칙
+### 워크플로우 5: Prompt → Skill 변환
 
-1. **컨텍스트 우선**: 대화와 파일 변경을 자동 분석, 사용자 입력 최소화
-2. **사용자 확인**: 각 주요 결정 지점에서 사용자 확인 (갱신 vs 신규, skill 유형)
-3. **Best practices 자동 적용**: 기존 skills 패턴 재사용, 일관성 유지
-4. **토큰 효율**: SKILL.md는 핵심만, 상세 내용은 resources/로 분리
-5. **검증 자동화**: 체크리스트 기반, 분량/파일명/구조 자동 확인
+기존에 잘 작동하는 프롬프트를 skill로 변환:
+
+1. **프롬프트 분석**
+   - 구조 파악 (섹션, 단계)
+   - 변수 식별 (사용자 입력)
+   - 출력 형식 확인
+
+2. **SKILL.md 생성**
+   ```yaml
+   ---
+   name: your-skill-name
+   description: 언제 사용하는지 명시. 키워드 포함.
+   ---
+
+   [기존 프롬프트 내용]
+   ```
+
+3. **저장 및 등록**
+   - `~/.claude/skills/{name}/SKILL.md`로 저장
+   - 또는 심볼릭 링크 설정
+
+4. **트리거 테스트**
+   - "Use the {name} skill to {action}" 명시적 호출
+   - description 키워드로 자동 트리거 확인
+
+### 워크플로우 6: Project Context 생성
+
+프로젝트 문서/코드 분석 → 컨텍스트 skill:
+
+1. **소스 분석**
+   - README.md, 문서 파일
+   - 코드 구조 (디렉토리, 주요 파일)
+   - 기존 CLAUDE.md
+
+2. **컨텍스트 추출**
+   - 프로젝트 목적/개요
+   - 아키텍처/기술 스택
+   - 코딩 컨벤션
+   - 주요 용어/개념
+
+3. **Skill 생성**
+   ```yaml
+   ---
+   name: project-context
+   description: {프로젝트명} 컨텍스트. 프로젝트 작업 시 자동 로드.
+   ---
+
+   ## Project Overview
+   [추출된 개요]
+
+   ## Architecture
+   [기술 스택, 구조]
+
+   ## Conventions
+   [코딩 스타일, 규칙]
+
+   ## Terminology
+   [프로젝트 특화 용어]
+   ```
+
+4. **활용**
+   - 프로젝트 작업 시 컨텍스트 재설명 불필요
+   - 다른 skills와 조합 가능
+
+## 중요 원칙 (Anthropic 공식 권장)
+
+1. **평가부터 시작**: Claude의 약점을 관찰 후 그 격차를 메우는 skill 구축
+2. **Description이 핵심**: What + When 명시, 구체적 키워드 포함
+3. **규모에 맞춘 구조화**: SKILL.md 복잡해지면 별도 파일로 분리
+4. **Claude 관점에서 설계**: 실제 사용을 모니터링하며 description 반복 개선
+5. **Claude와 협업**: Claude에게 성공/실패 사례를 skill로 문서화 요청
+6. **토큰 효율**: Progressive Disclosure 원칙 준수
+7. **모듈식 설계**: 단일 책임 원칙, 작은 focused skills → 조합하여 사용
 
 ## 안티패턴
 
@@ -307,6 +405,8 @@ Skill 생성/갱신 후 **실제 사용 피드백**을 반영하십시오:
 | 프로젝트 특정 정보 포함 | placeholder 사용 ({project}, {name}) |
 | 다른 skill과 내용 중복 | 참조로 대체 ("tdd-practices 참조") |
 | description에 키워드 부족 | 트리거 키워드 명시적 포함 |
+| 모놀리식 skill (너무 많은 기능) | 단일 책임으로 분리, 조합하여 사용 |
+| 자동 트리거 의존 | 명시적 호출 패턴도 안내 |
 
 ## Examples
 
@@ -354,4 +454,6 @@ bash scripts/validate-skill.sh <skill-name>
 - `resources/01-type-templates.md`: 5가지 유형 템플릿
 - `resources/02-best-practices-checklist.md`: 검증 체크리스트
 - `resources/03-update-patterns.md`: 갱신 패턴 가이드
+- `resources/04-interactive-design.md`: 대화형 skill 설계 패턴
+- `resources/05-composable-skills.md`: 모듈식 skill 조합 가이드
 - `templates/SKILL-template.md`: 기본 뼈대

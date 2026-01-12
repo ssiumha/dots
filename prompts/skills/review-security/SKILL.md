@@ -1,6 +1,6 @@
 ---
 name: review-security
-description: 인증/인가 구현, API 추가, 사용자 입력 처리, 배포 전 검토 시 proactively 사용. OWASP Top 10, credential 노출, injection을 점검합니다. (user)
+description: Reviews code for security vulnerabilities. Use when implementing auth, handling user input, adding APIs, or before deployment. Checks OWASP Top 10, credentials, injection.
 ---
 
 # Security Review

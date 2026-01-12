@@ -1,6 +1,6 @@
 ---
 name: cli-guidelines
-description: CLI 도구를 개발하거나 명령줄 인터페이스를 설계할 때 proactively 사용. 플래그 설계, 도움말, 오류 메시지 패턴을 제공합니다. (user)
+description: Provides CLI design guidelines and best practices. Use when developing command-line tools, designing flags, help text, or error messages.
 ---
 
 # CLI Guidelines

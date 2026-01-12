@@ -1,3 +1,8 @@
+---
+name: jd-docs-setup
+description: Sets up Johnny.Decimal documentation system for projects. Use when initializing docs/ structure, creating JD categories, or organizing project documentation.
+---
+
 # jd-docs-setup
 
 Johnny.Decimal 체계 기반 프로젝트 문서화 시스템 셋업

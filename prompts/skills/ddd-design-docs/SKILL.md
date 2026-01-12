@@ -1,6 +1,6 @@
 ---
 name: ddd-design-docs
-description: 도메인 중심 설계가 필요하거나 복잡한 비즈니스 로직을 구조화할 때 사용. DDD 4계층 아키텍처 패턴을 제공합니다. (user)
+description: Provides DDD layered architecture patterns. Use when designing domain-centric systems or structuring complex business logic.
 ---
 
 # DDD Design Docs

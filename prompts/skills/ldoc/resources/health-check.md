@@ -10,8 +10,8 @@ ldoc 문서의 건강도를 자동으로 체크하고 리팩토링을 제안합�
 
 **검사 대상**:
 ```bash
-~/docs/{project}/knowledge/**/*.md
-~/docs/{project}/decisions/**/*.md
+{docs}/knowledge/**/*.md
+{docs}/decisions/**/*.md
 ```
 
 ## 검사 기준
@@ -20,7 +20,7 @@ ldoc 문서의 건강도를 자동으로 체크하고 리팩토링을 제안합�
 
 ```bash
 # 모든 문서의 라인 수 확인
-find ~/docs/{project} -name "*.md" -exec wc -l {} \;
+find {docs} -name "*.md" -exec wc -l {} \;
 ```
 
 **임계값**:
@@ -53,7 +53,7 @@ find ~/docs/{project} -name "*.md" -exec wc -l {} \;
 
 ```bash
 # 태그별 문서 그룹핑
-Grep "^tags:" ~/docs/{project}/**/*.md
+Grep "^tags:" {docs}/**/*.md
 ```
 
 **유사도 계산**:
@@ -87,7 +87,7 @@ Grep "^tags:" ~/docs/{project}/**/*.md
 
 ```bash
 # 키워드 빈도 분석
-Grep -i "{keyword}" ~/docs/{project}/knowledge/**/*.md | wc -l
+Grep -i "{keyword}" {docs}/knowledge/**/*.md | wc -l
 ```
 
 **판단**:
@@ -100,13 +100,13 @@ Grep -i "{keyword}" ~/docs/{project}/knowledge/**/*.md | wc -l
 
 ```bash
 # 모든 내부 링크 추출
-Grep -o "\[\[.*\]\]" ~/docs/{project}/**/*.md
+Grep -o "\[\[.*\]\]" {docs}/**/*.md
 
 # 각 링크가 실제 문서를 가리키는지 확인
 ```
 
 **검사**:
-- `[[know-api-design]]` → `~/docs/{project}/knowledge/api-design.md` 존재 여부
+- `[[know-api-design]]` → `{docs}/knowledge/api-design.md` 존재 여부
 - 파일 이동/삭제로 인한 깨진 링크 탐지
 
 **제안**:
@@ -125,7 +125,7 @@ Grep -o "\[\[.*\]\]" ~/docs/{project}/**/*.md
 
 ```bash
 # "see", "참고", "refer to" 같은 키워드 검색
-Grep -i "see.*\(api\|auth\|deploy\)" ~/docs/{project}/**/*.md | grep -v "\[\["
+Grep -i "see.*\(api\|auth\|deploy\)" {docs}/**/*.md | grep -v "\[\["
 ```
 
 **제안**:
@@ -142,7 +142,7 @@ Grep -i "see.*\(api\|auth\|deploy\)" ~/docs/{project}/**/*.md | grep -v "\[\["
 
 ```bash
 # frontmatter references가 비어있는 문서
-Grep "references: \[\]" ~/docs/{project}/**/*.md
+Grep "references: \[\]" {docs}/**/*.md
 
 # 역으로 다른 문서에서 이 문서를 링크하는지 확인
 ```
@@ -173,7 +173,7 @@ knowledge/ 바로 아래 평면 구조로 있는 문서:
 
 ```bash
 # 하위 디렉토리 없이 직접 배치된 문서
-find ~/docs/{project}/knowledge -maxdepth 1 -name "*.md"
+find {docs}/knowledge -maxdepth 1 -name "*.md"
 ```
 
 **제안**:
@@ -197,7 +197,7 @@ find ~/docs/{project}/knowledge -maxdepth 1 -name "*.md"
 
 ```bash
 # 카테고리별 문서 수 집계
-find ~/docs/{project}/knowledge/* -type d | while read dir; do
+find {docs}/knowledge/* -type d | while read dir; do
   echo "$dir: $(find "$dir" -maxdepth 1 -name "*.md" | wc -l)"
 done
 ```
@@ -359,15 +359,15 @@ Edit deployment.md:
 
 ```bash
 # 디렉토리 생성
-mkdir -p ~/docs/{project}/knowledge/api
-mkdir -p ~/docs/{project}/knowledge/operations
+mkdir -p {docs}/knowledge/api
+mkdir -p {docs}/knowledge/operations
 
 # 파일 이동
-mv ~/docs/{project}/knowledge/api-design.md \
-   ~/docs/{project}/knowledge/api/design.md
+mv {docs}/knowledge/api-design.md \
+   {docs}/knowledge/api/design.md
 
-mv ~/docs/{project}/knowledge/deployment-process.md \
-   ~/docs/{project}/knowledge/operations/deployment.md
+mv {docs}/knowledge/deployment-process.md \
+   {docs}/knowledge/operations/deployment.md
 ```
 
 ## 체크리스트

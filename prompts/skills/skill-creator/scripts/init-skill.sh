@@ -5,7 +5,7 @@
 set -euo pipefail
 
 SKILLS_DIR="$HOME/dots/prompts/skills"
-TEMPLATE_DIR="$SKILLS_DIR/skill-manager/templates"
+TEMPLATE_DIR="$SKILLS_DIR/skill-creator/templates"
 
 [[ $# -lt 1 ]] && { echo "Usage: init-skill.sh <skill-name>"; exit 1; }
 

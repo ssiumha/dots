@@ -1,418 +1,52 @@
 # UserPromptSubmit Hook Rules
-# 프롬프트 제출 시 자동으로 활성화되는 규칙들
-
-# Skill Activation Rules (skill-*)
-skill-ldoc:
-  # 문서/지식베이스/TODO 관련 키워드
-  keywords:
-    - "문서"
-    - "문서화"
-    - "도큐먼트"
-    - "documentation"
-    - "docs"
-    - "TODO"
-    - "할일"
-    - "작업"
-    - "지식베이스"
-    - "knowledge"
-    - "의사결정"
-    - "decision"
-    - "정책"
-    - "policy"
-    - "요구사항"
-    - "requirement"
-    - "명세"
-    - "spec"
-    - "adr"
-    - "기록"
-    - "record"
-    - "확인"
-    - "체크"
-    # 작업 완료/변경 관련 키워드 (stop-rules.yaml에서 이동)
-    - "완료"
-    - "구현"
-    - "추가"
-    - "수정"
-    - "변경"
-    - "개발"
-    - "done"
-    - "complete"
-    - "finish"
-    - "implement"
-    - "add"
-    - "modify"
-    - "change"
-    - "update"
-    - "refactor"
-    - "리팩토링"
-    - "feature"
-    - "기능"
-    # 문서 건강도 체크 키워드
-    - "찾기 힘들어"
-    - "찾기 어려워"
-    - "중복"
-    - "문서 정리"
-    - "docs 정리"
-    - "docs health"
-    - "정리 필요"
-
-  # Claude에게 표시할 활성화 메시지
-  trigger_message: |
-    🎯 SKILL ACTIVATION CHECK
-
-    Detected keywords related to documentation/knowledge management.
-    Consider using the 'ldoc' skill for:
-    - Managing project knowledge base
-    - Creating/updating TODO items
-    - Recording decisions (ADR)
-    - Documenting requirements and specifications
-    - Automatic document health checks (size, duplication, references)
-
-    💡 Tip: If you completed significant work (2+ files modified),
-    consider updating ldoc with architectural decisions or lessons learned.
-
-    💡 Advanced: After modifying documents, automatic health check will detect
-    oversized files (300+ lines), duplicate content (80%+ tag overlap),
-    and suggest refactoring for better organization.
-
-# Claude.md Guide Skill Activation
-skill-claude-md-guide:
-  keywords:
-    - "CLAUDE.md"
-    - "claude.md"
-    - "클로드 문서"
-    - "프로젝트 설정"
-    - "프로젝트 문서"
-    - "리뷰"
-    - "review"
-    - "정리"
-
-  trigger_message: |
-    📋 CLAUDE.MD GUIDE SKILL
-
-    Detected claude.md-related keywords. Consider using the 'claude-md-guide' skill for:
-    - Reviewing existing claude.md files (length, structure, content analysis)
-    - Identifying content that should be moved to skills (>20 lines of generic patterns)
-    - Detecting missing required sections (quick commands, endpoints, env vars)
-    - Separating project-specific content from generic patterns
-    - Creating new claude.md files from templates
-
-    💡 Tip: Use this skill to keep your claude.md files concise (50-100 lines)
-    and project-specific, moving generic patterns to reusable skills.
-
-# Dev Docs Skill Activation
-skill-dev-docs:
-  keywords:
-    # 작업 시작
-    - "작업 시작"
-    - "작업시작"
-    - "dev-docs"
-    - "dev docs"
-    - "계획"
-    - "계획 수립"
-    - "플랜"
-    - "플랜 끝"
-    - "계획 완료"
-
-    # 작업 재개
-    - "작업 이어서"
-    - "이어서"
-    - "continue"
-    - "뭐하고 있었지"
-    - "뭐 하고 있었지"
-    - "무엇을 하고 있었지"
-    - "작업 재개"
-
-    # 현황 파악
-    - "진행 중인 작업"
-    - "진행중인 작업"
-    - "작업 목록"
-    - "작업 현황"
-    - "진행 상황"
-    - "진행상황"
-    - "status"
-
-    # 작업 완료
-    - "작업 끝"
-    - "작업 완료"
-    - "작업완료"
-    - "dev-docs 완료"
-    - "아카이브"
-    - "archive"
-
-    # 일반
-    - "컨텍스트"
-    - "context"
-
-  trigger_message: |
-    📘 AUTO-DEV / DEV DOCS SKILL
-
-    Detected dev-docs-related keywords. Consider using the 'auto-dev' skill:
-    - /auto-dev [기능] - 자율 모드 (PR까지 멈추지 않음)
-    - /auto-dev --manual - 수동 모드 (작업 시작)
-    - /auto-dev --continue - 작업 재개
-    - /auto-dev --status - 현황 파악
-    - /auto-dev --complete - 작업 완료 및 Living Docs 통합
-
-    💡 Tip: Auto-dev prevents "Claude amnesia" for complex, multi-session work.
-    Use it for large features, refactorings, or anything that takes multiple days.
-
-# Test Guidelines Skill Activation
-skill-test-guidelines:
-  keywords:
-    - "테스트"
-    - "test"
-    - "testing"
-    - "유닛 테스트"
-    - "unit test"
-    - "통합 테스트"
-    - "integration test"
-    - "테스트 작성"
-    - "테스트 코드"
-
-  trigger_message: |
-    🧪 TEST GUIDELINES SKILL
-
-    Detected test-related keywords. Consider using the 'test-guidelines' skill for:
-    - Writing new test files
-    - Reviewing existing tests
-    - Test quality improvement
-    - Fixture/Factory patterns
-    - Mock usage guidelines (requires user approval)
-
-# Security Review Skill Activation
-skill-review-security:
-  keywords:
-    - "보안"
-    - "security"
-    - "리뷰"
-    - "review"
-    - "검토"
-    - "체크"
-    - "취약점"
-    - "vulnerability"
-
-  trigger_message: |
-    🔒 SECURITY REVIEW SKILL
-
-    Detected security/review keywords. Consider using the 'review-security' skill for:
-    - Security review of changed files
-    - OWASP Top 10 checks
-    - Credential and secrets detection
-    - SQL injection and XSS prevention
-    - Authentication/authorization verification
-    - Full project security scan
-
-    💡 Tip: Use after completing features or before deployment
-
-# DevOps Patterns Skill Activation
-skill-patterns-devops:
-  keywords:
-    # Local CI
-    - "lint"
-    - "linter"
-    - "포맷터"
-    - "formatter"
-    - "justfile"
-    - "just"
-    - "task runner"
-    - "pre-commit"
-    - "hooks"
-    - "E2E"
-    - "통합 테스트"
-
-    # CI/CD
-    - "CI/CD"
-    - "파이프라인"
-    - "pipeline"
-    - "GitHub Actions"
-    - "GitLab CI"
-    - "자동화"
-    - "automation"
-
-    # Docker
-    - "Docker"
-    - "docker"
-    - "compose"
-    - "compose.yaml"
-    - "docker-compose"
-    - "컨테이너"
-    - "container"
-    - "이미지"
-    - "image"
-    - "멀티스테이지"
-    - "multi-stage"
-
-    # Deployment
-    - "배포"
-    - "deploy"
-    - "deployment"
-    - "PM2"
-    - "프로세스"
-    - "process"
-    - "롤백"
-    - "rollback"
-
-    # Language-specific
-    - "Biome"
-    - "biome"
-    - "Vitest"
-    - "vitest"
-
-  trigger_message: |
-    🚀 DEVOPS PATTERNS SKILL
-
-    Detected DevOps-related keywords. Consider using the 'patterns-devops' skill for:
-    - Local CI: Justfile, lint/test automation, E2E testing
-    - CI/CD: GitHub Actions, GitLab CI pipelines
-    - Docker: compose.yaml, multi-stage builds, containerization
-    - Deployment: PM2, deployment scripts, rollback strategies
-    - TypeScript: Biome (ESLint alternative), Vitest
-
-    💡 Tip: The skill loads only the resources you need (token-efficient).
-    Mention specific keywords (e.g., "Justfile", "Docker", "PM2") for targeted help.
-
-# TDD Practices Skill Activation
-skill-tdd-practices:
-  keywords:
-    # TDD 명시적 키워드
-    - "TDD"
-    - "테스트 주도"
-    - "테스트 먼저"
-    - "test first"
-    - "test-driven"
-
-    # RED/GREEN 단계
-    - "실패하는 테스트"
-    - "failing test"
-    - "red phase"
-    - "green phase"
-    - "최소 구현"
-    - "fake it"
-    - "minimal implementation"
-
-  trigger_message: |
-    🔄 TDD PRACTICES SKILL
-
-    Detected TDD workflow keywords.
-    Consider using the 'tdd-practices' skill for:
-    - Following RED-GREEN-REFACTOR cycle
-    - Writing failing tests first (Phase 1-2)
-    - Implementing minimal code to pass (Phase 3)
-    - Refactoring without breaking tests (Phase 4)
-    - Detecting AI anti-patterns (test deletion, over-implementation)
-
-    💡 Tip: TDD is most effective when starting new features, fixing bugs with tests first, or refactoring with full coverage. Always write the test BEFORE implementation.
-
-# Ansible Deployment Skill Activation
-skill-ansible-deployment:
-  keywords:
-    - "ansible"
-    - "playbook"
-
-  trigger_message: |
-    🚀 ANSIBLE DEPLOYMENT SKILL
-
-    Detected Ansible keywords. Consider using the 'ansible-deployment' skill for:
-    - Diff checking before deployment (copy module check_mode + diff)
-    - SSH authentication (vars_prompt, ProxyJump)
-    - Safe deployment playbook patterns (block, role, handlers)
-
-    💡 Tip: Use copy module's native diff instead of shell scripts for colored output.
-
-# Justfile Syntax Skill Activation
-skill-justfile-syntax:
-  keywords:
-    - "justfile"
-    - "Justfile"
-    - "heredoc"
-    - "EOF"
-    - "<<EOF"
-    - "<< EOF"
-
-  trigger_message: |
-    📋 JUSTFILE SYNTAX SKILL
-
-    Justfile 편집 감지. 인덴트 규칙 확인:
-    - 레시피 본문: 4칸 공백 인덴트
-    - heredoc 내용: 인덴트 없음 (첫 칸 시작)
-    - EOF 마커: 인덴트 없음
-
-    Use 'justfile-syntax' skill for detailed syntax rules.
-
-# Whitepaper-KR Skill Activation
-skill-whitepaper-kr:
-  keywords:
-    # 백서 관련 직접 키워드
-    - "백서"
-    - "whitepaper"
-    - "white paper"
-    - "기술백서"
-    - "기술 백서"
-    - "투자자료"
-    - "투자 자료"
-
-    # 프로젝트 유형
-    - "AI 백서"
-    - "SaaS 백서"
-    - "블록체인 백서"
-    - "토크노믹스"
-    - "tokenomics"
-
-    # 백서 섹션 관련
-    - "executive summary"
-    - "문제 정의"
-    - "시장 기회"
-    - "로드맵 작성"
-
-  trigger_message: |
-    📄 WHITEPAPER-KR SKILL
-
-    Detected whitepaper-related keywords. Consider using the 'whitepaper-kr' skill for:
-    - Creating full technical whitepapers (Korean)
-    - Writing specific sections (Overview, Solution, Architecture, etc.)
-    - Supporting different project types: General Tech, AI, Blockchain
-    - Providing templates and writing guidelines
-
-    💡 Tip: Specify project type (AI/SaaS/Blockchain) for tailored templates.
-    For blockchain projects, includes tokenomics and legal sections.
-
-# PPT Generator Skill Activation
-skill-ppt-generator:
-  keywords:
-    - "PPT"
-    - "ppt"
-    - "pptx"
-    - "프레젠테이션"
-    - "슬라이드"
-    - "발표자료"
-    - "제안서"
-    - "기획서"
-    - "피치덱"
-    - "pitch deck"
-    - "PowerPoint"
-
-  trigger_message: |
-    📊 PPT GENERATOR SKILL
-
-    Detected PPT-related keywords. Consider using the 'ppt-generator' skill for:
-    - Creating proposal/planning presentations
-    - python-pptx based slide generation
-    - Header templates (minimal/nav/progress)
-    - Slide types (title/content/chart/table/etc.)
-    - Style presets (corporate/startup/minimal)
-
-    💡 Tip: Specify purpose (제안서/기획서/피치덱) and style for tailored output.
-
-# 향후 추가 예시 (주석)
-# skill-pdf-tools:
-#   keywords:
-#     - "pdf"
-#     - "문서변환"
-#   trigger_message: "🎯 Use pdf-tools skill"
 #
-# reminder-api-design:
-#   keywords:
-#     - "API 설계"
-#     - "엔드포인트"
-#   trigger_message: "📋 API Design Guidelines..."
+# DECISION: Description 기반 자동 트리거 우선 (Anthropic 권장)
+# 아래 4개만 유지한 이유:
+# - skill-creator: "skill 만들어"는 흔한 요청이나 description만으론 트리거 어려움
+# - hooks-setup: claude-project-setup과 혼동 가능, 명시적 키워드 필요
+# - tdd-practices: "TDD"는 범용 약어라 false positive 방지 필요
+# - auto-dev: 자율 모드는 의도 확인 필요 (중요한 결정)
+#
+# 나머지 27개 skill은 description 기반 자동 트리거로 충분
+
+skill-creator:
+  keywords:
+    - "skill 만들어"
+    - "skill 생성"
+    - "create skill"
+  trigger_message: "💡 Use skill-creator for this task."
+
+hooks-setup:
+  keywords:
+    - "hooks 설정"
+    - "lint hook"
+    - "setup hooks"
+  trigger_message: "💡 Use hooks-setup skill to configure project hooks."
+
+tdd-practices:
+  keywords:
+    - "TDD"
+    - "테스트 먼저"
+    - "red green"
+  trigger_message: "💡 Use tdd-practices skill for RED-GREEN-REFACTOR cycle."
+
+auto-dev:
+  keywords:
+    - "자율 모드"
+    - "auto-dev"
+    - "PR까지"
+  trigger_message: "💡 Use /auto-dev for autonomous development workflow."
+
+reflect:
+  keywords:
+    - "아니,"
+    - "아니 "
+    - "잠깐,"
+    - "잠깐 "
+    - "근데,"
+    - "근데 "
+    - "일단,"
+    - "일단 "
+    - "왜 "
+    - "왜?"
+  trigger_message: "⚠️ 방향 수정 신호 감지. /reflect skill을 실행하여 이전 단계를 점검하세요."

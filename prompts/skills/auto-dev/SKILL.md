@@ -1,6 +1,6 @@
 ---
 name: auto-dev
-description: 기능 구현을 PR까지 자율적으로 진행할 때 사용. 복잡한 작업, 멀티 세션 작업에서 컨텍스트를 유지하며 테스트까지 완료합니다. (user)
+description: Manages autonomous development workflow from feature to PR. Use when implementing features end-to-end, maintaining context across sessions, or running tests automatically.
 ---
 
 # Auto Dev

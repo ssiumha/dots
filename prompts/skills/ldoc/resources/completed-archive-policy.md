@@ -17,7 +17,7 @@
 
 ```bash
 # 6개월 이전 디렉토리 찾기
-find ~/docs/{project}/todos/completed -type d -name "20??-??" | \
+find {docs}/todos/completed -type d -name "20??-??" | \
   while read dir; do
     # 날짜 비교 로직
   done
@@ -52,7 +52,7 @@ find ~/docs/{project}/todos/completed -type d -name "20??-??" | \
 git log --oneline -- todos/completed/YYYY-MM/
 
 # 파일 삭제
-rm -rf ~/docs/{project}/todos/completed/YYYY-MM/
+rm -rf {docs}/todos/completed/YYYY-MM/
 
 # Git 커밋
 git add -A
@@ -73,11 +73,11 @@ git commit -m "docs(todo): archive completed todos from YYYY-MM"
 **작업**:
 ```bash
 # 아카이브 디렉토리 생성
-mkdir -p ~/docs/{project}/todos/archived/
+mkdir -p {docs}/todos/archived/
 
 # 오래된 completed 이동
-mv ~/docs/{project}/todos/completed/YYYY-MM/ \
-   ~/docs/{project}/todos/archived/
+mv {docs}/todos/completed/YYYY-MM/ \
+   {docs}/todos/archived/
 
 # Git 커밋
 git add -A
@@ -100,7 +100,7 @@ git commit -m "docs(todo): archive old completed todos to archived/"
 ## 디렉토리 구조 (옵션 3 선택 시)
 
 ```
-~/docs/{project}/todos/
+{docs}/todos/
 ├── {active-todo}.md          # pending, in-progress
 ├── completed/                 # 최근 6개월
 │   ├── 2025-01/
@@ -121,13 +121,13 @@ PROJECT=$1
 MONTHS_AGO=6
 CUTOFF_DATE=$(date -d "$MONTHS_AGO months ago" +%Y-%m)
 
-find ~/docs/$PROJECT/todos/completed -type d -name "20??-??" | \
+find {docs}/todos/completed -type d -name "20??-??" | \
   while read dir; do
     month=$(basename "$dir")
     if [[ "$month" < "$CUTOFF_DATE" ]]; then
       echo "Archiving: $dir"
-      mkdir -p ~/docs/$PROJECT/todos/archived/
-      mv "$dir" ~/docs/$PROJECT/todos/archived/
+      mkdir -p {docs}/todos/archived/
+      mv "$dir" {docs}/todos/archived/
     fi
   done
 ```

@@ -1,6 +1,6 @@
 ---
 name: test-guidelines
-description: 테스트 코드 작성 시 품질을 높이고 싶을 때 사용. Mock 과다 진단, DI 구조 개선, 테스트 가독성 향상을 지원합니다. (user)
+description: Improves test code quality. Use when diagnosing mock overuse, improving DI structure, or enhancing test readability.
 ---
 
 # Test Guidelines

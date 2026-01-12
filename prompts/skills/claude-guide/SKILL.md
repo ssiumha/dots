@@ -1,6 +1,6 @@
 ---
 name: claude-guide
-description: Claude Code 설정 방법이 궁금하거나 프로젝트 초기화가 필요할 때 사용. CLAUDE.md, rules, hooks, skills 구조를 안내합니다. (user)
+description: Guides Claude Code setup and configuration. Use when setting up CLAUDE.md, rules, hooks, or skills structure for projects.
 ---
 
 # Claude Guide

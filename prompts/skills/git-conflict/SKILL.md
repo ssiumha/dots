@@ -1,5 +1,6 @@
 ---
-description: Git rebase 충돌 해결 (conflict 발생 시 사용)
+name: git-conflict
+description: Resolves Git rebase conflicts. Use when encountering merge conflicts during rebase operations.
 ---
 
 # Git Conflict
@@ -37,7 +38,13 @@ git diff --name-only --diff-filter=U
 
 ### 4. 충돌 해결 전략
 
-**기본 원칙**: HEAD (main/target) 우선
+**기본 원칙**: 컨텍스트 기반 판단
+
+| 상황 | 우선 | WHY |
+|------|------|-----|
+| 기존 코드 충돌 | HEAD (main) | 안정성 우선 |
+| 새 기능/수정 충돌 | Feature | 작업 의도 존중 |
+| import/export 추가 | 양쪽 병합 | 독립적 추가 |
 
 **자동 해결 가능**:
 - import/module 추가 → 양쪽 다 유지 (병합)
@@ -45,9 +52,12 @@ git diff --name-only --diff-filter=U
 - 중복 import → 하나만 유지
 
 **사용자 확인 필요**:
-- 같은 코드를 다르게 수정한 경우
-- 로직 변경이 충돌하는 경우
-- 삭제 vs 수정 충돌
+
+| 상황 | 판단 방법 |
+|------|----------|
+| 같은 위치 다른 수정 | `git log`로 각 변경 의도 확인 후 선택 |
+| 로직 변경 충돌 | 양쪽 로직 병합 또는 최신 버전 선택 |
+| 삭제 vs 수정 | HEAD가 리팩토링이면 삭제, 유지 의도면 수정 |
 
 ```
 ⚠️ 충돌 해결 확인 필요: {파일명}

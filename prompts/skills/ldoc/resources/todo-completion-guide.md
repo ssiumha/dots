@@ -10,14 +10,14 @@ TODO가 `status: done`이 되면 **2단계 프로세스**를 따릅니다:
 
 ```bash
 # 1. 완료 월별 디렉토리 생성 (없는 경우)
-mkdir -p ~/docs/{project}/todos/completed/YYYY-MM
+mkdir -p {docs}/todos/completed/YYYY-MM
 
 # 2. TODO 파일 이동
-mv ~/docs/{project}/todos/{slug}.md \
-   ~/docs/{project}/todos/completed/YYYY-MM/{slug}.md
+mv {docs}/todos/{slug}.md \
+   {docs}/todos/completed/YYYY-MM/{slug}.md
 
 # 3. Git 커밋
-cd ~/docs/{project}
+cd {docs}
 git add todos/completed/YYYY-MM/{slug}.md
 git commit -m "docs(todo): complete {slug} - moved to completed/YYYY-MM"
 ```
@@ -87,13 +87,13 @@ TODO의 내용을 분석하여 적절한 category 선택:
 
 ```bash
 # 방법 1: 키워드 검색 (빠름)
-Grep "키워드" --type=md ~/docs/{project}/knowledge/{category}/ -i
+Grep "키워드" --type=md {docs}/knowledge/{category}/ -i
 
 # 방법 2: 파일명 패턴 검색
-Glob ~/docs/{project}/knowledge/{category}/*{keyword}*.md
+Glob {docs}/knowledge/{category}/*{keyword}*.md
 
 # 방법 3: 태그 검색 (가장 정확)
-Grep "tags:.*키워드" ~/docs/{project}/knowledge/{category}/ -i
+Grep "tags:.*키워드" {docs}/knowledge/{category}/ -i
 ```
 
 **검색 우선순위**:
@@ -152,7 +152,7 @@ references:
 
 **6. Git 커밋:**
 ```bash
-cd ~/docs/{project}
+cd {docs}
 git add knowledge/{category}/{topic}.md
 git commit -m "docs(knowledge): integrate todo-{slug} into {category}/{topic}"
 ```
@@ -161,7 +161,7 @@ git commit -m "docs(knowledge): integrate todo-{slug} into {category}/{topic}"
 
 **1. 파일명 규칙:**
 ```
-~/docs/{project}/knowledge/{category}/{topic}.md
+{docs}/knowledge/{category}/{topic}.md
 ```
 - `{topic}`: 2-4 단어, kebab-case
 - 예: `api-versioning-strategy.md`, `redis-session-store.md`
@@ -224,7 +224,7 @@ references:
 
 **4. Git 커밋:**
 ```bash
-cd ~/docs/{project}
+cd {docs}
 git add knowledge/{category}/{topic}.md
 git commit -m "docs(knowledge): add {category}/{topic} from todo-{slug}"
 ```
@@ -253,7 +253,7 @@ git commit -m "docs(knowledge): add {category}/{topic} from todo-{slug}"
 - 신중하게 선택
 
 ```bash
-rm ~/docs/{project}/todos/completed/YYYY-MM/{slug}.md
+rm {docs}/todos/completed/YYYY-MM/{slug}.md
 git add -A
 git commit -m "docs(todo): remove {slug} - no longer needed"
 ```
@@ -278,21 +278,21 @@ git commit -m "docs(todo): remove {slug} - no longer needed"
 ### 회고 자료
 ```bash
 # 이번 달 완료한 작업 확인
-ls ~/docs/{project}/todos/completed/2025-02/
+ls {docs}/todos/completed/2025-02/
 
 # 지난 분기 작업 리뷰
-ls ~/docs/{project}/todos/completed/2024-{10,11,12}/
+ls {docs}/todos/completed/2024-{10,11,12}/
 ```
 
 ### 비슷한 작업 참고
 ```bash
 # "배포" 관련 과거 작업 찾기
-Grep -i "deploy" ~/docs/{project}/todos/completed/**/*.md
+Grep -i "deploy" {docs}/todos/completed/**/*.md
 ```
 
 ### 성과 추적
 ```bash
 # 월별 완료 작업 통계
-find ~/docs/{project}/todos/completed -type f -name "*.md" | \
+find {docs}/todos/completed -type f -name "*.md" | \
   awk -F'/' '{print $(NF-1)}' | sort | uniq -c
 ```

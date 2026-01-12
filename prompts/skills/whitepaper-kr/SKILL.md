@@ -1,6 +1,6 @@
 ---
 name: whitepaper-kr
-description: 기술 프로젝트를 공식 문서로 정리하거나 투자자료가 필요할 때 사용. AI, SaaS, 블록체인 등 한국어 기술 백서를 작성합니다. (user)
+description: Writes technical whitepapers in Korean. Use when creating official documentation for AI, SaaS, or blockchain projects, or preparing investor materials.
 ---
 
 # 기술 백서 작성 Skill

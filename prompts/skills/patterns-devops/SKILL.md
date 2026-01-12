@@ -1,6 +1,6 @@
 ---
 name: patterns-devops
-description: 로컬 CI, 배포 파이프라인, 컨테이너화가 필요할 때 사용. Justfile, GitHub Actions, Docker, PM2 패턴을 제공합니다. (user)
+description: Provides DevOps patterns for local CI, pipelines, and containerization. Use when setting up Justfile, GitHub Actions, Docker, or PM2.
 ---
 
 # DevOps Patterns

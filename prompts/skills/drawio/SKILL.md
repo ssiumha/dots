@@ -1,6 +1,6 @@
 ---
 name: drawio
-description: 시스템 구조, 흐름, 관계를 시각화할 때 사용. 아키텍처, 시퀀스, 플로우차트, AWS 인프라를 draw.io로 생성합니다. (user)
+description: Generates draw.io diagrams for visualization. Use when creating architecture, sequence, flowchart, or AWS infrastructure diagrams.
 ---
 
 # draw.io 다이어그램 생성

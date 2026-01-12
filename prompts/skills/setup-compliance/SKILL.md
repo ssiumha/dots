@@ -1,6 +1,6 @@
 ---
 name: setup-compliance
-description: 금융/보안 규제 준수가 필요한 프로젝트에서 사용. FSS, ISMS, PCI DSS 등 컴플라이언스 문서를 생성합니다. (user)
+description: Generates compliance documentation for regulated projects. Use when setting up FSS, ISMS, PCI DSS, or other regulatory compliance documents.
 ---
 
 # Setup Compliance

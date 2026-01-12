@@ -8,40 +8,42 @@ readonly YELLOW='\033[0;33m'
 readonly BLUE='\033[0;34m'
 readonly NC='\033[0m' # No Color
 
-# 프로젝트명 추출 (현재 경로에서)
-# ~/repos/{project}/... 또는 ~/repos/{project}_slot1/... 패턴 지원
+# 상위 디렉토리 탐색하며 docs/ 찾기
+# 반환: docs 디렉토리 경로 (없으면 빈 문자열)
+find_docs_dir() {
+  local dir="${1:-$(pwd)}"
+  while [[ "$dir" != "/" && "$dir" != "$HOME" ]]; do
+    if [[ -d "$dir/docs" ]]; then
+      echo "$dir/docs"
+      return 0
+    fi
+    dir="$(dirname "$dir")"
+  done
+  return 1
+}
+
+# 프로젝트명 추출 (docs 디렉토리의 부모 디렉토리명)
 detect_project() {
-  local cwd="${1:-$(pwd)}"
-  local project=""
-
-  # ~/repos/{project}/... 패턴에서 추출
-  if [[ "$cwd" =~ $HOME/repos/([^/]+) ]]; then
-    project="${BASH_REMATCH[1]}"
-    # _slot숫자 제거, 끝 숫자 제거
-    project=$(echo "$project" | sed 's/_slot[0-9]*$//' | sed 's/[0-9]*$//')
-  fi
-
-  echo "$project"
+  local docs_dir
+  docs_dir=$(find_docs_dir "${1:-$(pwd)}") || return 1
+  basename "$(dirname "$docs_dir")"
 }
 
 # 문서 디렉토리 경로 반환
 get_docs_dir() {
-  local project="$1"
-  echo "$HOME/docs/${project}"
+  find_docs_dir "${1:-$(pwd)}"
 }
 
 # TODO 디렉토리 경로 반환
 get_todos_dir() {
-  local project="$1"
-  echo "$HOME/docs/${project}/todos"
+  local docs_dir
+  docs_dir=$(find_docs_dir "${1:-$(pwd)}") || return 1
+  echo "${docs_dir}/todos"
 }
 
 # 문서 디렉토리 존재 여부 확인
 docs_dir_exists() {
-  local project="$1"
-  local docs_dir
-  docs_dir=$(get_docs_dir "$project")
-  [ -d "$docs_dir" ]
+  find_docs_dir "${1:-$(pwd)}" &>/dev/null
 }
 
 # 에러 메시지 출력

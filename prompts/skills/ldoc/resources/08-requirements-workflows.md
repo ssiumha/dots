@@ -35,7 +35,7 @@
 
 5. **문서 생성**
    ```bash
-   Write ~/docs/{project}/requirements/{category}/{slug}.md
+   Write {docs}/requirements/{category}/{slug}.md
    ```
 
    Frontmatter:
@@ -51,7 +51,7 @@
 
 7. **Git 커밋**
    ```bash
-   cd ~/docs/{project} && git add requirements/{category}/{slug}.md && git commit -m "docs(requirement): add {category}/{slug}"
+   cd {docs} && git add requirements/{category}/{slug}.md && git commit -m "docs(requirement): add {category}/{slug}"
    ```
 
 8. **자동 건강도 체크**
@@ -78,7 +78,7 @@
 
 4. **Git 커밋**
    ```bash
-   cd ~/docs/{project} && git add requirements/{category}/{slug}.md && git commit -m "docs(requirement): update {slug} status to {status}"
+   cd {docs} && git add requirements/{category}/{slug}.md && git commit -m "docs(requirement): update {slug} status to {status}"
    ```
 
 ---
@@ -96,10 +96,10 @@
 2. **Grep으로 필터링**
    ```bash
    # 상태별
-   Grep "status: approved" ~/docs/{project}/requirements/**/*.md
+   Grep "status: approved" {docs}/requirements/**/*.md
 
    # 시스템별
-   Grep "system: auth-service" ~/docs/{project}/requirements/**/*.md
+   Grep "system: auth-service" {docs}/requirements/**/*.md
    ```
 
 3. **리포트 제공**

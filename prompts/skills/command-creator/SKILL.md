@@ -1,6 +1,6 @@
 ---
 name: command-creator
-description: 반복 워크플로우를 slash command로 정의할 때 사용. 배치 처리, 파이프라인, 체크리스트 기반 자동화를 지원합니다. (user)
+description: Creates slash commands for repeated workflows. Use when defining batch processing, pipelines, or checklist-based automation.
 ---
 
 # Command Creator

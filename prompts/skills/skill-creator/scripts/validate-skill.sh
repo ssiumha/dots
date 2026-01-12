@@ -47,12 +47,12 @@ if [[ -f "$SKILL_MD" ]]; then
         warn "Unfilled placeholders found"
     fi
 
-    # 6. Check description quality
+    # 6. Check description quality (What + When pattern)
     DESC=$(grep "^description:" "$SKILL_MD" | head -1)
-    if echo "$DESC" | grep -q "할 때\|시 사용\|proactively"; then
-        ok "Description: context-based"
+    if echo "$DESC" | grep -q "Use when\|할 때\|시 사용\|proactively"; then
+        ok "Description: context-based (What + When)"
     else
-        warn "Description: consider adding usage context (e.g., '~할 때 사용')"
+        warn "Description: add 'Use when' or usage context"
     fi
 fi
 

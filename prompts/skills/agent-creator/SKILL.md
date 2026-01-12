@@ -1,6 +1,6 @@
 ---
 name: agent-creator
-description: Use PROACTIVELY when user wants to automate a workflow as a dedicated agent, delegate recurring tasks to a specialist, or modify existing agent behavior. Applies to .claude/agents/ file operations.
+description: Creates and manages custom Claude Code sub-agents. Use when automating workflows as dedicated agents, delegating recurring tasks, or modifying .claude/agents/ files.
 ---
 
 # Sub-agent Creator

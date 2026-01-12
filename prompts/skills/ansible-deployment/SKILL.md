@@ -1,6 +1,6 @@
 ---
 name: ansible-deployment
-description: 서버 설정을 자동화하거나 여러 서버에 배포할 때 사용. Ansible playbook, SSH 인증, diff 확인 패턴을 제공합니다. (user)
+description: Automates server configuration and multi-server deployments. Use when writing Ansible playbooks, setting up SSH auth, or checking deployment diffs.
 ---
 
 # Ansible Deployment Automation

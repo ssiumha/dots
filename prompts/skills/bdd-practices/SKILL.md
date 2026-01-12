@@ -1,6 +1,6 @@
 ---
 name: bdd-practices
-description: 기능을 사용자 관점에서 명세하거나 인수 테스트가 필요할 때 사용. Gherkin 형식으로 시나리오를 작성합니다. (user)
+description: Writes behavior specifications in Gherkin format. Use when defining features from user perspective or creating acceptance tests.
 ---
 
 # BDD Practices

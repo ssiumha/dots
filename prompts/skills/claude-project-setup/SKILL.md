@@ -1,6 +1,6 @@
 ---
 name: claude-project-setup
-description: 프로젝트 초기 셋업 또는 품질 개선이 필요할 때 사용. 코드 품질 원칙 적용, .claude/ 구조 제안을 합니다. (user)
+description: Configures project quality standards and .claude/ structure. Use when initializing projects or improving code quality practices.
 ---
 
 # Claude Project Setup

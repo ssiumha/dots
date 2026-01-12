@@ -82,18 +82,15 @@ done
 # 의존성 확인
 check_required_deps || exit 1
 
-# 프로젝트 감지
-if [ -z "$PROJECT" ]; then
-  PROJECT=$(detect_project)
-  if [ -z "$PROJECT" ]; then
-    error "Cannot detect project. Use -p option."
-    exit 1
-  fi
+# 문서 디렉토리 확인 (상위 탐색)
+DOCS_DIR=$(get_docs_dir)
+if [ -z "$DOCS_DIR" ]; then
+  error "Cannot find docs/ directory. Run from within a project."
+  exit 1
 fi
 
-# 문서 디렉토리 확인
-DOCS_DIR=$(get_docs_dir "$PROJECT")
-TODOS_DIR=$(get_todos_dir "$PROJECT")
+TODOS_DIR=$(get_todos_dir)
+PROJECT=$(detect_project)
 
 if [ ! -d "$TODOS_DIR" ]; then
   error "TODO directory not found: $TODOS_DIR"

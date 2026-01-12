@@ -1,6 +1,6 @@
 ---
 name: ppt-creator
-description: 발표 자료, 제안서, 기획서가 필요할 때 사용. python-pptx로 PPT 파일을 생성합니다. (user)
+description: Creates PowerPoint presentations via python-pptx. Use when building slides for presentations, proposals, or planning documents.
 ---
 
 # PPT Creator

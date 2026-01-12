@@ -1,6 +1,6 @@
 ---
 name: imagegen
-description: 이미지가 필요하거나 기존 이미지를 편집할 때 사용. Gemini API로 이미지 생성/편집을 수행합니다. (user)
+description: Generates and edits images via Gemini API. Use when creating new images or modifying existing ones.
 ---
 
 # Image Generator
