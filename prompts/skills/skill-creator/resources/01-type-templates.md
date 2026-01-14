@@ -1,5 +1,51 @@
 # Skill 유형별 템플릿
 
+## 분량 가이드
+
+| 유형 | SKILL.md 총량 | 세부 가이드 |
+|------|---------------|-------------|
+| 워크플로우 기반 | 200-450줄 | 워크플로우당 15-30줄, 원칙 5-7개, Examples 2-3개 |
+| 리소스 로딩 기반 | 140-160줄 | 키워드 매칭 30-50줄, 로딩 전략 20-30줄 |
+| Phase 기반 | 200-250줄 | Phase당 30-50줄, Red Flags Phase별 2-4개, 총 3-5 Phase |
+| 가이드/리뷰 기반 | 280-520줄 | 체크리스트 50-100줄, 포함/제외 기준 30-50줄 |
+| 도구 실행 기반 | 90-100줄 | 워크플로우 30-50줄, 도구 설명은 REFERENCE.md로 위임 |
+
+※ 실제 skill 분석 기반 권장 분량 (dots/prompts/skills/ 내 30+ skill 평균)
+
+---
+
+## Frontmatter 스키마
+
+모든 skill의 SKILL.md는 YAML frontmatter로 시작합니다.
+
+```yaml
+---
+name: {skill-name}           # 필수. 케밥케이스
+description: {설명}          # 필수. Available skills에 표시
+context: fork                # 선택. 격리된 sub-agent에서 실행
+---
+```
+
+### context: fork
+
+격리된 sub-agent 컨텍스트에서 skill 실행. 메인 대화에는 완료 메시지만 반환.
+
+**적합한 경우**:
+- 탐색/리서치 skill (긴 분석이 메인 컨텍스트 오염 방지)
+- 세션 요약 skill
+- 복잡한 다단계 작업
+
+**예시**:
+```yaml
+---
+name: deep-research
+description: Codebase deep analysis. Use when exploring architecture or complex topics.
+context: fork
+---
+```
+
+---
+
 ## 1. 워크플로우 기반 (200-450줄)
 
 **적합한 경우**:
@@ -46,11 +92,6 @@ User: "{요청}" → 워크플로우 N → {결과}
 
 상세한 내용은 `REFERENCE.md`를 참조하세요.
 ```
-
-**분량 가이드**:
-- 워크플로우당: 15-30줄
-- 중요 원칙: 5-7개
-- Examples: 2-3개
 
 **대표 예시**: ldoc, dev-docs, test-guidelines
 
@@ -125,11 +166,6 @@ User: "{요청}" → 키워드 매칭 → Read 리소스 → 적용
 - `resources/02-{name}.md`: {설명}
 ```
 
-**분량 가이드**:
-- 키워드 매칭 테이블: 30-50줄
-- 리소스 로딩 전략: 20-30줄
-- SKILL.md 총량: 140-160줄
-
 **대표 예시**: ansible-deployment, patterns-devops
 
 ---
@@ -191,11 +227,6 @@ description: {언제 사용}. {키워드}.
 ### {시나리오}
 Phase 1 → Phase 2 → Phase 3 → 완료
 ```
-
-**분량 가이드**:
-- Phase당: 30-50줄
-- Red Flags: Phase별 2-4개
-- 총 Phase: 3-5개
 
 **대표 예시**: tdd-practices
 
@@ -277,11 +308,6 @@ description: {언제 사용}. {키워드}.
 분석 → 리포트 → 사용자 선택 → 개선 → 검증
 ```
 
-**분량 가이드**:
-- 체크리스트: 50-100줄
-- 포함/제외 기준: 30-50줄
-- 총량: 280-520줄 (체크리스트가 많으면 길어짐)
-
 **대표 예시**: claude-md-guide, review-security
 
 ---
@@ -335,11 +361,6 @@ User: "{요청}" → 도구 실행 → 검증 → 정리
 
 도구 사용법은 `REFERENCE.md` 참조.
 ```
-
-**분량 가이드**:
-- 워크플로우: 30-50줄
-- 도구 설명: 최소 (REFERENCE.md로 위임)
-- 총량: 90-100줄 (가장 간결)
 
 **대표 예시**: pdf-tools
 

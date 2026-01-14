@@ -1,6 +1,7 @@
 ---
 name: {skill-name}
 description: {언제 사용하는지 명시}. {구체적 키워드 포함}.
+# context: fork  # 선택. 격리된 sub-agent에서 실행 (탐색/리서치 skill에 적합)
 ---
 
 # {Skill Name}

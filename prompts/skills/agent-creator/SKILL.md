@@ -154,6 +154,10 @@ description: Use PROACTIVELY after code changes (2+ files modified), before comm
 | `opus` | 복잡한 추론, 아키텍처 분석 | 고비용, 정밀 |
 | `inherit` | 부모 agent와 동일 | 상황에 따름 |
 
+### 5. skills 필드
+
+Subagent에 자동 로드할 skill 목록. 상세: [resources/03-skills-field.md](resources/03-skills-field.md)
+
 ## Examples
 
 ### 새 agent 생성

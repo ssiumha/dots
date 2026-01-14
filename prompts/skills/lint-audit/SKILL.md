@@ -1,13 +1,23 @@
 ---
-name: quality-audit
-description: Audits and improves project code quality. Use when checking lint errors, test coverage, dead code, or commit hygiene.
+name: lint-audit
+description: Audits lint errors, type checks, dead code, and commit hygiene. Use when checking project health, running lint/type checks, or finding unused code.
 invocable: true
-invocable_description: Runs quality audit and generates actionable report. Use to check lint errors, test coverage, dead code, and commit hygiene.
+invocable_description: Runs lint audit and generates actionable report. Use to check lint errors, type coverage, dead code, and commit hygiene.
 ---
 
-# Quality Audit
+# Lint Audit
 
-프로젝트 품질을 측정하고 개선 방향을 제안하는 스킬입니다.
+프로젝트 lint/타입/위생 상태를 측정하고 개선 방향을 제안하는 스킬입니다.
+
+## lint-audit vs code-metrics
+
+| 항목 | lint-audit | code-metrics |
+|------|------------|--------------|
+| **측정 대상** | 도구 기반 검사 결과 | 코드 구조 메트릭 |
+| **예시** | lint 오류, 타입 오류, 죽은 코드 | 복잡도, 결합도, 응집도 |
+| **도구** | eslint, tsc, mypy, knip | ast-grep |
+| **출력** | 오류 수 + 우선순위 리포트 | 숫자 테이블 |
+| **사용 시점** | PR 전, CI, 정기 점검 | 리팩토링 판단, 설계 검토 |
 
 **핵심 철학**:
 - 측정하지 않으면 개선할 수 없다
@@ -44,9 +54,37 @@ Grep "eslint\|prettier\|ruff\|mypy\|clippy" package.json pyproject.toml
 
 **확인 항목**: 기술 스택, CI 파이프라인, 품질 도구
 
+**Phase 1 결과 예시**:
+```
+Stack: TypeScript (package.json)
+CI: GitHub Actions (.github/workflows/ci.yml)
+Tools: ESLint ✓, tsc ✓, knip ✗ (설치 필요)
+```
+
 ### Phase 2: 현황 진단
 
-프로젝트에 맞는 명령어로 현황 측정:
+#### 2.1 도구 확인
+
+도구가 없으면 설치 가이드와 함께 사용자에게 알림:
+
+```bash
+# 필수 도구 확인
+check_tool() {
+  if ! command -v "$1" &>/dev/null; then
+    echo "Missing: $1 - Install: $2"
+    return 1
+  fi
+}
+
+# TypeScript 프로젝트
+check_tool tsc "npm install -D typescript"
+check_tool eslint "npm install -D eslint"
+check_tool knip "npm install -D knip"
+```
+
+**도구 누락 시**: Phase 3 리포트에 설치 가이드 포함 후 계속 진행 (가능한 도구만 실행).
+
+#### 2.2 언어별 검사
 
 | 언어 | 타입 체크 | Lint | 죽은 코드 |
 |-----|----------|------|----------|
@@ -55,7 +93,36 @@ Grep "eslint\|prettier\|ruff\|mypy\|clippy" package.json pyproject.toml
 | Rust | `cargo check` | `cargo clippy` | - |
 | Go | `go build ./...` | `golangci-lint run` | - |
 
-**오류 밀도 계산**: 오류 수 / 코드 라인 수 (낮을수록 좋음)
+#### 2.3 Tidy 커밋 분석
+
+```bash
+# 최근 20개 커밋 중 파일 10개 초과 커밋 식별
+git log --oneline -20 --format="%h %s" | while read hash msg; do
+  files=$(git show --name-only --format="" "$hash" | wc -l | tr -d ' ')
+  if [ "$files" -gt 10 ]; then
+    echo "Untidy: $hash ($files files) - $msg"
+  fi
+done
+```
+
+#### 2.4 오류 밀도 계산
+
+```bash
+# SLOC 계산 (괄호로 조건 그룹화)
+sloc=$(find . \( -name "*.ts" -o -name "*.py" \) -exec cat {} + 2>/dev/null | wc -l)
+
+# 또는 cloc 사용 (권장: 주석/빈줄 자동 제외)
+if command -v cloc &>/dev/null; then
+  sloc=$(cloc . --json 2>/dev/null | jq '.SUM.code // 0')
+fi
+
+# 밀도 = 오류 수 / SLOC
+```
+
+**밀도 해석 기준**:
+- < 0.01: 양호
+- 0.01-0.05: 개선 필요
+- > 0.05: 심각
 
 ### Phase 3: 리포트 생성
 
@@ -131,5 +198,6 @@ Grep "eslint\|prettier\|ruff\|mypy\|clippy" package.json pyproject.toml
 ## Technical Details
 
 **연동 스킬**:
+- **code-metrics**: 코드 구조 메트릭 (복잡도, 결합도) 분석
 - **rule-creator**: 자동화 스크립트 생성 시 연동
 - **devops-local-ci**: CI 품질 체크 설정 시 참조

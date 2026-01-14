@@ -113,6 +113,8 @@ description: MUST BE USED before deploying code. Scans for security vulnerabilit
 tools: Read, Grep, Glob
 model: sonnet
 permissionMode: plan
+skills:
+  - review-security    # 보안 검토 skill 자동 로드
 ---
 ```
 

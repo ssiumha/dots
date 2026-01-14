@@ -3,6 +3,8 @@ name: {kebab-case-name}
 description: {What it does}. Use proactively when {specific trigger condition}.
 tools: Read, Grep, Glob
 model: sonnet
+# skills:                        # Optional: auto-load skills (see resources/03-skills-field.md)
+#   - {skill-name}
 ---
 
 You are an expert {domain/role} specializing in {specialization}.

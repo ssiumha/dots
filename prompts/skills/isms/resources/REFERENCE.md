@@ -211,3 +211,31 @@
 
 ※ ISMS 인증: 영역 1 + 영역 2 = 80개
 ※ ISMS-P 인증: 영역 1 + 영역 2 + 영역 3 = 101개
+
+---
+
+## 항목 번호 ↔ 분야명 매핑
+
+| 항목 번호 | 분야명 | 리소스 파일 |
+|----------|--------|------------|
+| 1.1.x | 관리체계 기반 마련 | 01-management.md |
+| 1.2.x | 위험 관리 | 01-management.md |
+| 1.3.x | 관리체계 운영 | 01-management.md |
+| 1.4.x | 관리체계 점검 및 개선 | 01-management.md |
+| 2.1.x | 정책, 조직, 자산 관리 | 02-protection.md |
+| 2.2.x | 인적 보안 | 02-protection.md |
+| 2.3.x | 외부자 보안 | 02-protection.md |
+| 2.4.x | 물리 보안 | 02-protection.md |
+| 2.5.x | 인증 및 권한관리 | 02-protection.md |
+| 2.6.x | 접근통제 | 02-protection.md |
+| 2.7.x | 암호화 적용 | 02-protection.md |
+| 2.8.x | 정보시스템 도입 및 개발 보안 | 02-protection.md |
+| 2.9.x | 시스템 및 서비스 운영관리 | 02-protection.md |
+| 2.10.x | 시스템 및 서비스 보안관리 | 02-protection.md |
+| 2.11.x | 사고 예방 및 대응 | 02-protection.md |
+| 2.12.x | 재해복구 | 02-protection.md |
+| 3.1.x | 개인정보 수집 시 보호조치 | 03-privacy.md |
+| 3.2.x | 개인정보 보유 및 이용 시 보호조치 | 03-privacy.md |
+| 3.3.x | 개인정보 제공 시 보호조치 | 03-privacy.md |
+| 3.4.x | 개인정보 파기 시 보호조치 | 03-privacy.md |
+| 3.5.x | 정보주체 권리보호 | 03-privacy.md |
