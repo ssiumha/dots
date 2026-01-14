@@ -84,8 +84,8 @@ description: Creates dependency-based task execution plans with parallel orchest
    **실패 시**: task 수정/추가
 
 5. **출력물 생성**
-   - `.claude/plans/{name}.yaml`: Task 정의
-   - `.claude/plans/{name}.md`: 다이어그램 + 설명
+   - `plans/{name}.yaml`: Task 정의
+   - `plans/{name}.md`: 다이어그램 + 설명
 
 ### 완료: GUIDANCE (실행 안내)
 
@@ -93,7 +93,7 @@ description: Creates dependency-based task execution plans with parallel orchest
 
 ```
 📋 계획 완료: {name}
-📄 저장됨: .claude/plans/{name}.yaml
+📄 저장됨: plans/{name}.yaml
 
 실행 플로우:
   Group 1: [task-1, task-3] → ✓ 검증 → 커밋
@@ -128,7 +128,7 @@ description: Creates dependency-based task execution plans with parallel orchest
 ## 파일 위치
 
 ```
-.claude/plans/
+plans/
 ├── {name}.yaml     # Task 정의 (blockedBy, why, risk)
 └── {name}.md       # Mermaid 다이어그램 + 설명
 ```

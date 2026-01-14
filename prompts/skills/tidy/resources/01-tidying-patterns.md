@@ -87,6 +87,21 @@ const a = items.filter(x => x.active);
 const b = items.filter(x => x.enabled);
 ```
 
+**⚠️ 우연한 유사성 vs 진짜 중복**
+
+| 구분 | 진짜 중복 | 우연한 유사성 |
+|------|----------|--------------|
+| 정의 | 동일 비즈니스 로직 | 구현 유사, 도메인 상이 |
+| 예시 | `validateEmail()` 중복 호출 | Song.audioAsset vs Match.mrAsset |
+| 특징 | 변경 시 함께 바뀜 | 독립적 진화 가능 |
+| 행동 | 통합 | 유지 |
+
+**통합 금지 신호**:
+- 서로 다른 엔티티/도메인
+- 제네릭/동적 접근 필요 (타입 불일치)
+- 통합 시 조건문 증가
+- 향후 독립 변경 가능성
+
 ## 4. New Interface, Old Implementation
 
 새 인터페이스로 감싸서 점진적 개선.
@@ -261,6 +276,9 @@ function saveToStorage(key: string, value: unknown) {
 saveToStorage('user', user);
 saveToStorage('settings', settings);
 ```
+
+**⚠️ 추출 전 확인**: "Normalize Symmetries"의 "우연한 유사성 vs 진짜 중복" 참조.
+타입 안전성 저하 또는 조건문 증가 시 유지.
 
 ## 13. One Pile
 
