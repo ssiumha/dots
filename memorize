@@ -267,6 +267,7 @@ curl -H "X-aws-ec2-metadata-token: $(curl -X PUT "http://169.254.169.254/latest/
 curl https://checkip.amazonaws.com/  ## get current ip
 curl https://checkip.global.api.aws/ ## get current ip
 curl https://ipinfo.io ## get current ip info
+curl ip-api.com  ## get current ip info
 curl http://ip-ranges.amazonaws.com/ip-ranges.json  ## available AWS public ip pool
 aws eks describe-addon-versions --kubernetes-version 1.23 --addon-name coredns --output yaml | grep 'addonVersion:' | head  ## kube-proxy, vpc-cni, coredns, aws-ebs-csi-driver
 aws ec2 describe-instances --query 'Reservations[*].Instances[*].[Tags[?Key==`Name`].Value|[0],InstanceId,InstanceType,PrivateIpAddress,PublicIpAddress,State.Name]' --output text
