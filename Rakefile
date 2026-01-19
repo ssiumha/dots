@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'fileutils'
+require 'json'
 
 DOT_DIR = File.dirname(__FILE__)
 DOT_ZSHRC = "#{Dir.home}/.zshrc"
@@ -166,5 +167,36 @@ task 'install:claude' do
     puts "settings.json  : statusLine updated"
   else
     puts "settings.json  : not found, skipping"
+  end
+
+  # marketplace plugins 설치
+  plugins = {
+    'ast-grep/claude-skill' => 'ast-grep',
+  }
+
+  installed_plugins_path = File.join(DOT_CLAUDE, 'plugins/installed_plugins.json')
+  installed_plugins = if File.exist?(installed_plugins_path)
+                        JSON.parse(File.read(installed_plugins_path))['plugins']&.keys || []
+                      else
+                        []
+                      end
+
+  plugins.each do |marketplace, plugin|
+    marketplace_name = marketplace.split('/').last.sub('-', '-marketplace')
+    plugin_key = "#{plugin}@#{marketplace_name}"
+
+    if installed_plugins.any? { |k| k.start_with?("#{plugin}@") }
+      puts "plugin         : #{plugin} already installed"
+      next
+    end
+
+    marketplace_list = `claude plugin marketplace list 2>/dev/null`
+    unless marketplace_list.include?(marketplace_name)
+      puts "marketplace    : adding #{marketplace}"
+      system("claude plugin marketplace add #{marketplace}")
+    end
+
+    puts "plugin         : installing #{plugin}"
+    system("claude plugin install #{plugin}")
   end
 end
