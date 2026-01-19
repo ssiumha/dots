@@ -396,6 +396,51 @@ _fzf_complete_make_post() {
   awk '{print $1}'
 }
 
+_fzf_complete_ssh() {
+  _fzf_complete --query "${@##* }" \
+    --ansi \
+    --preview 'ssh -G {2} 2>/dev/null | perl -lane "print if /^(hostname|user|port|proxycommand|proxyjump|localforward) /; /^identityfile (\S+)/ && ((\$f=\$1)=~s/~/$ENV{HOME}/) && -f \$f && print" | column -t' \
+    --preview-window 'right:40%:wrap,<100(down:40%:wrap)' \
+    --min-height 15 -- "$@" < <(
+    perl <<'PERL_SSH_HOSTS' | column -t -s $'\t'
+my ($file, $host, $hostname, $user, $desc);
+my @configs = glob("$ENV{HOME}/.ssh/config $ENV{HOME}/.ssh/*/config");
+
+sub flush {
+  return if !$host || $host =~ /[*]/;
+  my $info = ($user ? "$user\@" : "") . ($hostname || "-");
+  # 32=green, 33=yellow, 90=gray
+  printf "\e[32m[%s]\e[0m\t\e[33m%s\e[0m\t%s\t\e[90m%s\e[0m\n", $file, $host, $info, ($desc || "");
+}
+
+for my $cfg (@configs) {
+  open my $fh, "<", $cfg or next;
+  ($file = $cfg) =~ s|.*/\.ssh/||;
+  $file =~ s|/config$||;
+  $file = "main" if $file eq "config";
+
+  while (<$fh>) {
+    if (/^Host\s+([^#]+?)(?:\s*#\s*(.+))?$/) {
+      flush() if $host;
+      $host = $1; $host =~ s/\s+$//;
+      $desc = $2 // "";
+      $host = undef if $host =~ /[*]/;
+      $hostname = $user = "";
+    }
+    elsif ($host && /^\s*HostName\s+(.+)/i) { $hostname = $1; }
+    elsif ($host && /^\s*User\s+(.+)/i) { $user = $1; }
+  }
+  flush() if $host;
+  $host = undef;
+  close $fh;
+}
+PERL_SSH_HOSTS
+  )
+}
+_fzf_complete_ssh_post() {
+  awk '{print $2}'
+}
+
 _fzf_complete_m() {
   _fzf_complete --query "${@##* }" --min-height 15 -- "$@" < <(
     mise tasks ls --no-header
