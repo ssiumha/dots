@@ -4,3 +4,4 @@ extends sh/fzf
 extends sh/ssh
 extends sh/kube
 extends sh/util
+extends jq

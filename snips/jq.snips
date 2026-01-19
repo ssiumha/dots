@@ -9,3 +9,67 @@ endsnippet
 snippet delete_using_input_json_arguments ""
 cat /tmp/nodes.json | jq --arg NEEDLE "{{ template "node.fullname" . }}" 'del(.[] | select( . | contains($NEEDLE) ))' > /tmp/nodes-new.json
 endsnippet
+
+# ============================================================================
+# Select Filters
+# ============================================================================
+
+snippet sel "select 기본"
+select(.status == "active")
+endsnippet
+
+snippet sel_and "select with and"
+select(.status == "active" and .count > 10)
+endsnippet
+
+snippet sel_or "select with or"
+select(.type == "error" or .type == "warning")
+endsnippet
+
+snippet sel_not "select 제외 (grep -v)"
+select(.status != "deleted")
+endsnippet
+
+snippet sel_contains "문자열 포함"
+select(.name | contains("test"))
+endsnippet
+
+snippet sel_contains_not "문자열 포함 제외"
+select(.name | contains("test") | not)
+endsnippet
+
+snippet sel_in "여러 값 중 하나"
+select(.status | IN("active", "pending"))
+endsnippet
+
+snippet sel_in_not "여러 값 제외"
+select(.status | IN("deleted", "archived") | not)
+endsnippet
+
+snippet sel_null "null 체크"
+select(.field == null)
+endsnippet
+
+snippet sel_not_null "null 아닌 것"
+select(.field != null)
+endsnippet
+
+# ============================================================================
+# Date Filters
+# ============================================================================
+
+snippet date_now "현재 timestamp"
+now | strftime("%Y-%m-%d")
+endsnippet
+
+snippet date_after "특정 날짜 이후"
+select(.created_at > "2024-01-01")
+endsnippet
+
+snippet date_iso_after "ISO 날짜 비교"
+select(.created_at | fromdateiso8601 > ("2024-01-01T00:00:00Z" | fromdateiso8601))
+endsnippet
+
+snippet date_days_ago "N일 이내"
+select(.created_at | fromdateiso8601 > (now - 7*24*60*60))
+endsnippet
