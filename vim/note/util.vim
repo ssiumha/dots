@@ -26,3 +26,12 @@ endfunction
 function! NoteHasExtension(path) abort
   return a:path =~ '\.[^./]\+$'
 endfunction
+
+" 테이블/날짜 컨텍스트 기반 분기
+function! TableOrDate(table_dir, ...) abort
+  if getline('.') =~ '^\s*|'
+    call tablemode#spreadsheet#MoveCell(a:table_dir)
+  else
+    call call('ShiftDateAtCursor', a:000)
+  endif
+endfunction

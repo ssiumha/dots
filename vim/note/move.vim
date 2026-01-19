@@ -6,6 +6,19 @@ if exists('g:loaded_note_move')
 endif
 let g:loaded_note_move = 1
 
+" 파일 덮어쓰기 확인
+function! s:ConfirmOverwrite(path) abort
+  if !filereadable(a:path)
+    return 1
+  endif
+  let confirm = input("File exists. Overwrite? (y/N): ")
+  if confirm !~? '^y'
+    echo "\nCancelled"
+    return 0
+  endif
+  return 1
+endfunction
+
 " wikilink를 실제 파일 경로로 해석
 function! s:ResolveWikilink(from_dir, link, base_dir) abort
   let path = a:link
@@ -88,12 +101,8 @@ function! s:HandleMoveSelection(base_dir, current_file, result) abort
   let new_path = target_dir . '/' . filename
 
   " 덮어쓰기 확인
-  if filereadable(new_path)
-    let confirm = input("File exists. Overwrite? (y/N): ")
-    if confirm !~? '^y'
-      echo "\nCancelled"
-      return
-    endif
+  if !s:ConfirmOverwrite(new_path)
+    return
   endif
 
   " wikilink 업데이트 (이동 전에 수행)
@@ -122,12 +131,8 @@ function! s:RenameFile(base_dir, current_file) abort
 
   let new_path = dir . '/' . new_name . '.' . ext
 
-  if filereadable(new_path)
-    let confirm = input("File exists. Overwrite? (y/N): ")
-    if confirm !~? '^y'
-      echo "\nCancelled"
-      return
-    endif
+  if !s:ConfirmOverwrite(new_path)
+    return
   endif
 
   call s:UpdateWikilinksForMove(a:base_dir, a:current_file, new_path)

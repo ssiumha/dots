@@ -4,6 +4,14 @@
 " Helper functions
 " ============================================================
 
+" 메뉴 선택 헬퍼: 프롬프트 표시 후 키 입력 반환
+function! s:MenuSelect(prompt) abort
+  echo a:prompt
+  let c = nr2char(getchar())
+  redraw
+  return c
+endfunction
+
 function! s:ReplaceLink(start, end, new_link) abort
   let line = getline('.')
   call setline('.', line[0:a:start-1] . a:new_link . line[a:end:])
@@ -113,8 +121,7 @@ function! EditLinkAtCursor() abort
 endfunction
 
 function! InsertLink() abort
-  echo "Link: [w]iki [m]arkdown"
-  let c = nr2char(getchar()) | redraw
+  let c = s:MenuSelect("Link: [w]iki [m]arkdown")
   if c ==# 'w' | call InsertWikilink()
   elseif c ==# 'm' | call InsertMarkdownLink()
   endif
@@ -135,9 +142,7 @@ function! SmartLink() abort
 endfunction
 
 function! s:WikiLinkMenu(wiki) abort
-  echo 'Wiki: [e]dit [m]arkdown'
-  let c = nr2char(getchar()) | redraw
-
+  let c = s:MenuSelect('Wiki: [e]dit [m]arkdown')
   if c ==# 'e'
     call EditLinkAtCursor()
   elseif c ==# 'm'
@@ -185,9 +190,7 @@ function! s:ExtractRefLinkFull() abort
 endfunction
 
 function! s:LinkActionMenu(md, ref) abort
-  echo 'Link: [e]dit [w]iki [r]ef [i]nline [o]pen'
-  let c = nr2char(getchar()) | redraw
-
+  let c = s:MenuSelect('Link: [e]dit [w]iki [r]ef [i]nline [o]pen')
   if c ==# 'e'
     call EditLinkAtCursor()
   elseif c ==# 'w'

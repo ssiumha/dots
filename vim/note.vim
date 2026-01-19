@@ -41,11 +41,7 @@ let s:default_file = 'index.md'
 
 function! RestoreOrDefault()
   execute 'cd ' . s:default_dir
-  " if filereadable(expand(s:session_path))
-    " execute 'source ' . s:session_path
-  " else
-    execute 'edit ' . s:default_file
-  " endif
+  execute 'edit ' . s:default_file
 endfunction
 
 autocmd VimLeave * mksession! ~/.local/vim/neovide_session.vim
@@ -65,35 +61,6 @@ function! TimelineUpdateVisual() range abort
   execute l:first . ',' . l:last . '!perl -pe ' . shellescape(g:timeline_perl)
 endfunction
 xnoremap <silent> <space>td :<C-u>call TimelineUpdateVisual()<CR>
-
-" call FloatermCmd(g:sh_insert_link, { out -> nvim_put(out, 'c', v:true, v:true) })
-let g:sh_insert_link =<< trim EOF
-link=$(fzf --prompt='LINK> ' --bind 'enter:become:[ -z {} ] && echo {q} || echo {}')
-[ -z $link ] && exit 1
-title=$(echo $link | fzf --prompt='TITLE> ' --bind 'enter:become:echo {q}')
-echo "[$title]($link)"
-EOF
-
-" call FloatermCmd(g:open_or_create_resources, { out -> append(line('.'), out) })
-"nnoremap <space>or :call FloatermCmd(g:open_or_create_resources, { out -> empty(out) ? '' : execute('tabe ' . join(out, '')) })<cr>
-"let g:open_or_create_resources =<< trim EOF
-"doc=$(fd . --base-directory ~/org/resources -t f \
-"  | fzf --bind 'enter:become:[ -z {} ] && echo {q} || echo {}' \
-"        --bind 'ctrl-o:become:touch ~/org/resources/{q} && echo {q}' \
-"        --header 'ctrl-o: new file' \
-")
-"[ $? -ne 0 ] && exit 1
-"[ -z $doc ] && exit 1
-"echo "~/org/resources/$doc"
-"EOF
-
-
-" :echo system(join(g:open_link, "\n"), getline('.'))
-" my ($path, $name) = split /\s+/, <>;
-" print "PATH=$path NAME=$name\n";
-let g:open_link =<< trim EOF
-perl -ne 'print uc'
-EOF
 
 let g:markdown_fenced_languages = [
   \ 'javascript',
@@ -144,22 +111,13 @@ augroup MyMarkdown
   autocmd FileType markdown setlocal foldtext=getline(v:foldstart).'...'
   autocmd FileType markdown nnoremap <buffer> <tab> za
   autocmd FileType markdown setlocal formatoptions+=ro
-  autocmd FileType markdown inoremap <buffer><expr> <tab>
-        \ copilot#GetDisplayedSuggestion().text != '' ? copilot#Accept() :
-        \ getline('.') =~ '^\s*|' ? '<C-o>:call tablemode#spreadsheet#MoveCell("l")<CR>' :
-        \ '<tab>'
-  autocmd FileType markdown inoremap <buffer><expr> <s-tab>
-        \ getline('.') =~ '^\s*|' ? '<C-o>:call tablemode#spreadsheet#MoveCell("h")<CR>' :
-        \ '<s-tab>'
   autocmd FileType markdown inoremap <buffer><expr> <CR>
-        \ getline('.') =~ '^\s*|' ? '<C-o>:call tablemode#spreadsheet#MoveCell("j")<CR>' :
         \ getline('.') =~# '^\s*[-*+]\s*$' ? '<Esc>S<CR>' : '<CR>'
   " Copilot accept: <C-]> (Tab은 리스트 indent용)
   autocmd FileType markdown imap <buffer><silent><script><expr> <C-]> copilot#Accept("\<CR>")
   autocmd FileType markdown nnoremap <buffer> <cr> :call OpenWiki()<cr>
   autocmd FileType markdown nnoremap <buffer> <c-c><c-l> :call SmartLink()<cr>
   autocmd FileType markdown inoremap <buffer> <C-c><C-l> <C-o>:call SmartLink()<CR>
-  autocmd FileType markdown nnoremap <buffer> <c-c><c-l> :call SmartLink()<cr>
   autocmd FileType markdown nnoremap <buffer> <c-c><c-p> :call DataviewProperty()<cr>
   autocmd FileType markdown nnoremap <buffer> <c-c><c-o> :call MarkdownOutline()<cr>
   autocmd FileType markdown nnoremap <buffer> <c-c><c-w> :MoveFileFzf<cr>
@@ -170,10 +128,10 @@ augroup MyMarkdown
 
   autocmd FileType markdown inoremap <buffer> [[ <C-o>:call LocalLinkFzf()<CR>
 
-  autocmd FileType markdown noremap <S-Up>    :call ShiftDateAtCursor(1)<CR>
-  autocmd FileType markdown noremap <S-Down>  :call ShiftDateAtCursor(-1)<CR>
-  autocmd FileType markdown noremap <S-Left>  :call ShiftDateAtCursor(-1, 'day')<CR>
-  autocmd FileType markdown noremap <S-Right> :call ShiftDateAtCursor(1, 'day')<CR>
+  autocmd FileType markdown noremap <S-Up>    :call TableOrDate('k', 1)<CR>
+  autocmd FileType markdown noremap <S-Down>  :call TableOrDate('j', -1)<CR>
+  autocmd FileType markdown noremap <S-Left>  :call TableOrDate('h', -1, 'day')<CR>
+  autocmd FileType markdown noremap <S-Right> :call TableOrDate('l', 1, 'day')<CR>
 
   autocmd InsertEnter *.md setlocal foldmethod=manual
   autocmd InsertLeave *.md setlocal foldmethod=expr
