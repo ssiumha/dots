@@ -18,6 +18,15 @@ require 'socket'
 #   mise run db:irb <ssh-host> <postgres-url> --write  # prod에서 쓰기 허용
 #   mise run db:irb - <postgres-url>                   # 로컬 직접 연결
 #   mise run db:irb <postgres-url>                     # 로컬 직접 연결 (단축)
+#   mise run db:irb - <postgres-url> -e 'User.first'   # 코드 실행 후 종료
+
+# -e 옵션 파싱 (다른 옵션보다 먼저)
+exec_code = nil
+if (idx = ARGV.index('-e'))
+  exec_code = ARGV[idx + 1]
+  ARGV.delete_at(idx + 1)
+  ARGV.delete_at(idx)
+end
 
 write_mode = ARGV.delete('--write')
 
@@ -286,6 +295,54 @@ env_name = case ssh_target.to_s
 
 db_name = uri.path&.sub('/', '') || 'unknown'
 readonly_msg = readonly ? " \e[33m[READ-ONLY]\e[0m" : ""
+
+# -e 모드: 코드 실행 후 종료
+if exec_code
+  def print_result(result)
+    case result
+    when Sequel::Dataset
+      rows = result.all
+      return puts "No rows" if rows.empty?
+
+      cols = rows.first.keys
+      widths = cols.map { |c| [c.to_s.length, rows.map { |r| r[c].to_s.length }.max].max }
+
+      # 헤더
+      puts cols.zip(widths).map { |c, w| c.to_s.ljust(w) }.join("  ")
+      puts widths.map { |w| "-" * w }.join("  ")
+      # 데이터
+      rows.each { |r| puts cols.zip(widths).map { |c, w| r[c].to_s.ljust(w) }.join("  ") }
+      puts "(#{rows.size} rows)"
+    when Array
+      if result.empty?
+        puts "[]"
+      elsif result.first.is_a?(Hash)
+        # Hash 배열도 테이블로
+        cols = result.first.keys
+        widths = cols.map { |c| [c.to_s.length, result.map { |r| r[c].to_s.length }.max].max }
+        puts cols.zip(widths).map { |c, w| c.to_s.ljust(w) }.join("  ")
+        puts widths.map { |w| "-" * w }.join("  ")
+        result.each { |r| puts cols.zip(widths).map { |c, w| r[c].to_s.ljust(w) }.join("  ") }
+        puts "(#{result.size} rows)"
+      else
+        pp result
+      end
+    when nil
+      # 출력 안 함
+    else
+      pp result
+    end
+  end
+
+  begin
+    result = eval(exec_code)
+    print_result(result)
+  rescue => e
+    warn "\e[31mError: #{e.message}\e[0m"
+    exit 1
+  end
+  exit 0
+end
 
 puts "Connected to #{env_name} (#{db_name})#{readonly_msg}. Type 'help' for cheatsheet."
 

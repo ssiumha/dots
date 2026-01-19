@@ -872,6 +872,10 @@ end
 
 # VPC 인스턴스 메서드 추가
 Aws::EC2::Vpc.class_eval do
+  def instances
+    EC2.where('vpc-id': vpc_id)
+  end
+
   def topology
     puts "\e[36m#{id}\e[0m #{cidr_block} #{name}"
     puts ""
