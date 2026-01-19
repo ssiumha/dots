@@ -16,7 +16,7 @@ Claude Code는 다양한 설정 방식을 제공합니다. **컨텍스트 소비
 | 유형 | 로드 시점 | 용도 |
 |------|----------|------|
 | CLAUDE.md | 항상 | 핵심 규칙, 필수 설정 |
-| rules/ | 항상 | 상세 규칙 분리 (20줄+ 시) |
+| rules/ | 자동 로드 (paths 지정 시 해당 경로만) | 상세 규칙 분리 (20줄+ 시) |
 | hooks/ | 이벤트 시 | 도구 호출 전후 자동 실행 |
 | commands/ | 호출 시만 | 반복 작업 템플릿 (/auto-dev) |
 | skills/ | 필요 시만 | 전문 지식 패키지 (drawio) |
@@ -102,9 +102,11 @@ paths: src/api/**/*.ts
 프로젝트별 CLAUDE.md를 리뷰하고 정리합니다.
 
 **핵심 목표**:
-- 프로젝트 고유 정보만 유지 (50-100줄)
+- 프로젝트 고유 정보만 간결하게 유지 (토큰 효율성 우선)
 - 범용 패턴은 Skills로 분리
 - 필수 항목 누락 방지
+- 정해진 형식 없음, 간결하고 읽기 쉽게
+- 실제 문제 해결 중심
 
 ## Instructions
 
@@ -131,10 +133,10 @@ Read claude.md (또는 CLAUDE.md)
 
 **분석 항목**:
 
-1. **길이 체크**
-   - 50-100줄: ✅ 적절
-   - 100-200줄: ⚠️ 약간 김
-   - 200줄 이상: ❌ Skills 분리 필요
+1. **컨텍스트 효율성 체크**
+   - 간결하고 핵심만: ✅ 적절
+   - 다소 장황함: ⚠️ 약간 김
+   - 범용 내용 많음: ❌ Skills 분리 필요
 
 2. **Skills로 분리할 내용 감지**
 
@@ -166,8 +168,8 @@ Read claude.md (또는 CLAUDE.md)
 ## 📊 claude.md 리뷰 결과
 
 ### 전체 현황
-- 총 라인: XXX줄 (권장: 50-100줄)
-- 상태: ✅ 적절 / ⚠️ 약간 김 / ❌ 분리 필요
+- 총 라인: XXX줄
+- 상태: ✅ 간결하고 적절 / ⚠️ 약간 김 / ❌ 분리 필요
 
 ### Skills로 분리 권장 (총 YYY줄)
 1. TypeScript 컨벤션 (50줄) → patterns-typescript
@@ -253,7 +255,7 @@ Read claude.md (또는 CLAUDE.md)
 
 정리 후 재확인:
 
-- 길이: 50-100줄 이내?
+- 간결한가?
 - 필수 항목 모두 포함?
 - Skills 참조 명확?
 
@@ -322,7 +324,7 @@ Read claude.md (또는 CLAUDE.md)
 
 ## 대규모 프로젝트 CLAUDE.md
 
-대규모 엔터프라이즈 프로젝트는 50-100줄 제한을 초과할 수 있습니다.
+대규모 엔터프라이즈 프로젝트는 일반 권장 범위를 초과할 수 있습니다.
 
 ### 언제 200줄+ CLAUDE.md가 필요한가?
 
@@ -398,7 +400,7 @@ public ResponseEntity<List<UserResponse>> getUsers() {
 - [ ] 환경변수 필수 항목
 
 ### 품질
-- [ ] 50-100줄 이내
+- [ ] 간결하게 유지
 - [ ] Skills 참조 명확
 - [ ] 프로젝트 고유 정보만
 - [ ] 섹션 구조 명확
@@ -440,8 +442,8 @@ Assistant:
 ## Technical Details
 
 템플릿은 `templates/` 디렉토리 참조:
-- minimal.md: 최소 구성 (50줄 이하)
-- web-app.md: 웹앱 프로젝트 (100줄 이하)
-- api-server.md: API 서버 (200줄 이하)
-- monorepo.md: 모노레포 (150줄 이하)
-- enterprise.md: 엔터프라이즈 프로젝트 (200줄+, DDD, 규제 준수)
+- minimal.md: 최소 구성
+- web-app.md: 웹앱 프로젝트
+- api-server.md: API 서버
+- monorepo.md: 모노레포
+- enterprise.md: 엔터프라이즈 프로젝트 (DDD, 규제 준수)

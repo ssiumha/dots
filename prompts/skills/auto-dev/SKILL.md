@@ -48,76 +48,95 @@ description: Manages autonomous development workflow from feature to PR. Use whe
 
 **목표**: 구현 계획 수립 및 문서화
 
-1. **dev-docs 워크플로우 1 실행**
-   - 작업 디렉토리 생성
-   - plan.md, context.md, tasks.md 생성
+1. **병렬 준비** (단일 메시지):
+   - Task(general-purpose, "dev-docs WF1 실행: 작업 디렉토리 생성, plan.md/context.md/tasks.md 생성")
+   - Task(Explore, "ldoc WF5: 관련 지식 검색 및 재사용 가능한 패턴 확인")
 
-2. **Living Docs 관련 지식 확인**
-   - 기존 관련 문서 검색 (ldoc 워크플로우 5)
-   - 재사용 가능한 패턴 확인
-
-3. **Tasks 분해**
+2. **Tasks 분해**
    - 구현 단계를 tasks.md에 체크리스트로 작성
    - 단순 → 복잡 순서로 정렬
    - 각 task는 독립적으로 테스트 가능하게
 
-4. **state.md 생성**
+3. **state.md 생성**
    - 현재 phase: PLAN
    - 완료 조건 목록
    - retry_count: 0
 
-5. **Phase 전환 조건**
+4. **Phase 전환 조건**
    - tasks.md에 task가 1개 이상
    - state.md 생성 완료
 
 ### Phase 3: IMPLEMENT (구현 루프)
 
-**목표**: TDD로 각 task 구현
+**목표**: TDD로 각 task 구현 (Task별 단위 검증)
 
 ```
 LOOP until 모든 task 완료 (최대 20회 반복, 10회 초과 시 사용자 확인):
-  1. tasks.md에서 다음 미완료 task 선택
+  0. **Sectioning**: tasks.md 분석하여 독립 task 그룹 식별
+     - 의존성 없음: 병렬 호출 가능 (단일 메시지에 3-5개 Task)
+     - 같은 파일 수정: 순차 필수
+     - 순서 의존성: 순차 필수
+
+  1. tasks.md에서 다음 미완료 task(들) 선택
+
   2. tdd-practices 적용:
      - RED: 실패하는 테스트 작성
      - GREEN: 최소 구현으로 통과
      - REFACTOR: 정리
-  3. 테스트 실행
+
+  3. **Task별 검증**: 단일 task 완료 시 해당 테스트만 실행
+     - **단일 파일 테스트**: 직접 실행 허용
+     - **전체 테스트**: Task(Bash, "전체 테스트 실행 후 결과 요약") 위임 필수
+
   4. [실패] → 막힘 대응 (아래 참조)
+
   5. [성공] → test-verifier agent로 품질 검증
      - Task tool로 호출: `subagent_type: test-verifier`
      - 입력: 테스트 파일 경로, 실행 결과, 완료 조건
      - [High/Medium 이슈] → 수정 후 재검증 (task당 최대 2회)
      - [3회 초과] → 블로커로 전환
      - [Low 이슈만 or 없음] → 진행
+
   6. 커밋, tasks.md 체크 표시
+
   7. state.md 업데이트
 ```
 
 **막힘 대응 (동일 에러 기준)**:
-- 1차: 에러 메시지 분석, 관련 코드 검토
-- 2차: 다른 접근법 시도
-- 3차: 최소 범위로 축소 테스트
-- 4차: state.md에 블로커 기록 → 사용자 질문
+- 1차 시도: 에러 메시지 분석, 관련 코드 검토
+- 2차 시도: 다른 접근법 시도
+- 3차 시도: 최소 범위로 축소 테스트
+- 4차 시도 후: state.md에 블로커 기록 → 사용자 질문
 
 **Phase 전환 조건**:
 - tasks.md의 모든 checkbox가 [x]
-- 전체 테스트 통과
+- 블로커 없음
 
-### Phase 3.5: VERIFY (검증 루프)
+### Phase 3.5: VERIFY (전체 검증 루프)
 
-**목표**: 품질 2-3배 향상을 위한 체계적 검증
+**목표**: 회귀 테스트 + 전체 품질 검증
 
-모든 task 완료 후, PR 생성 전 필수 실행:
+**진입 조건**:
+- Phase 3의 모든 task 완료 (tasks.md 체크박스 모두 [x])
+- 블로커 없음
+
+**Phase 3과 차이점**:
+- Phase 3: Task별 단위 검증 (test-verifier, 단일 테스트)
+- Phase 3.5: 전체 회귀 테스트 + 코드 리뷰 (전체 테스트, code-reviewer)
+
+PR 생성 전 필수 실행:
 
 ```
 VERIFY_LOOP (최대 3회):
-  1. 전체 테스트 실행
-  2. [실패] → 수정 후 다시 1번
-  3. code-reviewer agent 호출 (Task tool)
-     - 입력: 변경된 파일 목록
-     - 분석: 품질, 보안, 성능
-  4. [Critical/High 이슈] → 수정 후 다시 1번
-  5. [Medium 이하만] → VERIFY 완료
+  1. **병렬 검증** (단일 메시지):
+     - Task(Bash, "전체 테스트 실행 후 결과 요약. 성공: 통과 개수만, 실패: 상위 5개 에러")
+     - Task(code-reviewer, "변경 파일 품질/보안/성능 분석")
+
+  2. [테스트 실패] → 수정 후 다시 1번
+
+  3. [Critical/High 이슈] → 수정 후 다시 1번
+
+  4. [테스트 통과 + Medium 이하 이슈만] → VERIFY 완료
 ```
 
 **조기 종료 조건**:
@@ -160,28 +179,30 @@ VERIFY_LOOP (최대 3회):
 
 ## 막힘 대응 매트릭스
 
-| 상황 | 1차 시도 | 2차 시도 | 3차 시도 | 이후 |
-|------|----------|----------|----------|------|
-| 테스트 실패 | 에러 분석 | 코드 재검토 | 다른 접근 | 질문 |
-| 타입 에러 | 타입 정의 확인 | 의존성 확인 | 캐스팅 시도 | 질문 |
-| 빌드 실패 | 로그 분석 | 의존성 확인 | 캐시 정리 | 질문 |
+| 상황 | 1차 시도 | 2차 시도 | 3차 시도 | 4차 시도 후 |
+|------|----------|----------|----------|-------------|
+| 테스트 실패 | 에러 분석 | 코드 재검토 | 다른 접근 | 블로커 전환 → 질문 |
+| 타입 에러 | 타입 정의 확인 | 의존성 확인 | 캐스팅 시도 | 블로커 전환 → 질문 |
+| 빌드 실패 | 로그 분석 | 의존성 확인 | 캐시 정리 | 블로커 전환 → 질문 |
 
 **retry_count 관리**:
 - 동일 에러 해시로 판단: `에러타입:파일:라인` 조합 (예: `TypeError:auth.py:42`)
-- 3회 초과 시 블로커로 전환
-- 다른 에러면 카운트 리셋
+- 4차 시도 후 블로커로 전환
+- **에러 해시 변경 시 retry_count 리셋**: 다른 에러 타입, 파일, 라인이면 새 에러로 간주
 
 ## 스킬/에이전트 연동
 
-| Phase | 호출 | 역할 |
-|-------|------|------|
-| SPECIFY | spec-validator agent | 요구사항 검증, 질문 생성 |
-| PLAN | dev-docs WF1 | 3문서 생성 |
-| PLAN | ldoc 워크플로우 5 | 관련 지식 검색 |
-| IMPLEMENT | tdd-practices | RED-GREEN-REFACTOR |
-| IMPLEMENT | test-verifier agent | Overfitting 감지, 테스트 품질 검증 |
-| VERIFY | code-reviewer agent | 품질, 보안, 성능 분석 |
-| COMPLETE | dev-docs WF4 | Living Docs 통합 |
+| Phase | 호출 | 역할 | 반환 형식 |
+|-------|------|------|----------|
+| SPECIFY | spec-validator agent | 요구사항 검증, 질문 생성 | 질문 목록 + 완료 조건 초안 |
+| PLAN | dev-docs WF1 | 3문서 생성 | 파일 경로 + 생성 확인 |
+| PLAN | ldoc 워크플로우 5 | 관련 지식 검색 | 파일 경로 + 핵심 패턴 (1-3개) |
+| IMPLEMENT | tdd-practices | RED-GREEN-REFACTOR | 구현 완료 확인 |
+| IMPLEMENT | test-verifier agent | Overfitting 감지, 테스트 품질 검증 | 등급 + 이슈 상위 3개 |
+| IMPLEMENT | Bash (전체 테스트) | 테스트 실행 및 결과 요약 | ✓ 통과 개수 or ✗ 상위 5개 에러 |
+| VERIFY | Bash (전체 테스트) | 테스트 실행 및 결과 요약 | ✓ 통과 개수 or ✗ 상위 5개 에러 |
+| VERIFY | code-reviewer agent | 품질, 보안, 성능 분석 | Summary + Critical/High 상위 3개 |
+| COMPLETE | dev-docs WF4 | Living Docs 통합 | 통합 내용 + 아카이브 경로 |
 
 ## 파일 위치
 
@@ -312,6 +333,10 @@ dev-docs 워크플로우 4 (작업 완료) 실행:
 4. **무한 루프 방지**: 동일 에러 3회까지만
 5. **세션 복원**: state.md 항상 최신 유지
 6. **Context 압축**: 긴 세션 시 핵심만 state.md에 요약
+7. **병렬 우선 (Parallel First)**:
+   - 독립 task는 단일 메시지에 동시 호출
+   - 의존성 있을 때만 순차 실행 (정당화 필요)
+   - 최적 배치: 3-5개 (최대 10개)
 
 ## Context 압축 (긴 세션용)
 

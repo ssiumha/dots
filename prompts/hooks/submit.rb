@@ -44,11 +44,14 @@ begin
     end
   end
 
-  # 활성화된 규칙이 있으면 평문으로 context 추가 (exit 0 + stdout)
+  # 항상 리마인더 출력 (Default Parallel + Skill-First)
+  puts "⚡ Default Parallel: 독립 작업은 단일 메시지에 모든 Task 동시 호출."
+  puts "🔧 Skill-First: 적합한 Skill 있으면 사용. 미사용은 예외."
+
+  # 추가로 매칭된 규칙 출력
   unless activated_rules.empty?
-    puts activated_rules.join("\n\n")
+    puts "\n" + activated_rules.join("\n\n")
   end
-  # 규칙 없으면 아무것도 출력하지 않음 (기본 동작)
 
 rescue => e
   # 에러 발생 시 아무것도 출력하지 않음 (Hook 실패해도 사용자 경험 방해 안함)
