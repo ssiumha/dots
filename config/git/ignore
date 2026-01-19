@@ -23,6 +23,7 @@ tmp
 .roast
 .serena
 .claude
+.plan
 claude-swarm.yml
 **/.claude/settings.local.json
 
