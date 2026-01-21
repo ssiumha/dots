@@ -10,10 +10,10 @@
 위임 시 **단일 메시지에 모든 Task 호출**:
 ```
 # 탐색 3개 → 동시 호출
-Task(Explore, "파일 A") + Task(Explore, "파일 B") + Task(Explore, "파일 C")
+[위임: Explore, "파일 A"] + [위임: Explore, "파일 B"] + [위임: Explore, "파일 C"]
 
 # 구현 + 테스트 + 리뷰 → 독립적이면 동시 호출
-Task(general-purpose, "A.ts") + Task(general-purpose, "B.ts") + Task(Bash, "lint")
+[위임: general-purpose, "A.ts"] + [위임: general-purpose, "B.ts"] + [위임: Bash, "lint"]
 ```
 
 ## 순차 위임 (예외, 정당화 필수)
@@ -26,7 +26,7 @@ Task(general-purpose, "A.ts") + Task(general-purpose, "B.ts") + Task(Bash, "lint
 순차 실행 시 반드시 이유 명시:
 ```
 # (순차: commit은 add 결과에 의존)
-Task(Bash, "git add") → Task(Bash, "git commit")
+[위임: Bash, "git add"] → [위임: Bash, "git commit"]
 ```
 
 ## 배치 사이즈
@@ -49,13 +49,13 @@ N개 중 M개 실패 시:
 
 ```
 # 잘못된 예
-Task(Explore, "전체 코드베이스 분석")  # 단일 에이전트에 과부하
+[위임: Explore, "전체 코드베이스 분석"]  # 단일 에이전트에 과부하
 
 # 올바른 예: 디렉토리별 분할
-Task(Explore, "src/auth/") + Task(Explore, "src/api/") + Task(Explore, "src/utils/")
+[위임: Explore, "src/auth/"] + [위임: Explore, "src/api/"] + [위임: Explore, "src/utils/"]
 
 # 올바른 예: 파일 개수별 분할 (10개 파일 → 3-4개씩)
-Task(general-purpose, "A,B,C.ts") + Task(general-purpose, "D,E,F.ts") + Task(general-purpose, "G,H,I,J.ts")
+[위임: general-purpose, "A,B,C.ts"] + [위임: general-purpose, "D,E,F.ts"] + [위임: general-purpose, "G,H,I,J.ts"]
 ```
 
 분할 기준:

@@ -47,7 +47,7 @@ ast-grep --lang typescript -p 'import { $_ } from "react"'
 
 ## Subagent 위임 기준
 
-다음 상황에서 즉시 `Task(subagent_type=Explore)` 사용:
+다음 상황에서 즉시 `[위임: Explore]` 사용:
 
 - 3개 이상 파일 탐색 필요
 - "어디서", "어떻게" 등 탐색적 질문
@@ -59,7 +59,7 @@ ast-grep --lang typescript -p 'import { $_ } from "react"'
 Grep → Read → Read → Read... (컨텍스트 소모)
 
 # 올바른 예
-Task(subagent_type=Explore, prompt="X 관련 파일 분석") → 요약 결과 → 필요 시 타겟 Read
+[위임: Explore, "X 관련 파일 분석"] → 요약 결과 → 필요 시 타겟 Read
 ```
 
 **Explore 프롬프트 작성 요령**:
@@ -87,7 +87,7 @@ test, build, lint 등 출력이 긴 작업은 subagent에 위임하여 컨텍스
 Bash: npm test  (출력 수백 줄 → 컨텍스트 소모)
 
 # 올바른 예
-Task(subagent_type=Bash, prompt="npm test 실행 후 결과 요약. 성공 시 통과 개수만, 실패 시 상위 5개 에러")
+[위임: Bash, "npm test 실행 후 결과 요약. 성공 시 통과 개수만, 실패 시 상위 5개 에러"]
 → "✓ 전체 통과 (42 passed)" 또는 "✗ 3개 실패: [요약]"
 ```
 

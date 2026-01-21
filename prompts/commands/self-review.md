@@ -7,9 +7,8 @@ allowed-tools: Read, Glob, Grep, Edit, Task(code-reviewer)
 
 ## 대상 파일
 
-!`git diff --name-only HEAD`
-
-멀티레포의 경우 각 저장소에서 개별 실행하세요.
+워크플로우 시작 시 `git diff --name-only HEAD`로 확인합니다.
+git 저장소가 아니거나 변경 파일이 없으면 대상 파일을 직접 지정하세요.
 
 ## 워크플로우
 
