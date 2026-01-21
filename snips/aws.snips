@@ -1,3 +1,5 @@
+extends aws/cloudwatch
+
 snippet monthly_pricing "roughly. base 2024-10"
 EBS gp3           | $91  /TB
 EBS gp2           | $114 /TB

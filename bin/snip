@@ -94,8 +94,15 @@ resolve_imports() {
 
     # extends 라인 파싱 (첫 snippet 정의 전까지만)
     while IFS= read -r import; do
-      imported="${import}.snips"
-      [ -r "$imported" ] && queue+=("$imported")
+      if [[ "$import" == */ ]]; then
+        # 디렉토리인 경우 - 하위 모든 .snips 추가
+        for f in "$import"*.snips; do
+          [ -r "$f" ] && queue+=("$f")
+        done
+      else
+        imported="${import}.snips"
+        [ -r "$imported" ] && queue+=("$imported")
+      fi
     done < <(perl -ne 'last if /^snippet /; print "$1\n" if /^extends\s+(.+)/' "$file" 2>/dev/null)
   done
 

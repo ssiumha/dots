@@ -1,0 +1,32 @@
+snippet sq_config "SQ_CONFIG로 프로젝트별 설정"
+[env]
+SQ_CONFIG = "{{config_root}}/.sq"
+endsnippet
+
+snippet sq_init "멱등적 데이터소스 초기화"
+[tasks."sq:init"]
+run = """
+sq ls @dev 2>/dev/null || sq add "$DEV_DATABASE_URL" -n @dev --skip-verify
+sq ls @prod 2>/dev/null || sq add "$PROD_DATABASE_URL" -n @prod --skip-verify
+"""
+endsnippet
+
+snippet sq_export "YAML 추출"
+[tasks."db:export"]
+run = "sq '@{{arg(name=\"handle\")}}.{{arg(name=\"table\")}}' -y > /tmp/{{arg(name=\"table\")}}.yml"
+endsnippet
+
+snippet sq_copy "src에서 dest로 데이터 복사"
+[tasks."db:copy"]
+run = "sq --insert=@dest.{{arg(name='table')}} '@src.{{arg(name='table')}} | .[0:{{arg(name='limit', default='100')}}]'"
+endsnippet
+
+snippet sq_upsert "임시테이블로 upsert (PostgreSQL)"
+[tasks."db:upsert"]
+run = """
+sq --insert=@dest.tmp_{{arg(name='table')}} '@src.{{arg(name='table')}}'
+sq sql --src=@dest 'INSERT INTO {{arg(name="table")}} SELECT * FROM tmp_{{arg(name="table")}} ON CONFLICT ({{arg(name="pk", default="id")}}) DO NOTHING'
+sq tbl drop @dest.tmp_{{arg(name='table')}}
+"""
+# 충돌 시 덮어쓰려면: DO UPDATE SET col1=EXCLUDED.col1, col2=EXCLUDED.col2
+endsnippet

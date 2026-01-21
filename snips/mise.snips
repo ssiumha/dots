@@ -1,3 +1,5 @@
+extends mise/
+
 snippet base_template ""
 [env]
 APP_ENV = "local"
@@ -229,4 +231,17 @@ PGPASSWORD="special_chars_password" # or encoding
 
 [tasks]
 "pj:db:tunnel".run = 'ssh -Nv -L 15432:aurora.cluster.ap-northeast-2.rds.amazonaws.com:5432 user@host'
+endsnippet
+
+snippet trust_config ""
+[settings]
+trusted_config_paths = ["./"]
+endsnippet
+
+snippet postgres_deps ""
+[env]
+# require: brew install pkgconfig icu4c openssl
+PKG_CONFIG_PATH="/opt/homebrew/opt/icu4c/lib/pkgconfig:/opt/homebrew/opt/openssl/lib/pkgconfig:$PKG_CONFIG_PATH"
+LDFLAGS="-L/opt/homebrew/opt/openssl/lib"
+CPPFLAGS="-I/opt/homebrew/opt/openssl/include"
 endsnippet

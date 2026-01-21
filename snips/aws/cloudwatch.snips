@@ -1,0 +1,71 @@
+snippet cw_grep "message를 특정 문자열로 grep"
+fields @timestamp, @message
+| filter @message like /검색어/
+| sort @timestamp desc
+| limit 100
+endsnippet
+
+snippet cw_grep_case_insensitive "대소문자 무시 grep"
+fields @timestamp, @message
+| filter @message like /(?i)검색어/
+| sort @timestamp desc
+| limit 100
+endsnippet
+
+snippet cw_grep_regex "정규표현식으로 grep"
+fields @timestamp, @message
+| filter @message like /pattern|regex|pattern/
+| sort @timestamp desc
+| limit 100
+endsnippet
+
+snippet cw_error "Error/Exception 로그 찾기"
+fields @timestamp, @message, @logStream
+| filter @message like /ERROR|Exception|error|exception/
+| sort @timestamp desc
+| limit 1000
+endsnippet
+
+snippet cw_stats_count "시간대별 로그 카운트"
+fields @timestamp
+| stats count() as log_count by bin(5m)
+endsnippet
+
+snippet cw_stats_by_field "특정 필드별 집계"
+fields @logStream, @message
+| stats count() as cnt by @logStream
+| sort cnt desc
+endsnippet
+
+snippet cw_json_parse "JSON 로그 파싱"
+fields @timestamp, @message
+| filter @message like /\{/
+| stats count() as cnt by @message
+endsnippet
+
+snippet cw_latency "응답 시간 분석 (percentile)"
+fields @timestamp, responseTime
+| filter responseTime > 0
+| stats avg(responseTime) as avg_latency, pct(responseTime, 50) as p50, pct(responseTime, 95) as p95, pct(responseTime, 99) as p99
+endsnippet
+
+snippet cw_unique "고유값 추출"
+fields @message
+| filter @message like /특정문자/
+| stats count_distinct(@message) as unique_count
+endsnippet
+
+snippet cw_aws_cli_query "aws logs start-query로 실행하는 전체 예시"
+aws logs start-query \
+  --log-group-name /aws/lambda/my-function \
+  --start-time $(gdate -d "1 hour ago" +%s) \
+  --end-time $(gdate +%s) \
+  --query-string \
+    "fields @timestamp, @message, @logStream
+      | filter @message like /ERROR/
+      | sort @timestamp desc
+      | limit 1000" \
+  | jq -r '.queryId' \
+  | xargs -I {} aws logs get-query-results --query-id {} \
+  | jq -r '.results[] | map({(.field | sub("@"; "")): .value}) | add | [.timestamp, .logStream, .message] | @tsv'
+endsnippet
